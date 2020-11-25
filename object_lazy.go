@@ -297,7 +297,7 @@ func (o *lazyObject) swap(i, j int64) {
 
 func (o *lazyObject) MemUsage(ctx *MemUsageContext) (uint64, error) {
 	if o.val != nil {
-		return EmptySize, nil
+		return SizeEmpty, nil
 	}
 	if ctx.IsObjVisited(o.val.self) {
 		return 0, nil

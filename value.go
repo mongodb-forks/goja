@@ -102,10 +102,11 @@ type Value interface {
 }
 
 const (
-	BoolSize   = uint64(unsafe.Sizeof(true))
-	NumberSize = uint64(unsafe.Sizeof(float64(0)))
-	IntSize    = uint64(unsafe.Sizeof(float64(0)))
-	EmptySize  = uint64(unsafe.Sizeof((*baseObject)(nil)))
+	SizeBool   = uint64(unsafe.Sizeof(true))
+	SizeNumber = uint64(unsafe.Sizeof(float64(0)))
+	SizeInt32  = uint64(unsafe.Sizeof(int32(0)))
+	SizeInt    = uint64(unsafe.Sizeof(int(0)))
+	SizeEmpty  = uint64(unsafe.Sizeof((*baseObject)(nil)))
 )
 
 type valueContainer interface {
@@ -191,7 +192,7 @@ func fToStr(num float64, mode ftoa.FToStrMode, prec int) string {
 }
 
 func (i valueInt) MemUsage(ctx *MemUsageContext) (uint64, error) {
-	return NumberSize, nil
+	return SizeNumber, nil
 }
 
 func (i valueInt) assertInt() (int, bool) {
@@ -320,7 +321,7 @@ func (i valueInt) hash(*maphash.Hash) uint64 {
 }
 
 func (o valueBool) MemUsage(ctx *MemUsageContext) (uint64, error) {
-	return BoolSize, nil
+	return SizeBool, nil
 }
 
 func (b valueBool) ToInt() int {
@@ -532,7 +533,7 @@ func (n valueNull) IsObject() bool {
 }
 
 func (n valueNull) MemUsage(ctx *MemUsageContext) (uint64, error) {
-	return EmptySize, nil
+	return SizeEmpty, nil
 }
 
 func (u valueUndefined) toString() valueString {
@@ -686,7 +687,7 @@ func (p *valueProperty) set(this, v Value) {
 	}
 	call, _ := p.setterFunc.self.assertCallable()
 	call(FunctionCall{
-		ctx:       p.getterFunc.runtime.vm.ctx,
+		ctx:       p.setterFunc.runtime.vm.ctx,
 		This:      this,
 		Arguments: []Value{v},
 	})
@@ -725,7 +726,7 @@ func (p *valueProperty) hash(*maphash.Hash) uint64 {
 }
 
 func (p *valueProperty) MemUsage(ctx *MemUsageContext) (uint64, error) {
-	total := EmptySize
+	total := SizeEmpty
 	total += uint64(len(p.String())) // count size of property name towards total object size.
 	if p.value != nil {
 		inc, err := p.value.MemUsage(ctx)
@@ -793,7 +794,7 @@ func floatToIntClip(n float64) int64 {
 }
 
 func (f valueFloat) MemUsage(ctx *MemUsageContext) (uint64, error) {
-	return NumberSize, nil
+	return SizeNumber, nil
 }
 
 func (f valueFloat) ToInt() int {
@@ -1069,19 +1070,19 @@ func (o *Object) hash(*maphash.Hash) uint64 {
 
 func (o *Object) MemUsage(ctx *MemUsageContext) (uint64, error) {
 	if o.__wrapped != nil {
-		return EmptySize, nil
+		return SizeEmpty, nil
 	}
 	switch x := o.self.(type) {
 	case *objectGoReflect:
-		return EmptySize, nil
+		return SizeEmpty, nil
 	case *objectGoMapReflect:
-		return EmptySize, nil
+		return SizeEmpty, nil
 	case *objectGoMapSimple:
-		return EmptySize, nil
+		return SizeEmpty, nil
 	case *objectGoSlice:
-		return EmptySize, nil
+		return SizeEmpty, nil
 	case *objectGoSliceReflect:
-		return EmptySize, nil
+		return SizeEmpty, nil
 	case *arrayObject:
 		return x.MemUsage(ctx)
 	case *nativeFuncObject:

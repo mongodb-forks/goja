@@ -9,26 +9,11 @@ import (
 )
 
 func (i valueNumber) MemUsage(ctx *MemUsageContext) (uint64, error) {
-	return NumberSize, nil
+	return SizeNumber, nil
 }
 
 func (i valueNumber) ToInteger() int64 {
-	switch v := i.val.(type) {
-	case int:
-		return int64(v)
-	case int8:
-		return int64(v)
-	case int32:
-		return int64(v)
-	case int64:
-		return v
-	case uint32:
-		return int64(v)
-	case uint64:
-		return int64(v)
-	}
-
-	return 0
+	return i.ToInt64()
 }
 
 func (i valueNumber) ToInt() int {
@@ -125,11 +110,11 @@ func (i valueNumber) toString() valueString {
 	return asciiString(i.String())
 }
 func (i valueNumber) String() string {
-	return strconv.FormatInt(int64(i.ToInt()), 10)
+	return strconv.FormatInt(i.ToInt64(), 10)
 }
 
 func (i valueNumber) string() unistring.String {
-	return unistring.String(strconv.FormatInt(int64(i.ToInt()), 10))
+	return unistring.String(i.String())
 }
 
 func (i valueNumber) ToFloat() float64 {
@@ -169,7 +154,7 @@ func (i valueNumber) Equals(other Value) bool {
 		return o.ToNumber().Equals(i)
 	}
 	if o, ok := other.(valueBool); ok {
-		return int(i.ToInt()) == o.ToInt()
+		return i.ToInt() == o.ToInt()
 	}
 	if o, ok := other.(*Object); ok {
 		return i.Equals(o.self.toPrimitiveNumber())
@@ -220,7 +205,7 @@ func (i valueNumber) ExportType() reflect.Type {
 }
 
 func (i valueUInt32) MemUsage(ctx *MemUsageContext) (uint64, error) {
-	return NumberSize, nil
+	return SizeInt32, nil
 }
 
 func (i valueUInt32) ToInt() int {
@@ -252,7 +237,7 @@ func (i valueUInt32) String() string {
 }
 
 func (i valueUInt32) string() unistring.String {
-	return unistring.String(strconv.FormatInt(int64(i.ToInt()), 10))
+	return unistring.String(i.String())
 }
 func (i valueUInt32) IsObject() bool {
 	return false
@@ -285,8 +270,8 @@ func (i valueUInt32) SameAs(other Value) bool {
 }
 
 func (i valueUInt32) Equals(other Value) bool {
-	if o, ok := other.assertInt32(); ok {
-		return int32(i) == o
+	if o, ok := other.assertUInt32(); ok {
+		return uint32(i) == o
 	}
 	if o, ok := other.assertFloat(); ok {
 		return float64(i) == o
@@ -350,7 +335,7 @@ func (i valueUInt32) ExportType() reflect.Type {
 }
 
 func (i valueInt32) MemUsage(ctx *MemUsageContext) (uint64, error) {
-	return NumberSize, nil
+	return SizeInt32, nil
 }
 
 func (i valueInt32) hash(*maphash.Hash) uint64 {
@@ -386,7 +371,7 @@ func (i valueInt32) String() string {
 }
 
 func (i valueInt32) string() unistring.String {
-	return unistring.String(strconv.FormatInt(int64(i.ToInt()), 10))
+	return unistring.String(i.String())
 }
 func (i valueInt32) IsObject() bool {
 	return false
@@ -479,7 +464,7 @@ func (i valueInt32) ExportType() reflect.Type {
 }
 
 func (i valueInt64) MemUsage(ctx *MemUsageContext) (uint64, error) {
-	return NumberSize, nil
+	return SizeNumber, nil
 }
 
 func (i valueInt64) ToInt() int {
@@ -511,7 +496,7 @@ func (i valueInt64) String() string {
 }
 
 func (i valueInt64) string() unistring.String {
-	return unistring.String(strconv.FormatInt(int64(i.ToInt()), 10))
+	return unistring.String(i.String())
 }
 func (i valueInt64) IsObject() bool {
 	return false
@@ -573,7 +558,7 @@ func (i valueInt64) StrictEquals(other Value) bool {
 }
 
 func (i valueInt64) assertInt() (int, bool) {
-	return 0, true
+	return 0, false
 }
 func (i valueInt64) assertUInt32() (uint32, bool) {
 	return 0, false

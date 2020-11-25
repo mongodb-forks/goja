@@ -140,5 +140,5 @@ func (d *dateObject) timeUTC() time.Time {
 }
 
 func (d *dateObject) MemUsage(ctx *MemUsageContext) (uint64, error) {
-	return EmptySize, nil
+	return SizeEmpty, nil
 }

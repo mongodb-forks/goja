@@ -1582,7 +1582,7 @@ func (o *baseObject) MemUsage(ctx *MemUsageContext) (uint64, error) {
 		return 0, nil
 	}
 	ctx.VisitObj(o)
-	total := EmptySize
+	total := SizeEmpty
 	// if o.val != nil {
 	// 	inc, err := o.val.MemUsage(ctx)
 	// 	total += inc
@@ -1592,6 +1592,7 @@ func (o *baseObject) MemUsage(ctx *MemUsageContext) (uint64, error) {
 	// }
 
 	for k, v := range o.values {
+		total += uint64(len(k))
 		// v := o.val.self.getStr(name.string(), nil)
 		// if v == nil {
 		// 	continue
@@ -1602,7 +1603,6 @@ func (o *baseObject) MemUsage(ctx *MemUsageContext) (uint64, error) {
 		if err != nil {
 			return total, err
 		}
-		fmt.Println("total is for key", total, k)
 	}
 	// for k, val := range o.values {
 	// 	total += uint64(len(k))
@@ -1620,7 +1620,7 @@ func (o *baseObject) MemUsage(ctx *MemUsageContext) (uint64, error) {
 }
 
 func (self *primitiveValueObject) MemUsage(ctx *MemUsageContext) (uint64, error) {
-	total := EmptySize
+	total := SizeEmpty
 	// self.mu.RLock()
 	// defer self.mu.RUnlock()
 	for k, v := range self.values {
@@ -1636,5 +1636,5 @@ func (self *primitiveValueObject) MemUsage(ctx *MemUsageContext) (uint64, error)
 		// }
 	}
 	return total, nil
-	// return EmptySize, nil
+	// return SizeEmpty, nil
 }

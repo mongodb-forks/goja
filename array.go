@@ -634,7 +634,7 @@ func strToGoIdx(s unistring.String) int {
 }
 
 func (a *arrayObject) MemUsage(ctx *MemUsageContext) (uint64, error) {
-	total := EmptySize
+	total := SizeEmpty
 
 	// inc, err := a.baseObject.MemUsage(ctx)
 	// total += inc

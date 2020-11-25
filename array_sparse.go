@@ -453,5 +453,5 @@ func (a *sparseArrayObject) exportType() reflect.Type {
 }
 
 func (a *sparseArrayObject) MemUsage(ctx *MemUsageContext) (uint64, error) {
-	return EmptySize, nil
+	return SizeEmpty, nil
 }

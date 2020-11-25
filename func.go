@@ -293,7 +293,7 @@ func (f *nativeFuncObject) MemUsage(ctx *MemUsageContext) (uint64, error) {
 	}
 	ctx.VisitObj(f)
 
-	total := EmptySize
+	total := SizeEmpty
 	for _, k := range f.propNames {
 		prop := f.getOwnPropStr(k)
 		inc, err := prop.MemUsage(ctx)
