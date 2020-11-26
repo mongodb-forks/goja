@@ -1220,7 +1220,7 @@ func (o *Object) MarshalJSON() ([]byte, error) {
 	return ctx.buf.Bytes(), nil
 }
 
-// ClassName returns the class name
+// Class returns the class name
 func (o *Object) Class() string {
 	return o.self.className()
 }

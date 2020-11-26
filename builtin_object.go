@@ -356,6 +356,10 @@ func (r *Runtime) object_keys(call FunctionCall) Value {
 }
 
 func (r *Runtime) object_values(call FunctionCall) Value {
+	if !call.Argument(0).IsObject() {
+		panic(r.NewTypeError("Object prototype may only be an Object or null"))
+	}
+
 	obj := call.Argument(0).ToObject(r)
 	keys := obj.self.ownKeys(false, nil)
 	values := make([]Value, 0, len(keys))

@@ -1357,7 +1357,7 @@ func TestCreateObject(t *testing.T) {
 }
 
 // (realm): we currently rely on this panicking back up to stop the execution.
-// in the future, we should look to be able to handle this correctly and remove out crutch on a panic.
+// in the future, we should look to be able to handle this correctly and remove our crutch on a panic.
 // func TestInterruptInWrappedFunction(t *testing.T) {
 // 	rt := New()
 // 	v, err := rt.RunString(`

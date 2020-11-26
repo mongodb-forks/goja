@@ -95,15 +95,6 @@ func (r *Runtime) arrayBufferProto_getByteLength(call FunctionCall) Value {
 	panic(r.NewTypeError("Object is not ArrayBuffer: %s", o))
 }
 
-// func (r *Runtime) arrayBufferProto_setByteLength(call FunctionCall) Value {
-// 	o := r.toObject(call.This)
-// 	if b, ok := o.self.(*arrayBufferObject); ok {
-// 		b.ensureNotDetached()
-// 		return intToValue(int64(len(b.data)))
-// 	}
-// 	panic(r.NewTypeError("Object is not ArrayBuffer: %s", o))
-// }
-
 func (r *Runtime) arrayBufferProto_slice(call FunctionCall) Value {
 	o := r.toObject(call.This)
 	if b, ok := o.self.(*arrayBufferObject); ok {

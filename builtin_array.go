@@ -349,6 +349,7 @@ func (r *Runtime) arrayproto_sort(call FunctionCall) Value {
 	}
 
 	ctx := arraySortCtx{
+		ctx:     call.ctx,
 		obj:     o.self,
 		compare: compareFn,
 	}
@@ -1303,6 +1304,7 @@ type sortable interface {
 }
 
 type arraySortCtx struct {
+	ctx     context.Context
 	obj     sortable
 	compare func(FunctionCall) Value
 }
@@ -1334,7 +1336,7 @@ func (a *arraySortCtx) sortCompare(x, y Value) int {
 
 	if a.compare != nil {
 		f := a.compare(FunctionCall{
-			ctx:       context.Background(),
+			ctx:       a.ctx,
 			This:      _undefined,
 			Arguments: []Value{x, y},
 		}).ToFloat()

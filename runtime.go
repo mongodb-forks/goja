@@ -193,7 +193,6 @@ type Runtime struct {
 }
 
 func (self *Runtime) Ticks() uint64 {
-	fmt.Println("hitting ticks", self.ticks)
 	return self.ticks
 }
 
@@ -431,21 +430,22 @@ func (r *Runtime) typeErrorResult(throw bool, args ...interface{}) {
 func (r *Runtime) MemUsage(ctx *MemUsageContext) (uint64, error) {
 	total := uint64(0)
 
-	// if r.globalObject != nil {
-	// 	inc, err := r.globalObject.self.MemUsage(ctx)
-	// 	total += inc
-	// 	if err != nil {
-	// 		return total, err
-	// 	}
-	// }
+	if r.globalObject != nil {
+		inc, err := r.globalObject.self.MemUsage(ctx)
+		total += inc
+		fmt.Println("inc, total", inc, total)
+		if err != nil {
+			return total, err
+		}
+	}
 
-	// if r.vm.stack != nil {
-	// 	inc, err := r.vm.stack.MemUsage(ctx)
-	// 	total += inc
-	// 	if err != nil {
-	// 		return total, err
-	// 	}
-	// }
+	if r.vm.stack != nil {
+		inc, err := r.vm.stack.MemUsage(ctx)
+		total += inc
+		if err != nil {
+			return total, err
+		}
+	}
 	// if r.vm.stash != nil {
 	// 	inc, err := r.vm.stash.MemUsage(ctx)
 	// 	total += inc
@@ -1143,7 +1143,7 @@ func New() *Runtime {
 	return r
 }
 
-// New creates an instance of a Javascript runtime that can be used to run code. Multiple instances may be created and
+// NewWithContext creates an instance of a Javascript runtime that can be used to run code. Multiple instances may be created and
 // used simultaneously, however it is not possible to pass JS values across runtimes.
 func NewWithContext(ctx context.Context) *Runtime {
 	r := &Runtime{ctx: ctx}

@@ -42,7 +42,7 @@ func (i valueNumber) ToInt32() int32 {
 	case int8:
 		return int32(v)
 	case int32:
-		return int32(v)
+		return v
 	case int64:
 		return int32(v)
 	case uint32:
@@ -233,7 +233,7 @@ func (i valueUInt32) toString() valueString {
 	return asciiString(i.String())
 }
 func (i valueUInt32) String() string {
-	return strconv.FormatInt(int64(i.ToInt()), 10)
+	return strconv.FormatInt(i.ToInteger(), 10)
 }
 
 func (i valueUInt32) string() unistring.String {
@@ -367,7 +367,7 @@ func (i valueInt32) toString() valueString {
 	return asciiString(i.String())
 }
 func (i valueInt32) String() string {
-	return strconv.FormatInt(int64(i.ToInt()), 10)
+	return strconv.FormatInt(i.ToInteger(), 10)
 }
 
 func (i valueInt32) string() unistring.String {
@@ -492,7 +492,7 @@ func (i valueInt64) toString() valueString {
 	return asciiString(i.String())
 }
 func (i valueInt64) String() string {
-	return strconv.FormatInt(int64(i.ToInt()), 10)
+	return strconv.FormatInt(i.ToInteger(), 10)
 }
 
 func (i valueInt64) string() unistring.String {

@@ -2,12 +2,14 @@ package goja
 
 import (
 	"errors"
+	"hash/maphash"
 )
 
 type visitTracker struct {
 	objsVisited    map[objectImpl]bool
 	stashesVisited map[*stash]bool
-	valsVisited    map[Value]bool
+	valsVisited    map[uint64]bool
+	h              *maphash.Hash
 }
 
 func (vt visitTracker) IsObjVisited(obj objectImpl) bool {
@@ -20,12 +22,15 @@ func (vt visitTracker) VisitObj(obj objectImpl) {
 }
 
 func (vt visitTracker) IsValVisited(obj Value) bool {
-	_, ok := vt.valsVisited[obj]
+	if obj == nil {
+		return true
+	}
+	_, ok := vt.valsVisited[obj.hash(vt.h)]
 	return ok
 }
 
 func (vt visitTracker) VisitVal(obj Value) {
-	vt.valsVisited[obj] = true
+	vt.valsVisited[obj.hash(vt.h)] = true
 }
 
 func (vt visitTracker) IsStashVisited(stash *stash) bool {
@@ -105,14 +110,16 @@ func (self *stash) MemUsage(ctx *MemUsageContext) (uint64, error) {
 }
 
 type MemUsageContext struct {
+	vm *Runtime
 	visitTracker
 	*depthTracker
 	NativeMemUsageChecker
 }
 
-func NewMemUsageContext(maxDepth int, nativeChecker NativeMemUsageChecker) *MemUsageContext {
+func NewMemUsageContext(vm *Runtime, maxDepth int, nativeChecker NativeMemUsageChecker) *MemUsageContext {
 	return &MemUsageContext{
-		visitTracker:          visitTracker{objsVisited: map[objectImpl]bool{}, valsVisited: map[Value]bool{}, stashesVisited: map[*stash]bool{}},
+		vm:                    vm,
+		visitTracker:          visitTracker{objsVisited: map[objectImpl]bool{}, valsVisited: map[uint64]bool{}, stashesVisited: map[*stash]bool{}, h: &maphash.Hash{}},
 		depthTracker:          &depthTracker{curDepth: 0, maxDepth: maxDepth},
 		NativeMemUsageChecker: nativeChecker,
 	}

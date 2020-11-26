@@ -1100,7 +1100,7 @@ func (r *Runtime) regexpproto_stdReplacer(call FunctionCall) Value {
 		rx.updateLastIndex(index, nil, nil)
 	}
 
-	return stringReplace(s, found, replaceStr, rcall)
+	return stringReplace(call.ctx, s, found, replaceStr, rcall)
 }
 
 func (r *Runtime) initRegExp() {

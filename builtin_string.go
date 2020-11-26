@@ -553,7 +553,7 @@ func getReplaceValue(replaceValue Value) (str valueString, rcall func(FunctionCa
 	return
 }
 
-func stringReplace(s valueString, found [][]int, newstring valueString, rcall func(FunctionCall) Value) Value {
+func stringReplace(ctx context.Context, s valueString, found [][]int, newstring valueString, rcall func(FunctionCall) Value) Value {
 	if len(found) == 0 {
 		return s
 	}
@@ -591,7 +591,7 @@ func stringReplace(s valueString, found [][]int, newstring valueString, rcall fu
 			argumentList[matchCount] = valueInt(item[0])
 			argumentList[matchCount+1] = s
 			replacement := rcall(FunctionCall{
-				ctx:       context.Background(),
+				ctx:       ctx,
 				This:      _undefined,
 				Arguments: argumentList,
 			}).toString()
@@ -647,7 +647,7 @@ func (r *Runtime) stringproto_replace(call FunctionCall) Value {
 	}
 
 	str, rcall := getReplaceValue(replaceValue)
-	return stringReplace(s, found, str, rcall)
+	return stringReplace(call.ctx, s, found, str, rcall)
 }
 
 func (r *Runtime) stringproto_search(call FunctionCall) Value {

@@ -1789,7 +1789,7 @@ func (_pop) exec(vm *vm) {
 }
 
 func (vm *vm) callEval(n int, strict bool) {
-	// (DIVERSION: REALMC-5102 if the user tries to call eval, we will throw a function not found
+	// REALMC-5102 if the user tries to call eval, we will throw a function not found
 	if _, ok := vm.stack[vm.sp-n-1].(*Object); !ok {
 		panic(vm.r.NewTypeError("'eval' is not a function"))
 	}
@@ -2633,13 +2633,20 @@ func (jmp iterNext) exec(vm *vm) {
 func (stack valueStack) MemUsage(ctx *MemUsageContext) (uint64, error) {
 	total := uint64(0)
 	for _, self := range stack {
-		if ctx.IsValVisited(self) {
+		if self != nil && self.ExportType() != nil && self.ExportType().Kind() == reflect.Func {
 			return 0, nil
 		}
-		ctx.VisitVal(self)
+		// obj := self.baseObject(ctx.vm)
+		// if ctx.IsValVisited(self) {
+		// 	fmt.Printf("self is visited %T %+v\n", self, self)
+		// 	return 0, nil
+		// }
+		// ctx.VisitVal(self)
 
 		inc, err := self.MemUsage(ctx)
+		fmt.Printf("self is not visited, incrementing by %v %T %+v\n", inc, self, self)
 		total += inc
+		fmt.Println("this brings total to: ", total)
 		if err != nil {
 			return total, err
 		}
