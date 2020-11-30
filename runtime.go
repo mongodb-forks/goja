@@ -522,7 +522,7 @@ func (r *Runtime) NewTypeError(args ...interface{}) *Object {
 		msg = fmt.Sprintf(f, args[1:]...)
 	}
 	e := r.builtin_new(r.global.TypeError, []Value{newStringValue(msg)})
-	e.Set("customerror", true)
+	e.Set(fieldCustomError, true)
 	return e
 }
 
@@ -2423,7 +2423,7 @@ func (r *Runtime) MakeTypeError(args ...interface{}) *Object {
 	}
 
 	e := r.builtin_new(r.global.TypeError, []Value{newStringValue(msg)})
-	e.self.setOwnStr("customerror", TrueValue(), false)
+	e.self.setOwnStr(fieldCustomError, TrueValue(), false)
 	return e
 }
 

@@ -824,9 +824,9 @@ func (f valueFloat) ToInt64() int64 {
 	case math.IsNaN(float64(f)):
 		return 0
 	case math.IsInf(float64(f), 1):
-		return int64(math.MaxInt32)
+		return int64(math.MaxInt64)
 	case math.IsInf(float64(f), -1):
-		return int64(math.MinInt32)
+		return int64(math.MinInt64)
 	}
 	return int64(f)
 }
@@ -837,7 +837,7 @@ func (f valueFloat) ToUInt32() uint32 {
 	case math.IsInf(float64(f), 1):
 		return uint32(math.MaxInt32)
 	case math.IsInf(float64(f), -1):
-		return uint32(f)
+		return 0
 	}
 	return uint32(f)
 }

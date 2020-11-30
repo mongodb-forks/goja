@@ -439,7 +439,7 @@ func (vm *vm) try(ctx1 context.Context, f func()) (ex *Exception) {
 							ex.nativeErr = nErr
 						}
 					}
-					ce := v.Get("customerror")
+					ce := v.Get(fieldCustomError)
 					if ce != nil && ce.SameAs(TrueValue()) {
 						ex.ignoreStack = true
 					}
@@ -565,7 +565,7 @@ func (vm *vm) toCallee(v Value) *Object {
 		unresolved.throw()
 		panic("Unreachable")
 	case memberUnresolved:
-		// (REALMC-XXXX) can revert this once otto is gone
+		// (REALMC-7469) can revert this once otto is gone
 		panic(vm.r.NewTypeError("'%s' is not a function", unresolved.ref))
 	}
 	panic(vm.r.NewTypeError("Value is not an object: %s", v.toString()))
@@ -1216,7 +1216,7 @@ func (g getProp) exec(vm *vm) {
 	v := vm.stack[vm.sp-1]
 	obj := v.baseObject(vm.r)
 	if obj == nil {
-		// (REALMC-XXXX) can revert this once otto is gone
+		// (REALMC-7469) can revert this once otto is gone
 		panic(vm.r.NewTypeError("Cannot access member '%s' of undefined", g))
 	}
 	vm.stack[vm.sp-1] = nilSafe(obj.self.getStr(unistring.String(g), v))
@@ -1231,7 +1231,7 @@ func (g getPropCallee) exec(vm *vm) {
 	obj := v.baseObject(vm.r)
 	n := unistring.String(g)
 	if obj == nil {
-		// (REALMC-XXXX) can revert this once otto is gone
+		// (REALMC-7469) can revert this once otto is gone
 		panic(vm.r.NewTypeError("Cannot access member '%s' of undefined", n))
 	}
 	prop := obj.self.getStr(n, v)
@@ -1252,7 +1252,7 @@ func (_getElem) exec(vm *vm) {
 	obj := v.baseObject(vm.r)
 	propName := toPropertyKey(vm.stack[vm.sp-1])
 	if obj == nil {
-		// (REALMC-XXXX) can revert this once otto is gone
+		// (REALMC-7469) can revert this once otto is gone
 		panic(vm.r.NewTypeError("Cannot access member '%s' of undefined", propName.String()))
 	}
 
@@ -1271,7 +1271,7 @@ func (_getElemCallee) exec(vm *vm) {
 	obj := v.baseObject(vm.r)
 	propName := toPropertyKey(vm.stack[vm.sp-1])
 	if obj == nil {
-		// (REALMC-XXXX) can revert this once otto is gone
+		// (REALMC-7469) can revert this once otto is gone
 		panic(vm.r.NewTypeError("Cannot access member '%s' of undefined", propName.String()))
 	}
 
@@ -2456,7 +2456,7 @@ func (_typeof) exec(vm *vm) {
 		r = stringBoolean
 	case valueString:
 		r = stringString
-	case valueInt, valueFloat, valueNumber:
+	case valueInt, valueFloat, valueNumber, valueInt32, valueInt64, valueUInt32:
 		r = stringNumber
 	case *valueSymbol:
 		r = stringSymbol

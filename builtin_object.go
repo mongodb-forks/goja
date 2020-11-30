@@ -463,7 +463,8 @@ func (r *Runtime) objectproto_toString(call FunctionCall) Value {
 		if obj == nil {
 			return newStringValue("[object Object]")
 		}
-		if obj.self.getStr("name", nil) != UndefinedValue() && obj.self.getStr("name", nil) != nil && obj.self.getStr("name", nil).string() != "" {
+		name := obj.self.getStr("name", nil)
+		if name != UndefinedValue() && name != nil && name.string() != "" {
 			return newStringValue(fmt.Sprintf("[object %s]", obj.self.getStr("name", nil)))
 		}
 		var clsName string
@@ -595,25 +596,14 @@ func (r *Runtime) initObject() {
 	o._putProp("keys", r.newNativeFunc(r.object_keys, nil, "keys", nil, 1), true, false, true)
 	o._putProp("setPrototypeOf", r.newNativeFunc(r.object_setPrototypeOf, nil, "setPrototypeOf", nil, 2), true, false, true)
 
-	entriesFunc := r.newNativeFunc(r.object_entries, nil, "entries", nil, 0)
+	entriesFunc := r.newNativeFunc(r.object_entries, nil, "entries", nil, 1)
 	o._putSym(symIterator, valueProp(entriesFunc, true, false, true))
 	o._putSym(symToStringTag, valueProp(asciiString(classObject), false, false, true))
 
 	o._putProp("values", r.newNativeFunc(r.object_values, nil, "values", nil, 1), true, false, true)
 	o._putProp("entries", r.newNativeFunc(r.object_entries, nil, "entries", nil, 1), true, false, true)
 
-	o._putProp("fromEntries", r.newNativeFunc(r.object_fromEntries, nil, "fromEntries", nil, 2), true, false, true)
-
-	bl := r.newBaseObject(nil, classObject)
-	bl.setOwnStr("copyWithin", valueTrue, true)
-	bl.setOwnStr("entries", valueTrue, true)
-	bl.setOwnStr("fill", valueTrue, true)
-	bl.setOwnStr("find", valueTrue, true)
-	bl.setOwnStr("findIndex", valueTrue, true)
-	bl.setOwnStr("includes", valueTrue, true)
-	bl.setOwnStr("keys", valueTrue, true)
-	bl.setOwnStr("values", valueTrue, true)
-	o._putSym(symUnscopables, valueProp(bl.val, false, false, true))
+	o._putProp("fromEntries", r.newNativeFunc(r.object_fromEntries, nil, "fromEntries", nil, 1), true, false, true)
 
 	r.addToGlobal("Object", r.global.Object)
 }

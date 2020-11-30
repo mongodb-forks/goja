@@ -35,7 +35,6 @@ func (vt visitTracker) VisitVal(obj Value) {
 
 func (vt visitTracker) IsStashVisited(stash *stash) bool {
 	_, ok := vt.stashesVisited[stash]
-	// fmt.Println("visited :check:")
 	return ok
 }
 

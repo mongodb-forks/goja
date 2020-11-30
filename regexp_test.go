@@ -489,6 +489,7 @@ func TestRegexpOverrideSpecies(t *testing.T) {
 	testScript1(SCRIPT, _undefined, t)
 }
 
+// TODO(REALMC-7469): upgrade underlying regex (github.com/dlclark/regexp2 v1.2.0) back to v1.4.0
 // func TestRegexp2InvalidEscape(t *testing.T) {
 // 	testScript1(`/(?=)\x0/.test("x0")`, valueTrue, t)
 // }

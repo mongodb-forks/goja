@@ -7,6 +7,8 @@ import (
 	"github.com/dop251/goja/unistring"
 )
 
+const fieldCustomError = "customerror"
+
 type Property struct {
 	Name  string
 	Value Value
@@ -40,7 +42,7 @@ func (r *Runtime) TryToValue(i interface{}) (Value, error) {
 func (r *Runtime) MakeCustomError(name, msg string) *Object {
 	e := r.newError(r.global.Error, msg).(*Object)
 	e.self.setOwnStr("name", asciiString(name), false)
-	e.self.setOwnStr("customerror", TrueValue(), false)
+	e.self.setOwnStr(fieldCustomError, TrueValue(), false)
 	return e
 }
 
@@ -113,7 +115,6 @@ func (r *Runtime) CreateNativeClass(
 	classProps []Property,
 	funcProps []Property,
 ) NativeClass {
-	// needed for instance of
 	classProto := r.builtin_new(r.global.Object, []Value{})
 	o := classProto.self
 	o._putProp("name", asciiString(className), true, false, true)
@@ -188,11 +189,10 @@ func (n NativeClass) InstanceOf(val interface{}) Value {
 		if n.getStacktrace != nil {
 			stackTrace := n.getStacktrace(err)
 			if len(stackTrace) == 0 {
-				obj.self.setOwnStr("customerror", TrueValue(), false)
+				obj.self.setOwnStr(fieldCustomError, TrueValue(), false)
 			}
 		}
 		obj.self._putProp("message", newStringValue(err.Error()), true, false, true)
-		// stack trace support
 	}
 	obj.self._putProp("name", asciiString(n.className), true, false, true)
 	for _, prop := range n.funcProps {

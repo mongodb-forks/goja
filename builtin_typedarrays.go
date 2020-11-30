@@ -95,6 +95,11 @@ func (r *Runtime) arrayBufferProto_getByteLength(call FunctionCall) Value {
 	panic(r.NewTypeError("Object is not ArrayBuffer: %s", o))
 }
 
+// (REALMC-7469: can be removed) arrayBufferProto_setByteLength is needed to satisfy otto
+func (r *Runtime) arrayBufferProto_setByteLength(call FunctionCall) Value {
+	return _undefined
+}
+
 func (r *Runtime) arrayBufferProto_slice(call FunctionCall) Value {
 	o := r.toObject(call.This)
 	if b, ok := o.self.(*arrayBufferObject); ok {
@@ -206,6 +211,11 @@ func (r *Runtime) dataViewProto_getByteLen(call FunctionCall) Value {
 		return intToValue(int64(dv.byteLen))
 	}
 	panic(r.NewTypeError("Method get DataView.prototype.byteLength called on incompatible receiver %s", call.This.String()))
+}
+
+// (REALMC-7469: can be removed) arrayBufferProto_setByteLength is needed to satisfy otto
+func (r *Runtime) dataViewProto_setByteLen(call FunctionCall) Value {
+	return _undefined
 }
 
 func (r *Runtime) dataViewProto_getByteOffset(call FunctionCall) Value {
@@ -369,6 +379,11 @@ func (r *Runtime) typedArrayProto_getByteLen(call FunctionCall) Value {
 		return intToValue(int64(ta.length) * int64(ta.elemSize))
 	}
 	panic(r.NewTypeError("Method get TypedArray.prototype.byteLength called on incompatible receiver %s", call.This.String()))
+}
+
+// (REALMC-7469: can be removed) arrayBufferProto_setByteLength is needed to satisfy otto
+func (r *Runtime) typedArrayProto_setByteLen(call FunctionCall) Value {
+	return _undefined
 }
 
 func (r *Runtime) typedArrayProto_getLength(call FunctionCall) Value {
@@ -1260,7 +1275,7 @@ func (r *Runtime) createArrayBufferProto(val *Object) objectImpl {
 		configurable: true,
 		writable:     true,
 		getterFunc:   r.newNativeFunc(r.arrayBufferProto_getByteLength, nil, "get byteLength", nil, 0),
-		setterFunc:   r.newNativeFunc(r.arrayBufferProto_getByteLength, nil, "set byteLength", nil, 0),
+		setterFunc:   r.newNativeFunc(r.arrayBufferProto_setByteLength, nil, "set byteLength", nil, 0),
 	}
 	b._put("byteLength", byteLengthProp)
 	b._putProp("constructor", r.global.ArrayBuffer, true, false, true)
@@ -1292,7 +1307,7 @@ func (r *Runtime) createDataViewProto(val *Object) objectImpl {
 		configurable: true,
 		writable:     true,
 		getterFunc:   r.newNativeFunc(r.dataViewProto_getByteLen, nil, "get byteLength", nil, 0),
-		setterFunc:   r.newNativeFunc(r.dataViewProto_getByteLen, nil, "get byteLength", nil, 0),
+		setterFunc:   r.newNativeFunc(r.dataViewProto_getByteLen, nil, "set byteLength", nil, 0),
 	})
 	b._put("byteOffset", &valueProperty{
 		accessor:     true,
@@ -1338,7 +1353,7 @@ func (r *Runtime) createTypedArrayProto(val *Object) objectImpl {
 		configurable: true,
 		writable:     true,
 		getterFunc:   r.newNativeFunc(r.typedArrayProto_getByteLen, nil, "get byteLength", nil, 0),
-		setterFunc:   r.newNativeFunc(r.typedArrayProto_getByteLen, nil, "get byteLength", nil, 0),
+		setterFunc:   r.newNativeFunc(r.typedArrayProto_setByteLen, nil, "set byteLength", nil, 0),
 	})
 	b._put("byteOffset", &valueProperty{
 		accessor:     true,

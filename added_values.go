@@ -147,8 +147,9 @@ func (i valueNumber) Equals(other Value) bool {
 	if o, ok := other.assertInt(); ok {
 		return i.ToInt() == o
 	}
+
 	if o, ok := other.assertFloat(); ok {
-		return float64(i.ToInt()) == o
+		return i.ToFloat() == o
 	}
 	if o, ok := other.assertString(); ok {
 		return o.ToNumber().Equals(i)
@@ -164,9 +165,9 @@ func (i valueNumber) Equals(other Value) bool {
 
 func (i valueNumber) StrictEquals(other Value) bool {
 	if otherInt, ok := other.assertInt(); ok {
-		return int(i.ToInt()) == otherInt
+		return i.ToInt() == otherInt
 	} else if otherFloat, ok := other.assertFloat(); ok {
-		return float64(i.ToInt()) == otherFloat
+		return i.ToFloat() == otherFloat
 	}
 	return false
 }
