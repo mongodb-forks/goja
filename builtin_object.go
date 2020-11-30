@@ -356,10 +356,6 @@ func (r *Runtime) object_keys(call FunctionCall) Value {
 }
 
 func (r *Runtime) object_values(call FunctionCall) Value {
-	if !call.Argument(0).IsObject() {
-		panic(r.NewTypeError("Object prototype may only be an Object or null"))
-	}
-
 	obj := call.Argument(0).ToObject(r)
 	keys := obj.self.ownKeys(false, nil)
 	values := make([]Value, 0, len(keys))
@@ -370,10 +366,6 @@ func (r *Runtime) object_values(call FunctionCall) Value {
 }
 
 func (r *Runtime) object_entries(call FunctionCall) Value {
-	if !call.Argument(0).IsObject() {
-		panic(r.NewTypeError("Object prototype may only be an Object or null"))
-	}
-
 	object := call.Argument(0).ToObject(r)
 	if object == nil {
 		panic(r.NewTypeError("Object prototype may only be an Object or null"))
@@ -388,10 +380,6 @@ func (r *Runtime) object_entries(call FunctionCall) Value {
 }
 
 func (r *Runtime) object_fromEntries(call FunctionCall) Value {
-	if !call.Argument(0).IsObject() {
-		panic(r.NewTypeError("Object prototype may only be an Object or null"))
-	}
-
 	object := call.Argument(0).ToObject(r)
 	if object == nil || !isArray(object) {
 		panic(r.NewTypeError("Object must be of type array"))
