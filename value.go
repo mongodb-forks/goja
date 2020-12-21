@@ -1089,7 +1089,10 @@ func (o *Object) MemUsage(ctx *MemUsageContext) (uint64, error) {
 	}
 
 	if o.__wrapped != nil {
-		return SizeEmpty, nil
+		nativeMem, ok := ctx.NativeMemUsage(o.__wrapped)
+		if ok {
+			return nativeMem, nil
+		}
 	}
 
 	switch x := o.self.(type) {

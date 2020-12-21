@@ -5,11 +5,21 @@ import (
 	"testing"
 )
 
-type NoopNativeMemUsageChecker struct {
+const testNativeValueMemUsage = 100
+
+type TestNativeValue struct {
 }
 
-func (nnmu NoopNativeMemUsageChecker) NativeMemUsage(goNativeValue interface{}) (uint64, bool) {
-	return 0, false
+type TestNativeMemUsageChecker struct {
+}
+
+func (muc TestNativeMemUsageChecker) NativeMemUsage(value interface{}) (uint64, bool) {
+	switch value.(type) {
+	case TestNativeValue:
+		return testNativeValueMemUsage, true
+	default:
+		return 0, false
+	}
 }
 
 func TestMemCheck(t *testing.T) {
@@ -342,18 +352,32 @@ func TestMemCheck(t *testing.T) {
 				4 + 5 + // Error "name" field + len("Error")
 				SizeEmpty + SizeEmpty, // base object + prototype
 		},
+		{
+			"Native value",
+			`checkMem();
+			nv = new MyNativeVal()
+			checkMem();`,
+			testNativeValueMemUsage + 2,
+		},
 	} {
 		t.Run(fmt.Sprintf(tc.description), func(t *testing.T) {
 			memChecks := []uint64{}
 			vm := New()
 			vm.Set("checkMem", func(call FunctionCall) Value {
-				mem, err := vm.MemUsage(NewMemUsageContext(vm, 100, NoopNativeMemUsageChecker{}))
+				mem, err := vm.MemUsage(NewMemUsageContext(vm, 100, TestNativeMemUsageChecker{}))
 				if err != nil {
 					t.Fatal(err)
 				}
 				memChecks = append(memChecks, mem)
 				return UndefinedValue()
 			})
+
+			nc := vm.CreateNativeClass("MyNativeVal", func(call FunctionCall) interface{} {
+				return TestNativeValue{}
+			}, nil, nil)
+
+			vm.Set("MyNativeVal", nc.Function)
+
 			_, err := vm.RunString(tc.script)
 			if err != nil {
 				t.Fatal(err)
@@ -409,12 +433,12 @@ func TestMemMaxDepth(t *testing.T) {
 
 			// All global variables are contained in the Runtime's globalObject field, which causes
 			// them to be one level deeper
-			_, err = vm.MemUsage(NewMemUsageContext(vm, tc.expectedDepth, NoopNativeMemUsageChecker{}))
+			_, err = vm.MemUsage(NewMemUsageContext(vm, tc.expectedDepth, TestNativeMemUsageChecker{}))
 			if err != ErrMaxDepth {
 				t.Fatalf("expected mem check to hit depth limit error, but got nil %v", err)
 			}
 
-			_, err = vm.MemUsage(NewMemUsageContext(vm, tc.expectedDepth+1, NoopNativeMemUsageChecker{}))
+			_, err = vm.MemUsage(NewMemUsageContext(vm, tc.expectedDepth+1, TestNativeMemUsageChecker{}))
 			if err != nil {
 				t.Fatalf("expected to NOT hit mem check hit depth limit error, but got %v", err)
 			}
