@@ -156,6 +156,8 @@ type proxyHandler interface {
 	construct(target *Object, args []Value, newTarget *Object) (Value, bool)
 
 	toObject(*Runtime) *Object
+
+	MemUsage(ctx *MemUsageContext) (uint64, error)
 }
 
 type jsProxyHandler struct {
@@ -1039,4 +1041,49 @@ func (p *proxyObject) export(*objectExportCtx) interface{} {
 func (p *proxyObject) revoke() {
 	p.handler = nil
 	p.target = nil
+}
+
+func (p *proxyObject) MemUsage(ctx *MemUsageContext) (uint64, error) {
+	if p == nil || ctx.IsObjVisited(p) {
+		return SizeEmpty, nil
+	}
+	ctx.VisitObj(p)
+
+	if err := ctx.Descend(); err != nil {
+		return 0, err
+	}
+
+	total := SizeEmpty
+	inc, baseObjetErr := p.baseObject.MemUsage(ctx)
+	total += inc
+	if baseObjetErr != nil {
+		return total, baseObjetErr
+	}
+
+	if p.target != nil {
+		inc, err := p.target.MemUsage(ctx)
+		total += inc
+		if err != nil {
+			return total, err
+		}
+	}
+
+	if p.handler != nil {
+		inc, err := p.handler.MemUsage(ctx)
+		total += inc
+		if err != nil {
+			return total, err
+		}
+	}
+
+	ctx.Ascend()
+
+	return total, nil
+}
+
+func (h *jsProxyHandler) MemUsage(ctx *MemUsageContext) (uint64, error) {
+	if h == nil || h.handler == nil || ctx.IsObjVisited(h.handler.self) {
+		return SizeEmpty, nil
+	}
+	return h.handler.MemUsage(ctx)
 }
