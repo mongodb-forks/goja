@@ -29,6 +29,8 @@ const (
 	sqrt1_2 float64 = math.Sqrt2 / 2
 
 	deoptimiseRegexp = false
+
+	defaultStackTraceLimit = 10
 )
 
 var (
@@ -190,12 +192,19 @@ type Runtime struct {
 	ticks   uint64
 }
 
-func (self *Runtime) Ticks() uint64 {
-	return self.ticks
+func (r *Runtime) Ticks() uint64 {
+	return r.ticks
 }
 
-func (self *Runtime) SetStackDepthLimit(limit int) {
-	self.stackDepthLimit = limit
+func (r *Runtime) SetStackDepthLimit(limit int) {
+	r.stackDepthLimit = limit
+}
+
+// SetStackTraceLimit sets an upper limit to the number of stack frames that
+// goja will use when formatting an error's stack trace. By default, the limit
+// is 10. This is consistent with V8 and SpiderMonkey.
+func (r *Runtime) SetStackTraceLimit(limit int) {
+	r.stackTraceLimit = limit
 }
 
 type StackFrame struct {
@@ -268,6 +277,7 @@ type Exception struct {
 
 	nativeErr   error
 	ignoreStack bool
+	traceLimit  int
 }
 
 func (e *Exception) NativeError() error {
@@ -320,7 +330,16 @@ func (e *InterruptedError) Error() string {
 }
 
 func (e *Exception) writeFullStack(b *bytes.Buffer) {
-	for _, frame := range e.stack {
+	limit := e.traceLimit
+	if limit == 0 {
+		limit = defaultStackTraceLimit
+	}
+
+	for i, frame := range e.stack {
+		if i >= limit {
+			break
+		}
+
 		b.WriteString("\tat ")
 		frame.Write(b)
 		b.WriteByte('\n')
@@ -537,7 +556,6 @@ func (r *Runtime) NewTypeError(args ...interface{}) *Object {
 		msg = fmt.Sprintf(f, args[1:]...)
 	}
 	e := r.builtin_new(r.global.TypeError, []Value{newStringValue(msg)})
-	e.Set(fieldCustomError, true)
 	return e
 }
 
@@ -1255,11 +1273,13 @@ func (r *Runtime) compile(name, src string, strict, eval, inGlobal bool) (p *Pro
 		switch x1 := err.(type) {
 		case *CompilerSyntaxError:
 			err = &Exception{
-				val: r.builtin_new(r.global.SyntaxError, []Value{newStringValue(x1.Error())}),
+				val:        r.builtin_new(r.global.SyntaxError, []Value{newStringValue(x1.Error())}),
+				traceLimit: r.stackTraceLimit,
 			}
 		case *CompilerReferenceError:
 			err = &Exception{
-				val: r.newError(r.global.ReferenceError, x1.Message),
+				val:        r.newError(r.global.ReferenceError, x1.Message),
+				traceLimit: r.stackTraceLimit,
 			} // TODO proper message
 		}
 	}
@@ -2284,13 +2304,28 @@ func NegativeInf() Value {
 	return _negativeInf
 }
 
-func tryFunc(f func()) (ret interface{}) {
+func (r *Runtime) tryFunc(f func()) (err error) {
 	defer func() {
-		ret = recover()
+		if x := recover(); x != nil {
+			switch x := x.(type) {
+			case *Exception:
+				err = x
+			case *InterruptedError:
+				err = x
+			case Value:
+				err = &Exception{
+					val:        x,
+					traceLimit: r.stackTraceLimit,
+				}
+			default:
+				panic(x)
+			}
+		}
 	}()
 
 	f()
-	return
+
+	return nil
 }
 
 func (r *Runtime) try(f func()) error {
@@ -2401,7 +2436,11 @@ func (r *Runtime) getIterator(obj Value, method func(FunctionCall) Value) *Objec
 func returnIter(iter *Object) {
 	retMethod := toMethod(iter.self.getStr("return", nil))
 	if retMethod != nil {
-		iter.runtime.toObject(retMethod(FunctionCall{This: iter}))
+		iter.runtime.toObject(retMethod(FunctionCall{ctx: iter.runtime.ctx, This: iter}))
+		// TODO: this was breaking the TestIteratorReturnErrorNested test
+		// _ = iter.runtime.tryFunc(func() {
+		// 	retMethod(FunctionCall{ctx: iter.runtime.ctx, This: iter})
+		// })
 	}
 }
 
@@ -2412,11 +2451,11 @@ func (r *Runtime) iterate(iter *Object, step func(Value)) {
 			break
 		}
 		value := nilSafe(res.self.getStr("value", nil))
-		ret := tryFunc(func() {
+		ret := r.tryFunc(func() {
 			step(value)
 		})
 		if ret != nil {
-			_ = tryFunc(func() {
+			_ = r.tryFunc(func() {
 				returnIter(iter)
 			})
 			panic(ret)
@@ -2575,7 +2614,6 @@ func (r *Runtime) MakeTypeError(args ...interface{}) *Object {
 	}
 
 	e := r.builtin_new(r.global.TypeError, []Value{newStringValue(msg)})
-	e.self.setOwnStr(fieldCustomError, TrueValue(), false)
 	return e
 }
 
