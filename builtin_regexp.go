@@ -299,14 +299,10 @@ func (r *Runtime) builtin_newRegExp(args []Value, proto *Object) *Object {
 func (r *Runtime) newRegExp(patternVal, flagsVal Value, proto *Object) *regexpObject {
 	var pattern valueString
 	var flags string
-	if isRegexp(patternVal) { // this may have side effects so need to call it anyway
-		if obj, ok := patternVal.(*Object); ok {
-			if rx, ok := obj.self.(*regexpObject); ok {
-				if flagsVal == nil || flagsVal == _undefined {
-					return rx.clone()
-				} else {
-					return r._newRegExp(rx.source, flagsVal.toString().String(), proto)
-				}
+	if obj, ok := patternVal.(*Object); ok {
+		if rx, ok := obj.self.(*regexpObject); ok {
+			if flagsVal == nil || flagsVal == _undefined {
+				return r._newRegExp(rx.source, "", proto)
 			} else {
 				pattern = nilSafe(obj.self.getStr("source", nil)).toString()
 				if flagsVal == nil || flagsVal == _undefined {
