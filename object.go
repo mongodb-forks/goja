@@ -121,6 +121,8 @@ type Object struct {
 
 	mu            sync.RWMutex
 	cyclicalCount int
+
+	seenObjects map[*Object]bool
 }
 
 func (o *Object) CyclicalCount() int {
@@ -138,6 +140,43 @@ func (o *Object) DecCyclicalCount() {
 	defer o.mu.Unlock()
 
 	o.cyclicalCount--
+}
+
+func (o *Object) AddSeenObject(ptr *Object) {
+	o.mu.Lock()
+	defer o.mu.Unlock()
+
+	if o.seenObjects == nil {
+		o.seenObjects = make(map[*Object]bool)
+	}
+	if _, ok := o.seenObjects[ptr]; !ok {
+		o.seenObjects[ptr] = true
+	}
+}
+
+func (o *Object) AddSeenObjectMap(seen map[*Object]bool) {
+	o.mu.Lock()
+	defer o.mu.Unlock()
+
+	if o.seenObjects == nil {
+		o.seenObjects = seen
+	} else {
+		for ptr := range seen {
+			o.seenObjects[ptr] = true
+		}
+	}
+}
+
+func (o *Object) RemoveSeenObject(ptr *Object) {
+	o.mu.Lock()
+	defer o.mu.Unlock()
+
+	if o.seenObjects == nil {
+		return
+	}
+	if _, ok := o.seenObjects[ptr]; ok {
+		delete(o.seenObjects, ptr)
+	}
 }
 
 type iterNextFunc func() (propIterItem, iterNextFunc)
