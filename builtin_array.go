@@ -173,6 +173,7 @@ func (r *Runtime) arrayproto_pop(call FunctionCall) Value {
 
 func (r *Runtime) arrayproto_join(call FunctionCall) Value {
 	o := call.This.ToObject(r)
+	r.AddNewSeenObject(o)
 	l := int(toLength(o.self.getStr("length", nil)))
 	var sep valueString
 	if s := call.Argument(0); s != _undefined {
@@ -185,6 +186,7 @@ func (r *Runtime) arrayproto_join(call FunctionCall) Value {
 	}
 
 	var buf valueStringBuilder
+	buf.WriteString(newStringValue("["))
 
 	element0 := o.self.getIdx(valueInt(0), nil)
 	if element0 != nil && element0 != _undefined && element0 != _null {
@@ -195,9 +197,15 @@ func (r *Runtime) arrayproto_join(call FunctionCall) Value {
 		buf.WriteString(sep)
 		element := o.self.getIdx(valueInt(int64(i)), nil)
 		if element != nil && element != _undefined && element != _null {
-			buf.WriteString(element.toString())
+			obj := element.ToObject(r)
+			if _, ok := r.seenObjects[obj]; ok {
+				buf.WriteString(newStringValue("[<Circular Value>]"))
+			} else {
+				buf.WriteString(element.toString())
+			}
 		}
 	}
+	buf.WriteString(newStringValue("]"))
 
 	return buf.String()
 }

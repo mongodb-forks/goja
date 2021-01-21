@@ -196,6 +196,8 @@ type Runtime struct {
 
 	Limiter *rate.Limiter
 	ticks   uint64
+
+	seenObjects map[*Object]bool
 }
 
 func (self *Runtime) Ticks() uint64 {
@@ -211,6 +213,17 @@ func (self *Runtime) SetStackDepthLimit(limit int) {
 // is 10. This is consistent with V8 and SpiderMonkey.
 func (self *Runtime) SetStackTraceLimit(limit int) {
 	self.stackTraceLimit = limit
+}
+
+func (self *Runtime) AddNewSeenObject(ptr *Object) {
+	seen := self.seenObjects
+	if seen == nil {
+		seen = make(map[*Object]bool)
+		self.seenObjects = seen
+	}
+	if _, ok := seen[ptr]; !ok {
+		self.seenObjects[ptr] = true
+	}
 }
 
 type StackFrame struct {

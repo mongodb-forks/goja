@@ -1755,6 +1755,83 @@ func TestNativeCtorNonNewCall(t *testing.T) {
 	}
 }
 
+func TestArrayCycleSingle(t *testing.T) {
+	const SCRIPT = `
+    function cycle() {
+        var n = new Array(10);
+        n[5] = n;
+        return n.toString();
+    }
+    `
+	vm := New()
+	prg := MustCompile("test.js", SCRIPT, false)
+	vm.RunProgram(prg)
+	expectedValue := newStringValue("[,,,,,[<Circular Value>],,,,]")
+	if f, ok := AssertFunction(vm.Get("cycle")); ok {
+		v, err := f(nil, nil)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if !v.Equals(expectedValue) {
+			t.Fatalf("Unexpected result: %v", v)
+		}
+	}
+}
+
+func TestArrayCycleDouble(t *testing.T) {
+	const SCRIPT = `
+    "use strict";
+    function cycle() {
+		var n = [1,2,3,4,5];
+		var m = [4,5,6];  
+		m.push(n);
+		n.push(m);
+        return n.toString();
+    }
+    `
+	vm := New()
+	prg := MustCompile("test.js", SCRIPT, false)
+	vm.RunProgram(prg)
+	expectedValue := newStringValue("[1,2,3,4,5,[4,5,6,[<Circular Value>]]]")
+	if f, ok := AssertFunction(vm.Get("cycle")); ok {
+		v, err := f(nil, nil)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if !v.Equals(expectedValue) {
+			t.Fatalf("Unexpected result: %v", v)
+		}
+	}
+}
+
+func TestArrayCycleTriple(t *testing.T) {
+	const SCRIPT = `
+    "use strict";
+    function cycle() {
+		var n = [1,2,3,4,5];
+		var m = [1,2,3];  
+		var p = [4,5,6];  
+		p.push(n);  
+		m.push(p); 
+		n[2] = m;  
+		return n.toString();
+    }
+    `
+	vm := New()
+	prg := MustCompile("test.js", SCRIPT, false)
+	vm.RunProgram(prg)
+	expectedValue := newStringValue("[1,2,[1,2,3,[4,5,6,[<Circular Value>]]],4,5]")
+	if f, ok := AssertFunction(vm.Get("cycle")); ok {
+		v, err := f(nil, nil)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if !v.Equals(expectedValue) {
+			t.Fatalf("Unexpected result: %v", v)
+		}
+	}
+}
+
 func ExampleNewSymbol() {
 	sym1 := NewSymbol("66")
 	sym2 := NewSymbol("66")
