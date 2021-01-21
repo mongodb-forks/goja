@@ -1786,6 +1786,11 @@ func TestArrayCycleDouble(t *testing.T) {
 		var m = [4,5,6];  
 		m.push(n);
 		n.push(m);
+
+		// test that multiple calls to toString() does not affect result
+		var tmp0 = n.toString();
+		var tmp1 = m.toString(); 
+
         return n.toString();
     }
     `
@@ -1814,6 +1819,10 @@ func TestArrayCycleTriple(t *testing.T) {
 		p.push(n);  
 		m.push(p); 
 		n[2] = m;  
+
+		// test that multiple calls to toString() does not affect result
+		var tmp0 = m.toString();
+
 		return n.toString();
     }
     `

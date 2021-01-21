@@ -206,6 +206,7 @@ func (r *Runtime) arrayproto_join(call FunctionCall) Value {
 		}
 	}
 	buf.WriteString(newStringValue("]"))
+	r.RemoveSeenObject(o) // remove when done printing to allow printing multiple times
 
 	return buf.String()
 }

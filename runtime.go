@@ -216,13 +216,20 @@ func (self *Runtime) SetStackTraceLimit(limit int) {
 }
 
 func (self *Runtime) AddNewSeenObject(ptr *Object) {
-	seen := self.seenObjects
-	if seen == nil {
-		seen = make(map[*Object]bool)
-		self.seenObjects = seen
+	if self.seenObjects == nil {
+		self.seenObjects = make(map[*Object]bool)
 	}
-	if _, ok := seen[ptr]; !ok {
+	if _, ok := self.seenObjects[ptr]; !ok {
 		self.seenObjects[ptr] = true
+	}
+}
+
+func (self *Runtime) RemoveSeenObject(ptr *Object) {
+	if self.seenObjects == nil {
+		self.seenObjects = make(map[*Object]bool)
+	}
+	if _, ok := self.seenObjects[ptr]; ok {
+		delete(self.seenObjects, ptr)
 	}
 }
 
