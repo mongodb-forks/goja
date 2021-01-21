@@ -186,8 +186,6 @@ func (r *Runtime) arrayproto_join(call FunctionCall) Value {
 	}
 
 	var buf valueStringBuilder
-	buf.WriteString(newStringValue("["))
-
 	element0 := o.self.getIdx(valueInt(0), nil)
 	if element0 != nil && element0 != _undefined && element0 != _null {
 		buf.WriteString(element0.toString())
@@ -205,7 +203,6 @@ func (r *Runtime) arrayproto_join(call FunctionCall) Value {
 			}
 		}
 	}
-	buf.WriteString(newStringValue("]"))
 	r.RemoveSeenObject(o) // remove when done printing to allow printing multiple times
 
 	return buf.String()

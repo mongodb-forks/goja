@@ -1766,7 +1766,7 @@ func TestArrayCycleSingle(t *testing.T) {
 	vm := New()
 	prg := MustCompile("test.js", SCRIPT, false)
 	vm.RunProgram(prg)
-	expectedValue := newStringValue("[,,,,,[<Circular Value>],,,,]")
+	expectedValue := newStringValue(",,,,,[<Circular Value>],,,,")
 	if f, ok := AssertFunction(vm.Get("cycle")); ok {
 		v, err := f(nil, nil)
 		if err != nil {
@@ -1797,7 +1797,7 @@ func TestArrayCycleDouble(t *testing.T) {
 	vm := New()
 	prg := MustCompile("test.js", SCRIPT, false)
 	vm.RunProgram(prg)
-	expectedValue := newStringValue("[1,2,3,4,5,[4,5,6,[<Circular Value>]]]")
+	expectedValue := newStringValue("1,2,3,4,5,4,5,6,[<Circular Value>]")
 	if f, ok := AssertFunction(vm.Get("cycle")); ok {
 		v, err := f(nil, nil)
 		if err != nil {
@@ -1829,7 +1829,7 @@ func TestArrayCycleTriple(t *testing.T) {
 	vm := New()
 	prg := MustCompile("test.js", SCRIPT, false)
 	vm.RunProgram(prg)
-	expectedValue := newStringValue("[1,2,[1,2,3,[4,5,6,[<Circular Value>]]],4,5]")
+	expectedValue := newStringValue("1,2,1,2,3,4,5,6,[<Circular Value>],4,5")
 	if f, ok := AssertFunction(vm.Get("cycle")); ok {
 		v, err := f(nil, nil)
 		if err != nil {
