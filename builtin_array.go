@@ -174,6 +174,8 @@ func (r *Runtime) arrayproto_pop(call FunctionCall) Value {
 func (r *Runtime) arrayproto_join(call FunctionCall) Value {
 	o := call.This.ToObject(r)
 	o.addSeenObject(o)
+	defer o.removeSeenObject(o) // remove when done to allow printing multiple times
+
 	l := int(toLength(o.self.getStr("length", nil)))
 	var sep valueString
 	if s := call.Argument(0); s != _undefined {
@@ -199,8 +201,6 @@ func (r *Runtime) arrayproto_join(call FunctionCall) Value {
 			buf.WriteString(getElementValueString(element.ToObject(r), o))
 		}
 	}
-
-	o.removeSeenObject(o) // remove when done to allow printing multiple times
 
 	return buf.String()
 }
