@@ -142,41 +142,37 @@ func (o *Object) DecCyclicalCount() {
 	o.cyclicalCount--
 }
 
-func (o *Object) AddSeenObject(ptr *Object) {
+func (o *Object) addSeenObject(ptr *Object) {
 	o.mu.Lock()
 	defer o.mu.Unlock()
 
 	if o.seenObjects == nil {
 		o.seenObjects = make(map[*Object]bool)
 	}
-	if _, ok := o.seenObjects[ptr]; !ok {
-		o.seenObjects[ptr] = true
-	}
+	o.seenObjects[ptr] = true
 }
 
-func (o *Object) AddSeenObjectMap(seen map[*Object]bool) {
+func (o *Object) addSeenObjectMap(seen map[*Object]bool) {
 	o.mu.Lock()
 	defer o.mu.Unlock()
 
 	if o.seenObjects == nil {
 		o.seenObjects = seen
-	} else {
-		for ptr := range seen {
-			o.seenObjects[ptr] = true
-		}
+		return
+	}
+	for ptr := range seen {
+		o.seenObjects[ptr] = true
 	}
 }
 
-func (o *Object) RemoveSeenObject(ptr *Object) {
+func (o *Object) removeSeenObject(ptr *Object) {
 	o.mu.Lock()
 	defer o.mu.Unlock()
 
 	if o.seenObjects == nil {
 		return
 	}
-	if _, ok := o.seenObjects[ptr]; ok {
-		delete(o.seenObjects, ptr)
-	}
+	delete(o.seenObjects, ptr)
 }
 
 type iterNextFunc func() (propIterItem, iterNextFunc)

@@ -173,7 +173,7 @@ func (r *Runtime) arrayproto_pop(call FunctionCall) Value {
 
 func (r *Runtime) arrayproto_join(call FunctionCall) Value {
 	o := call.This.ToObject(r)
-	o.AddSeenObject(o)
+	o.addSeenObject(o)
 	l := int(toLength(o.self.getStr("length", nil)))
 	var sep valueString
 	if s := call.Argument(0); s != _undefined {
@@ -186,24 +186,31 @@ func (r *Runtime) arrayproto_join(call FunctionCall) Value {
 	}
 
 	var buf valueStringBuilder
-	for i := 0; i < l; i++ {
+
+	element0 := o.self.getIdx(valueInt(0), nil)
+	if element0 != nil && element0 != _undefined && element0 != _null {
+		buf.WriteString(getElementValueString(element0.ToObject(r), o))
+	}
+
+	for i := 1; i < l; i++ {
+		buf.WriteString(sep)
 		element := o.self.getIdx(valueInt(int64(i)), nil)
 		if element != nil && element != _undefined && element != _null {
-			obj := element.ToObject(r)
-			if _, ok := o.seenObjects[obj]; ok {
-				buf.WriteString(newStringValue("[Circular]"))
-			} else {
-				obj.AddSeenObjectMap(o.seenObjects)
-				buf.WriteString(obj.toString())
-			}
-		}
-		if i != l-1 {
-			buf.WriteString(sep)
+			buf.WriteString(getElementValueString(element.ToObject(r), o))
 		}
 	}
-	o.RemoveSeenObject(o) // remove when done to allow printing multiple times
+
+	o.removeSeenObject(o) // remove when done to allow printing multiple times
 
 	return buf.String()
+}
+
+func getElementValueString(elem *Object, o *Object) valueString {
+	if _, ok := o.seenObjects[elem]; ok {
+		return newStringValue("[Circular]")
+	}
+	elem.addSeenObjectMap(o.seenObjects)
+	return elem.toString()
 }
 
 func (r *Runtime) arrayproto_toString(call FunctionCall) Value {
