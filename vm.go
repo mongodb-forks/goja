@@ -764,7 +764,7 @@ func (_add) exec(vm *vm) {
 			}
 		} else if leftInt, ok := left.(valueInt64); ok {
 			if rightInt, ok := right.(valueInt64); ok {
-				ret = intToValue(int64(leftInt) + int64(rightInt))
+				ret = int64ToValue(int64(leftInt) + int64(rightInt))
 			} else {
 				ret = floatToValue(float64(leftInt) + right.ToFloat())
 			}

@@ -290,8 +290,8 @@ func (i valueUInt32) Equals(other Value) bool {
 }
 
 func (i valueUInt32) StrictEquals(other Value) bool {
-	if otherInt, ok := other.assertInt32(); ok {
-		return int32(i) == otherInt
+	if otherInt, ok := other.assertUInt32(); ok {
+		return uint32(i) == otherInt
 	} else if otherFloat, ok := other.assertFloat(); ok {
 		return float64(i) == otherFloat
 	}
