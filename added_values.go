@@ -559,7 +559,7 @@ func (i valueInt64) StrictEquals(other Value) bool {
 }
 
 func (i valueInt64) assertInt() (int, bool) {
-	return 0, false
+	return int(i), true
 }
 func (i valueInt64) assertUInt32() (uint32, bool) {
 	return 0, false
