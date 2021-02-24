@@ -127,13 +127,14 @@ func (r *Runtime) dateproto_toISOString(call FunctionCall) Value {
 	obj := r.toObject(call.This)
 	if d, ok := obj.self.(*dateObject); ok {
 		if d.isSet() {
-			utc := d.timeUTC()
-			year := utc.Year()
+			// toISOString returns local timezone for otto, so this is a diversion to be backwards compatible
+			dTime := d.time()
+			year := dTime.Year()
 			if year >= -9999 && year <= 9999 {
-				return asciiString(utc.Format(isoDateTimeLayout))
+				return asciiString(dTime.Format(isoDateTimeLayout))
 			}
 			// extended year
-			return asciiString(fmt.Sprintf("%+06d-", year) + utc.Format(isoDateTimeLayout[5:]))
+			return asciiString(fmt.Sprintf("%+06d-", year) + dTime.Format(isoDateTimeLayout[5:]))
 		} else {
 			panic(r.newError(r.global.RangeError, "Invalid time value"))
 		}
