@@ -1614,6 +1614,11 @@ func (r *Runtime) ToValue(i interface{}) Value {
 		return intToValue(int64(i))
 	case int64:
 		return int64ToValue(i)
+	case time.Time:
+		// Preserve the time in case it is unmodified
+		obj := r.newDateObject(i, true, r.global.DatePrototype)
+		obj.__wrapped = i
+		return obj
 	case uint:
 		if uint64(i) <= math.MaxInt64 {
 			return intToValue(int64(i))

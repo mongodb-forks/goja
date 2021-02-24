@@ -132,10 +132,18 @@ func (d *dateObject) unset() {
 }
 
 func (d *dateObject) time() time.Time {
+	ti, ok := checkTime(d.val.__wrapped)
+	if ok {
+		return ti
+	}
 	return timeFromMsec(d.msec)
 }
 
 func (d *dateObject) timeUTC() time.Time {
+	ti, ok := checkTime(d.val.__wrapped)
+	if ok {
+		return ti
+	}
 	return timeFromMsec(d.msec).In(time.UTC)
 }
 
@@ -150,4 +158,16 @@ func (d *dateObject) MemUsage(ctx *MemUsageContext) (uint64, error) {
 	inc, err := d.baseObject.MemUsage(ctx)
 	total += inc
 	return total, err
+}
+
+func checkTime(i interface{}) (time.Time, bool) {
+	if i == nil {
+		return time.Time{}, false
+	}
+	ti, ok := i.(time.Time)
+	if !ok {
+		return time.Time{}, false
+
+	}
+	return ti, true
 }
