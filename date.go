@@ -116,6 +116,7 @@ func (d *dateObject) export(*objectExportCtx) interface{} {
 func (d *dateObject) setTimeMs(ms int64) Value {
 	if ms >= 0 && ms <= maxTime || ms < 0 && ms >= -maxTime {
 		d.msec = ms
+		d.invalid = false
 		return intToValue(ms)
 	}
 
