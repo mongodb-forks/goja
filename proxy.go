@@ -1082,25 +1082,8 @@ func (p *proxyObject) MemUsage(ctx *MemUsageContext) (uint64, error) {
 }
 
 func (p *jsProxyHandler) MemUsage(ctx *MemUsageContext) (uint64, error) {
-	if p == nil || ctx.IsObjVisited(p.handler.self) {
+	if p == nil || p.handler == nil || ctx.IsObjVisited(p.handler.self) {
 		return SizeEmpty, nil
 	}
-	ctx.VisitObj(p.handler.self)
-
-	if err := ctx.Descend(); err != nil {
-		return 0, err
-	}
-
-	total := SizeEmpty
-	if p.handler != nil {
-		inc, err := p.handler.MemUsage(ctx)
-		total += inc
-		if err != nil {
-			return total, err
-		}
-	}
-
-	ctx.Ascend()
-
-	return total, nil
+	return p.handler.MemUsage(ctx)
 }
