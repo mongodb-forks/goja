@@ -1,7 +1,6 @@
 package goja
 
 import (
-	"math"
 	"time"
 )
 
@@ -15,13 +14,13 @@ const (
 	dateLayout_en_GB     = "01/02/2006"
 	timeLayout_en_GB     = "15:04:05"
 
-	maxTime   = 8.64e15
-	timeUnset = math.MinInt64
+	maxTime = 8.64e15
 )
 
 type dateObject struct {
 	baseObject
-	msec int64
+	msec    int64
+	invalid bool
 }
 
 var (
@@ -83,7 +82,7 @@ func (r *Runtime) newDateObject(t time.Time, isSet bool, proto *Object) *Object 
 	if isSet {
 		d.msec = timeToMsec(t)
 	} else {
-		d.msec = timeUnset
+		d.invalid = true
 	}
 	return v
 }
@@ -103,10 +102,6 @@ func timeToMsec(t time.Time) int64 {
 }
 
 func (d *dateObject) timeToMsec(t time.Time) int64 {
-	_, ok := checkTime(d.val.__wrapped)
-	if ok {
-		d.val.__wrapped = t
-	}
 	return timeToMsec(t)
 }
 
@@ -116,7 +111,8 @@ func (d *dateObject) toPrimitive() Value {
 
 func (d *dateObject) export(*objectExportCtx) interface{} {
 	if d.isSet() {
-		return d.time()
+		t := d.time()
+		return t
 	}
 	return nil
 }
@@ -132,25 +128,18 @@ func (d *dateObject) setTimeMs(ms int64) Value {
 }
 
 func (d *dateObject) isSet() bool {
-	return d.msec != timeUnset
+	return !d.invalid
 }
 
 func (d *dateObject) unset() {
-	d.msec = timeUnset
-	d.val.__wrapped = nil
+	d.invalid = true
 }
 
 func (d *dateObject) time() time.Time {
-	if ti, ok := checkTime(d.val.__wrapped); ok {
-		return ti
-	}
 	return timeFromMsec(d.msec)
 }
 
 func (d *dateObject) timeUTC() time.Time {
-	if ti, ok := checkTime(d.val.__wrapped); ok {
-		return ti
-	}
 	return timeFromMsec(d.msec).In(time.UTC)
 }
 
@@ -165,16 +154,4 @@ func (d *dateObject) MemUsage(ctx *MemUsageContext) (uint64, error) {
 	inc, err := d.baseObject.MemUsage(ctx)
 	total += inc
 	return total, err
-}
-
-func checkTime(i interface{}) (time.Time, bool) {
-	if i == nil {
-		return time.Time{}, false
-	}
-	ti, ok := i.(time.Time)
-	if !ok {
-		return time.Time{}, false
-
-	}
-	return ti, true
 }

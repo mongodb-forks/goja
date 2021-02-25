@@ -4,9 +4,14 @@ import (
 	"fmt"
 	"math"
 	"time"
+
+	"github.com/davecgh/go-spew/spew"
 )
 
 func (r *Runtime) makeDate(args []Value, utc bool) (t time.Time, valid bool) {
+	defer func() {
+		spew.Dump("what is time, and valid", t, valid)
+	}()
 	switch {
 	case len(args) >= 2:
 		t = time.Date(1970, time.January, 1, 0, 0, 0, 0, time.Local)
@@ -473,6 +478,7 @@ func (r *Runtime) dateproto_setTime(call FunctionCall) Value {
 			d.unset()
 			return _NaN
 		}
+
 		return d.setTimeMs(n.ToInteger())
 	}
 	panic(r.NewTypeError("Method Date.prototype.setTime is called on incompatible receiver"))

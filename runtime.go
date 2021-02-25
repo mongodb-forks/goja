@@ -1615,10 +1615,14 @@ func (r *Runtime) ToValue(i interface{}) Value {
 	case int64:
 		return int64ToValue(i)
 	case time.Time:
-		// Preserve the time in case it is unmodified
-		obj := r.newDateObject(i, true, r.global.DatePrototype)
-		obj.__wrapped = i
-		return obj
+		// DIVERSION/DISCLAIMER:
+		// Handling of time.Time from maintainers of goja
+
+		// time.Time does not get special treatment and therefore is converted just like any other `struct` providing access to
+		// all its methods. This is done deliberately instead of converting it to a `Date` because these two types are not fully
+		// compatible: `time.Time` includes zone, whereas JS `Date` doesn't. Doing the conversion implicitly therefore would
+		// result in a loss of information.
+		return r.newDateObject(i, true, r.global.DatePrototype)
 	case uint:
 		if uint64(i) <= math.MaxInt64 {
 			return intToValue(int64(i))
