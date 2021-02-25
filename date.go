@@ -101,10 +101,6 @@ func timeToMsec(t time.Time) int64 {
 	return t.Unix()*1000 + int64(t.Nanosecond())/1e6
 }
 
-func (d *dateObject) timeToMsec(t time.Time) int64 {
-	return timeToMsec(t)
-}
-
 func (d *dateObject) toPrimitive() Value {
 	return d.toPrimitiveString()
 }

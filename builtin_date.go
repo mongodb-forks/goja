@@ -4,14 +4,9 @@ import (
 	"fmt"
 	"math"
 	"time"
-
-	"github.com/davecgh/go-spew/spew"
 )
 
 func (r *Runtime) makeDate(args []Value, utc bool) (t time.Time, valid bool) {
-	defer func() {
-		spew.Dump("what is time, and valid", t, valid)
-	}()
 	switch {
 	case len(args) >= 2:
 		t = time.Date(1970, time.January, 1, 0, 0, 0, 0, time.Local)
@@ -747,7 +742,7 @@ func (r *Runtime) dateproto_setSeconds(call FunctionCall) Value {
 				d.unset()
 				return _NaN
 			}
-			return d.setTimeMs(d.timeToMsec(t))
+			return d.setTimeMs(timeToMsec(t))
 		} else {
 			return _NaN
 		}
@@ -764,7 +759,7 @@ func (r *Runtime) dateproto_setUTCSeconds(call FunctionCall) Value {
 				d.unset()
 				return _NaN
 			}
-			return d.setTimeMs(d.timeToMsec(t))
+			return d.setTimeMs(timeToMsec(t))
 		} else {
 			return _NaN
 		}
@@ -781,7 +776,7 @@ func (r *Runtime) dateproto_setMinutes(call FunctionCall) Value {
 				d.unset()
 				return _NaN
 			}
-			return d.setTimeMs(d.timeToMsec(t))
+			return d.setTimeMs(timeToMsec(t))
 		} else {
 			return _NaN
 		}
@@ -798,7 +793,7 @@ func (r *Runtime) dateproto_setUTCMinutes(call FunctionCall) Value {
 				d.unset()
 				return _NaN
 			}
-			return d.setTimeMs(d.timeToMsec(t))
+			return d.setTimeMs(timeToMsec(t))
 		} else {
 			return _NaN
 		}
@@ -815,7 +810,7 @@ func (r *Runtime) dateproto_setHours(call FunctionCall) Value {
 				d.unset()
 				return _NaN
 			}
-			return d.setTimeMs(d.timeToMsec(t))
+			return d.setTimeMs(timeToMsec(t))
 		} else {
 			return _NaN
 		}
@@ -832,7 +827,7 @@ func (r *Runtime) dateproto_setUTCHours(call FunctionCall) Value {
 				d.unset()
 				return _NaN
 			}
-			return d.setTimeMs(d.timeToMsec(t))
+			return d.setTimeMs(timeToMsec(t))
 		} else {
 			return _NaN
 		}
@@ -849,7 +844,7 @@ func (r *Runtime) dateproto_setDate(call FunctionCall) Value {
 				d.unset()
 				return _NaN
 			}
-			return d.setTimeMs(d.timeToMsec(t))
+			return d.setTimeMs(timeToMsec(t))
 		} else {
 			return _NaN
 		}
@@ -866,7 +861,7 @@ func (r *Runtime) dateproto_setUTCDate(call FunctionCall) Value {
 				d.unset()
 				return _NaN
 			}
-			return d.setTimeMs(d.timeToMsec(t))
+			return d.setTimeMs(timeToMsec(t))
 		} else {
 			return _NaN
 		}
@@ -883,7 +878,7 @@ func (r *Runtime) dateproto_setMonth(call FunctionCall) Value {
 				d.unset()
 				return _NaN
 			}
-			return d.setTimeMs(d.timeToMsec(t))
+			return d.setTimeMs(timeToMsec(t))
 		} else {
 			return _NaN
 		}
@@ -900,7 +895,7 @@ func (r *Runtime) dateproto_setUTCMonth(call FunctionCall) Value {
 				d.unset()
 				return _NaN
 			}
-			return d.setTimeMs(d.timeToMsec(t))
+			return d.setTimeMs(timeToMsec(t))
 		} else {
 			return _NaN
 		}
@@ -922,7 +917,7 @@ func (r *Runtime) dateproto_setFullYear(call FunctionCall) Value {
 			d.unset()
 			return _NaN
 		}
-		return d.setTimeMs(d.timeToMsec(t))
+		return d.setTimeMs(timeToMsec(t))
 	}
 	panic(r.NewTypeError("Method Date.prototype.setFullYear is called on incompatible receiver"))
 }
@@ -941,7 +936,7 @@ func (r *Runtime) dateproto_setUTCFullYear(call FunctionCall) Value {
 			d.unset()
 			return _NaN
 		}
-		return d.setTimeMs(d.timeToMsec(t))
+		return d.setTimeMs(timeToMsec(t))
 	}
 	panic(r.NewTypeError("Method Date.prototype.setUTCFullYear is called on incompatible receiver"))
 }
