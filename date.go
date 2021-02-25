@@ -141,16 +141,14 @@ func (d *dateObject) unset() {
 }
 
 func (d *dateObject) time() time.Time {
-	ti, ok := checkTime(d.val.__wrapped)
-	if ok {
+	ti, ok := checkTime(d.val.__wrapped); ok {
 		return ti
 	}
 	return timeFromMsec(d.msec)
 }
 
 func (d *dateObject) timeUTC() time.Time {
-	ti, ok := checkTime(d.val.__wrapped)
-	if ok {
+	ti, ok := checkTime(d.val.__wrapped); ok {
 		return ti
 	}
 	return timeFromMsec(d.msec).In(time.UTC)
