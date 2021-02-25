@@ -868,8 +868,8 @@ func (o *Object) tryPrimitive(methodName unistring.String) Value {
 }
 
 func (o *Object) genericToPrimitiveNumber() Value {
-	if o.prototype == nil {
-		o.prototype = o.val.runtime.global.ObjectPrototype
+	if o.Prototype() == nil {
+		o.self.setProto(o.runtime.global.ObjectPrototype, false)
 	}
 
 	if v := o.tryPrimitive("valueOf"); v != nil {
@@ -888,8 +888,8 @@ func (o *baseObject) toPrimitiveNumber() Value {
 }
 
 func (o *Object) genericToPrimitiveString() Value {
-	if o.prototype == nil {
-		o.prototype = o.val.runtime.global.ObjectPrototype
+	if o.Prototype() == nil {
+		o.self.setProto(o.runtime.global.ObjectPrototype, false)
 	}
 
 	if v := o.tryPrimitive("toString"); v != nil {
