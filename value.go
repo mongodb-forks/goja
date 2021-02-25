@@ -1293,7 +1293,7 @@ func (o *Object) Prototype() *Object {
 // SetPrototype sets the Object's prototype, same as Object.setPrototypeOf(). Setting proto to nil
 // is an equivalent of Object.setPrototypeOf(null).
 func (o *Object) SetPrototype(proto *Object) error {
-	return o.runtime.try(func() {
+	return o.runtime.tryFunc(func() {
 		o.self.setProto(proto, true)
 	})
 }
@@ -1478,6 +1478,7 @@ func (s *Symbol) ToUInt32() uint32 {
 func (s *Symbol) ToInt64() int64 {
 	panic(typeError("Cannot convert a Symbol value to a number"))
 }
+
 func (s *Symbol) assertFloat() (float64, bool) {
 	return 0, false
 }
