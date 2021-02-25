@@ -876,6 +876,10 @@ func (o *Object) tryPrimitive(methodName unistring.String) Value {
 }
 
 func (o *Object) genericToPrimitiveNumber() Value {
+	if o.Prototype() == nil {
+		o.self.setProto(o.runtime.global.ObjectPrototype, false)
+	}
+
 	if v := o.tryPrimitive("valueOf"); v != nil {
 		return v
 	}
@@ -892,6 +896,10 @@ func (o *baseObject) toPrimitiveNumber() Value {
 }
 
 func (o *Object) genericToPrimitiveString() Value {
+	if o.Prototype() == nil {
+		o.self.setProto(o.runtime.global.ObjectPrototype, false)
+	}
+
 	if v := o.tryPrimitive("toString"); v != nil {
 		return v
 	}
