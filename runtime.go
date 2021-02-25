@@ -49,6 +49,9 @@ const (
 )
 
 type global struct {
+	stash    stash
+	varNames map[unistring.String]struct{}
+
 	Object   *Object
 	Array    *Object
 	Function *Object
@@ -850,31 +853,27 @@ func (r *Runtime) builtin_thrower(FunctionCall) Value {
 
 func (r *Runtime) eval(srcVal valueString, direct, strict bool, this Value) Value {
 	src := escapeInvalidUtf16(srcVal)
-	p, err := r.compile("<eval>", src, strict, true)
+	vm := r.vm
+	p, err := r.compile("<eval>", src, strict, true, !direct || vm.stash == &r.global.stash)
 	if err != nil {
 		panic(err)
 	}
 
-	vm := r.vm
-
 	vm.pushCtx()
 	vm.prg = p
 	vm.pc = 0
+	vm.args = 0
+	vm.result = _undefined
 	if !direct {
-		vm.stash = nil
+		vm.stash = &r.global.stash
 	}
 	vm.sb = vm.sp
 	vm.push(this)
-	if strict {
-		vm.push(valueTrue)
-	} else {
-		vm.push(valueFalse)
-	}
 	vm.run()
+	retval := vm.result
 	vm.popCtx()
 	vm.halt = false
-	retval := vm.stack[vm.sp-1]
-	vm.sp -= 2
+	vm.sp -= 1
 	return retval
 }
 
@@ -1221,14 +1220,14 @@ func NewWithContext(ctx context.Context) *Runtime {
 // method. This representation is not linked to a runtime in any way and can be run in multiple runtimes (possibly
 // at the same time).
 func Compile(name, src string, strict bool) (*Program, error) {
-	return compile(name, src, strict, false)
+	return compile(name, src, strict, false, true)
 }
 
 // CompileAST creates an internal representation of the JavaScript code that can be later run using the Runtime.RunProgram()
 // method. This representation is not linked to a runtime in any way and can be run in multiple runtimes (possibly
 // at the same time).
 func CompileAST(prg *js_ast.Program, strict bool) (*Program, error) {
-	return compileAST(prg, strict, false)
+	return compileAST(prg, strict, false, true)
 }
 
 // MustCompile is like Compile but panics if the code cannot be compiled.
@@ -1264,19 +1263,17 @@ func Parse(name, src string, options ...parser.Option) (prg *js_ast.Program, err
 	return
 }
 
-func compile(name, src string, strict, eval bool, parserOptions ...parser.Option) (p *Program, err error) {
+func compile(name, src string, strict, eval, inGlobal bool, parserOptions ...parser.Option) (p *Program, err error) {
 	prg, err := Parse(name, src, parserOptions...)
 	if err != nil {
 		return
 	}
 
-	return compileAST(prg, strict, eval)
+	return compileAST(prg, strict, eval, inGlobal)
 }
 
-func compileAST(prg *js_ast.Program, strict, eval bool) (p *Program, err error) {
+func compileAST(prg *js_ast.Program, strict, eval, inGlobal bool) (p *Program, err error) {
 	c := newCompiler()
-	c.scope.strict = strict
-	c.scope.eval = eval
 
 	defer func() {
 		if x := recover(); x != nil {
@@ -1290,13 +1287,13 @@ func compileAST(prg *js_ast.Program, strict, eval bool) (p *Program, err error) 
 		}
 	}()
 
-	c.compile(prg)
+	c.compile(prg, strict, eval, inGlobal)
 	p = c.p
 	return
 }
 
-func (r *Runtime) compile(name, src string, strict, eval bool) (p *Program, err error) {
-	p, err = compile(name, src, strict, eval, r.parserOptions...)
+func (r *Runtime) compile(name, src string, strict, eval, inGlobal bool) (p *Program, err error) {
+	p, err = compile(name, src, strict, eval, inGlobal, r.parserOptions...)
 	if err != nil {
 		switch x1 := err.(type) {
 		case *CompilerSyntaxError:
@@ -1321,7 +1318,7 @@ func (r *Runtime) RunString(str string) (Value, error) {
 
 // RunScript executes the given string in the global context.
 func (r *Runtime) RunScript(name, src string) (Value, error) {
-	p, err := r.compile(name, src, false, false)
+	p, err := r.compile(name, src, false, false, true)
 
 	if err != nil {
 		return nil, err
@@ -1341,27 +1338,30 @@ func (r *Runtime) RunProgram(p *Program) (result Value, err error) {
 			}
 		}
 	}()
+	vm := r.vm
 	recursive := false
-	if len(r.vm.callStack) > 0 {
+	if len(vm.callStack) > 0 {
 		recursive = true
-		r.vm.pushCtx()
+		vm.pushCtx()
+		vm.stash = &r.global.stash
+		vm.sb = vm.sp - 1
 	}
-
-	r.vm.prg = p
-	r.vm.pc = 0
-
-	ex := r.vm.runTry(r.vm.ctx)
+	vm.prg = p
+	vm.pc = 0
+	vm.result = _undefined
+	ex := vm.runTry(r.vm.ctx)
 	if ex == nil {
-		result = r.vm.pop()
+		result = r.vm.result
 	} else {
 		err = ex
 	}
 	if recursive {
-		r.vm.popCtx()
-		r.vm.halt = false
-		r.vm.clearStack()
+		vm.popCtx()
+		vm.halt = false
+		vm.clearStack()
 	} else {
-		r.vm.stack = nil
+		vm.stack = nil
+		vm.prg = nil
 		r.leave()
 	}
 	return
@@ -2116,8 +2116,7 @@ func (r *Runtime) wrapJSFunc(fn Callable, typ reflect.Type) func(args []reflect.
 // ExportTo converts a JavaScript value into the specified Go value. The second parameter must be a non-nil pointer.
 // Exporting to an interface{} results in a value of the same type as Export() would produce.
 // Exporting to numeric types uses the standard ECMAScript conversion operations, same as used when assigning
-// values to non-clamped typed array items, e.g.
-// https://www.ecma-international.org/ecma-262/10.0/index.html#sec-toint32
+// values to non-clamped typed array items, e.g. https://262.ecma-international.org/#sec-toint32
 // Returns error if conversion is not possible.
 func (r *Runtime) ExportTo(v Value, target interface{}) error {
 	tval := reflect.ValueOf(target)
@@ -2132,16 +2131,38 @@ func (r *Runtime) GlobalObject() *Object {
 	return r.globalObject
 }
 
-// Set the specified value as a property of the global object.
-// The value is first converted using ToValue()
+// Set the specified variable in the global context.
+// Equivalent to running "name = value" in non-strict mode.
+// The value is first converted using ToValue().
+// Note, this is not the same as GlobalObject().Set(name, value),
+// because if a global lexical binding (let or const) exists, it is set instead.
 func (r *Runtime) Set(name string, value interface{}) error {
-	r.globalObject.self.setOwnStr(unistring.NewFromString(name), r.ToValue(value), false)
-	return nil
+	return r.try(func() {
+		name := unistring.NewFromString(name)
+		v := r.ToValue(value)
+		if ref := r.global.stash.getRefByName(name, false); ref != nil {
+			ref.set(v)
+		} else {
+			r.globalObject.self.setOwnStr(name, v, true)
+		}
+	})
 }
 
-// Get the specified property of the global object.
-func (r *Runtime) Get(name string) Value {
-	return r.globalObject.self.getStr(unistring.NewFromString(name), nil)
+// Get the specified variable in the global context.
+// Equivalent to dereferencing a variable by name in non-strict mode. If variable is not defined returns nil.
+// Note, this is not the same as GlobalObject().Get(name),
+// because if a global lexical binding (let or const) exists, it is used instead.
+// This method will panic with an *Exception if a JavaScript exception is thrown in the process.
+func (r *Runtime) Get(name string) (ret Value) {
+	r.tryPanic(func() {
+		n := unistring.NewFromString(name)
+		if v, exists := r.global.stash.getByName(n); exists {
+			ret = v
+		} else {
+			ret = r.globalObject.self.getStr(n, nil)
+		}
+	})
+	return
 }
 
 // SetRandSource sets random source for this Runtime. If not called, the default math/rand is used.
@@ -2314,8 +2335,20 @@ func (r *Runtime) tryFunc(f func()) (err error) {
 	}()
 
 	f()
+	return
+}
 
+func (r *Runtime) try(f func()) error {
+	if ex := r.vm.try(r.vm.ctx, f); ex != nil {
+		return ex
+	}
 	return nil
+}
+
+func (r *Runtime) tryPanic(f func()) {
+	if ex := r.vm.try(r.vm.ctx, f); ex != nil {
+		panic(ex)
+	}
 }
 
 func (r *Runtime) toObject(v Value, args ...interface{}) *Object {
@@ -2413,9 +2446,7 @@ func (r *Runtime) getIterator(obj Value, method func(FunctionCall) Value) *Objec
 func returnIter(iter *Object) {
 	retMethod := toMethod(iter.self.getStr("return", nil))
 	if retMethod != nil {
-		_ = iter.runtime.tryFunc(func() {
-			retMethod(FunctionCall{ctx: iter.runtime.ctx, This: iter})
-		})
+		iter.runtime.toObject(retMethod(FunctionCall{ctx: iter.runtime.ctx, This: iter}))
 	}
 }
 
@@ -2425,12 +2456,15 @@ func (r *Runtime) iterate(iter *Object, step func(Value)) {
 		if nilSafe(res.self.getStr("done", nil)).ToBoolean() {
 			break
 		}
-		err := r.tryFunc(func() {
-			step(nilSafe(res.self.getStr("value", nil)))
+		value := nilSafe(res.self.getStr("value", nil))
+		ret := r.tryFunc(func() {
+			step(value)
 		})
-		if err != nil {
-			returnIter(iter)
-			panic(err)
+		if ret != nil {
+			_ = r.tryFunc(func() {
+				returnIter(iter)
+			})
+			panic(ret)
 		}
 	}
 }
@@ -2568,6 +2602,23 @@ func (r *Runtime) genId() (ret uint64) {
 	ret = r.idSeq
 	r.idSeq++
 	return
+}
+
+func (r *Runtime) setGlobal(name unistring.String, v Value, strict bool) {
+	if ref := r.global.stash.getRefByName(name, strict); ref != nil {
+		ref.set(v)
+	} else {
+		o := r.globalObject.self
+		if strict {
+			if o.hasOwnPropertyStr(name) {
+				o.setOwnStr(name, v, true)
+			} else {
+				r.throwReferenceError(name)
+			}
+		} else {
+			o.setOwnStr(name, v, false)
+		}
+	}
 }
 
 func strPropToInt(s unistring.String) (int, bool) {
