@@ -183,6 +183,8 @@ type vm struct {
 	newTarget Value
 	result    Value
 
+	maxCallStackSize int
+
 	stashAllocs int
 	halt        bool
 
@@ -426,6 +428,7 @@ func (vm *vm) newStash() {
 func (vm *vm) init() {
 	vm.sb = -1
 	vm.stash = &vm.r.global.stash
+	vm.maxCallStackSize = math.MaxInt32
 }
 
 func (vm *vm) run() {
@@ -496,7 +499,10 @@ func (vm *vm) run() {
 		atomic.StoreUint32(&vm.interrupted, 0)
 		vm.interruptVal = nil
 		vm.interruptLock.Unlock()
-		panic(v)
+		panic(&uncatchableException{
+			stack: &v.stack,
+			err:   v,
+		})
 	}
 }
 
@@ -584,6 +590,9 @@ func (vm *vm) try(ctx1 context.Context, f func()) (ex *Exception) {
 				panic(x1)
 			case *Exception:
 				ex = x1
+			case *uncatchableException:
+				*x1.stack = vm.captureStack(*x1.stack, ctxOffset)
+				panic(x1)
 			case typeError:
 				ex = &Exception{
 					val: vm.r.NewTypeError(string(x1)),
@@ -645,6 +654,13 @@ func (vm *vm) saveCtx(ctx *vmContext) {
 }
 
 func (vm *vm) pushCtx() {
+	if len(vm.callStack) > vm.maxCallStackSize {
+		ex := &StackOverflowError{}
+		panic(&uncatchableException{
+			stack: &ex.stack,
+			err:   ex,
+		})
+	}
 	vm.callStack = append(vm.callStack, vmContext{})
 	ctx := &vm.callStack[len(vm.callStack)-1]
 	vm.saveCtx(ctx)
