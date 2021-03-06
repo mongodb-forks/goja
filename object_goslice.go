@@ -253,12 +253,15 @@ func (o *objectGoSlice) toPrimitive() Value {
 	return o.toPrimitiveString()
 }
 
+func (o *objectGoSlice) _deleteIdx(idx int64) {
+	if idx < int64(len(*o.data)) {
+		(*o.data)[idx] = nil
+	}
+}
+
 func (o *objectGoSlice) deleteStr(name unistring.String, throw bool) bool {
 	if idx := strToIdx64(name); idx >= 0 {
-		if idx < int64(len(*o.data)) {
-			o.val.runtime.typeErrorResult(throw, "Can't delete from Go slice")
-			return false
-		}
+		o._deleteIdx(idx)
 		return true
 	}
 	return o.baseObject.deleteStr(name, throw)
@@ -267,10 +270,7 @@ func (o *objectGoSlice) deleteStr(name unistring.String, throw bool) bool {
 func (o *objectGoSlice) deleteIdx(i valueInt, throw bool) bool {
 	idx := int64(i)
 	if idx >= 0 {
-		if idx < int64(len(*o.data)) {
-			o.val.runtime.typeErrorResult(throw, "Can't delete from Go slice")
-			return false
-		}
+		o._deleteIdx(idx)
 	}
 	return true
 }
