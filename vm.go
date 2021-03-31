@@ -186,6 +186,9 @@ func floatToInt(f float64) (result int64, ok bool) {
 }
 
 func floatToValue(f float64) (result Value) {
+	if i, ok := floatToInt(f); ok {
+		return intToValue(i)
+	}
 	switch {
 	case f == 0:
 		return _negativeZero
