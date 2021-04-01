@@ -186,12 +186,11 @@ func floatToInt(f float64) (result int64, ok bool) {
 }
 
 func floatToValue(f float64) (result Value) {
-	if i, ok := floatToInt(f); ok {
-		return intToValue(i)
-	}
 	switch {
 	case f == 0:
-		return _negativeZero
+		if math.Signbit(f) {
+			return _negativeZero
+		}
 	case math.IsNaN(f):
 		return _NaN
 	case math.IsInf(f, 1):
