@@ -518,8 +518,10 @@ func (vm *vm) ClearInterrupt() {
 }
 
 func (vm *vm) captureStack(stack []StackFrame, ctxOffset int) []StackFrame {
-	// Unroll the vmContext stack
-	stack = append(stack, StackFrame{prg: vm.prg, pc: vm.pc, funcName: vm.funcName})
+	// Unroll the context stack
+	if vm.pc != -1 {
+		stack = append(stack, StackFrame{prg: vm.prg, pc: vm.pc, funcName: vm.funcName})
+	}
 	for i := len(vm.callStack) - 1; i > ctxOffset-1; i-- {
 		if vm.callStack[i].pc != -1 {
 			stack = append(stack, StackFrame{prg: vm.callStack[i].prg, pc: vm.callStack[i].pc - 1, funcName: vm.callStack[i].funcName})
@@ -3240,6 +3242,7 @@ func (t try) exec(vm *vm) {
 	vm.halt = false
 
 	if ex != nil {
+		vm.pc = -1 // to prevent the current position from being captured in the stacktrace
 		panic(ex)
 	}
 }
