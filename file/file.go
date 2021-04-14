@@ -7,6 +7,8 @@ import (
 	"path"
 	"sort"
 	"sync"
+
+	"github.com/go-sourcemap/sourcemap"
 )
 
 // Idx is a compact encoding of a source position within a file set.
@@ -108,7 +110,7 @@ type File struct {
 	name              string
 	src               string
 	base              int // This will always be 1 or greater
-	sourceMap         SourceMapConsumer
+	sourceMap         *sourcemap.Consumer
 	lineOffsets       []int
 	lastScannedOffset int
 }
@@ -133,7 +135,7 @@ func (fl *File) Base() int {
 	return fl.base
 }
 
-func (fl *File) SetSourceMap(m SourceMapConsumer) {
+func (fl *File) SetSourceMap(m *sourcemap.Consumer) {
 	fl.sourceMap = m
 }
 

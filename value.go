@@ -116,6 +116,7 @@ type valueContainer interface {
 
 type typeError string
 type rangeError string
+type referenceError string
 
 type valueNumber struct {
 	_type reflect.Type
@@ -165,6 +166,11 @@ type valueProperty struct {
 	getterFunc   *Object
 	setterFunc   *Object
 }
+
+var (
+	errAccessBeforeInit = referenceError("Cannot access a variable before initialization")
+	errAssignToConst    = typeError("Assignment to constant variable.")
+)
 
 func propGetter(o Value, v Value, r *Runtime) *Object {
 	if v == _undefined {
@@ -295,7 +301,7 @@ func (i valueInt) Equals(other Value) bool {
 	case valueBool:
 		return int64(i) == o.ToInteger()
 	case *Object:
-		return i.Equals(o.toPrimitiveNumber())
+		return i.Equals(o.toPrimitive())
 	}
 
 	return false
@@ -971,7 +977,7 @@ func (f valueFloat) Equals(other Value) bool {
 	case valueString, valueBool:
 		return float64(f) == o.ToFloat()
 	case *Object:
-		return f.Equals(o.toPrimitiveNumber())
+		return f.Equals(o.toPrimitive())
 	}
 
 	return false
@@ -1064,7 +1070,7 @@ func (o *Object) Equals(other Value) bool {
 	}
 
 	switch o1 := other.(type) {
-	case valueInt, valueFloat, valueString, valueInt64:
+	case valueInt, valueFloat, valueString, valueInt64, *Symbol:
 		return o.toPrimitive().Equals(other)
 	case valueBool:
 		return o.Equals(o1.ToNumber())
@@ -1084,16 +1090,15 @@ func (o *Object) baseObject(*Runtime) *Object {
 	return o
 }
 
-func (o *Object) Export() interface{} {
-	if o.__wrapped != nil {
-		return o.__wrapped
-	}
+// Export the Object to a plain Go type. The returned value will be map[string]interface{} unless
+// the Object is a wrapped Go value (created using ToValue()).
+// This method will panic with an *Exception if a JavaScript exception is thrown in the process.
+func (o *Object) Export() (ret interface{}) {
+	o.runtime.tryPanic(func() {
+		ret = o.self.export(&objectExportCtx{})
+	})
 
-	if bo, ok := o.baseObject(o.runtime).self.(*objectGoReflect); ok {
-		return bo.export(&objectExportCtx{})
-	}
-
-	return o.self.export(&objectExportCtx{})
+	return
 }
 
 func (o *Object) ExportType() reflect.Type {
@@ -1168,26 +1173,34 @@ func (o *Object) assertInt64() (int64, bool) {
 	return 0, false
 }
 
+// Get an object's property by name.
+// This method will panic with an *Exception if a JavaScript exception is thrown in the process.
 func (o *Object) Get(name string) Value {
 	return o.self.getStr(unistring.NewFromString(name), nil)
 }
 
 // GetSymbol returns the value of a symbol property. Use one of the Sym* values for well-known
 // symbols (such as SymIterator, SymToStringTag, etc...).
+// This method will panic with an *Exception if a JavaScript exception is thrown in the process.
 func (o *Object) GetSymbol(sym *Symbol) Value {
 	return o.self.getSym(sym, nil)
 }
 
+// Keys returns a list of Object's enumerable keys.
+// This method will panic with an *Exception if a JavaScript exception is thrown in the process.
 func (o *Object) Keys() (keys []string) {
-	names := o.self.ownKeys(false, nil)
-	keys = make([]string, 0, len(names))
-	for _, name := range names {
-		keys = append(keys, name.String())
+	iter := &enumerableIter{
+		wrapped: o.self.enumerateOwnKeys(),
+	}
+	for item, next := iter.next(); next != nil; item, next = next() {
+		keys = append(keys, item.name.String())
 	}
 
 	return
 }
 
+// Symbols returns a list of Object's enumerable symbol properties.
+// This method will panic with an *Exception if a JavaScript exception is thrown in the process.
 func (o *Object) Symbols() []*Symbol {
 	symbols := o.self.ownSymbols(false, nil)
 	ret := make([]*Symbol, len(symbols))
@@ -1270,6 +1283,20 @@ func (o *Object) Delete(name string) error {
 func (o *Object) DeleteSymbol(name *Symbol) error {
 	return o.runtime.tryFunc(func() {
 		o.self.deleteSym(name, true)
+	})
+}
+
+// Prototype returns the Object's prototype, same as Object.getPrototypeOf(). If the prototype is null
+// returns nil.
+func (o *Object) Prototype() *Object {
+	return o.self.proto()
+}
+
+// SetPrototype sets the Object's prototype, same as Object.setPrototypeOf(). Setting proto to nil
+// is an equivalent of Object.setPrototypeOf(null).
+func (o *Object) SetPrototype(proto *Object) error {
+	return o.runtime.try(func() {
+		o.self.setProto(proto, true)
 	})
 }
 
@@ -1512,6 +1539,10 @@ func (s *Symbol) SameAs(other Value) bool {
 }
 
 func (s *Symbol) Equals(o Value) bool {
+	switch o := o.(type) {
+	case *Object:
+		return s.Equals(o.toPrimitive())
+	}
 	return s.SameAs(o)
 }
 

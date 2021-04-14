@@ -23,13 +23,6 @@ type sparseArrayObject struct {
 	lengthProp     valueProperty
 }
 
-func (a *sparseArrayObject) init() {
-	a.baseObject.init()
-	a.lengthProp.writable = true
-
-	a._put("length", &a.lengthProp)
-}
-
 func (a *sparseArrayObject) findIdx(idx uint32) int {
 	return sort.Search(len(a.items), func(i int) bool {
 		return a.items[i].idx >= idx
@@ -263,10 +256,10 @@ func (i *sparseArrayPropIter) next() (propIterItem, iterNextFunc) {
 		}
 	}
 
-	return i.a.baseObject.enumerateUnfiltered()()
+	return i.a.baseObject.enumerateOwnKeys()()
 }
 
-func (a *sparseArrayObject) enumerateUnfiltered() iterNextFunc {
+func (a *sparseArrayObject) enumerateOwnKeys() iterNextFunc {
 	return (&sparseArrayPropIter{
 		a: a,
 	}).next
@@ -333,8 +326,8 @@ func (a *sparseArrayObject) expand(idx uint32) bool {
 			}
 			ar.setValuesFromSparse(a.items, int(idx))
 			ar.val.self = ar
-			ar.init()
 			ar.lengthProp.writable = a.lengthProp.writable
+			a._put("length", &ar.lengthProp)
 			return false
 		}
 	}
@@ -440,9 +433,30 @@ func (a *sparseArrayObject) export(ctx *objectExportCtx) interface{} {
 	}
 	arr := make([]interface{}, a.length)
 	ctx.put(a, arr)
+	var prevIdx uint32
 	for _, item := range a.items {
-		if item.value != nil {
-			arr[item.idx] = exportValue(item.value, ctx)
+		idx := item.idx
+		for i := prevIdx; i < idx; i++ {
+			if a.prototype != nil {
+				if v := a.prototype.self.getIdx(valueInt(i), nil); v != nil {
+					arr[i] = exportValue(v, ctx)
+				}
+			}
+		}
+		v := item.value
+		if v != nil {
+			if prop, ok := v.(*valueProperty); ok {
+				v = prop.get(a.val)
+			}
+			arr[idx] = exportValue(v, ctx)
+		}
+		prevIdx = idx + 1
+	}
+	for i := prevIdx; i < a.length; i++ {
+		if a.prototype != nil {
+			if v := a.prototype.self.getIdx(valueInt(i), nil); v != nil {
+				arr[i] = exportValue(v, ctx)
+			}
 		}
 	}
 	return arr

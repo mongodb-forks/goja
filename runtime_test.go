@@ -6,6 +6,7 @@ import (
 	"math"
 	"reflect"
 	"strconv"
+	"strings"
 	"testing"
 	"time"
 
@@ -167,15 +168,65 @@ func TestSetFunc(t *testing.T) {
 	sum(40, 2);
 	`
 	r := New()
-	r.Set("sum", func(call FunctionCall) Value {
+	err := r.Set("sum", func(call FunctionCall) Value {
 		return r.ToValue(call.Argument(0).ToInteger() + call.Argument(1).ToInteger())
 	})
+	if err != nil {
+		t.Fatal(err)
+	}
 	v, err := r.RunString(SCRIPT)
 	if err != nil {
 		t.Fatal(err)
 	}
 	if i := v.ToInteger(); i != 42 {
 		t.Fatalf("Expected 42, got: %d", i)
+	}
+}
+
+func ExampleRuntime_Set_lexical() {
+	r := New()
+	_, err := r.RunString("let x")
+	if err != nil {
+		panic(err)
+	}
+	err = r.Set("x", 1)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Print(r.Get("x"), r.GlobalObject().Get("x"))
+	// Output: 1 <nil>
+}
+
+func TestRecursiveRun(t *testing.T) {
+	// Make sure that a recursive call to Run*() correctly sets the environment and no stash or stack
+	// corruptions occur.
+	vm := New()
+	vm.Set("f", func() (Value, error) {
+		return vm.RunString("let x = 1; { let z = 100, z1 = 200, z2 = 300, z3 = 400; } x;")
+	})
+	res, err := vm.RunString(`
+	function f1() {
+		let x = 2;
+		eval('');
+		{
+			let y = 3;
+			let res = f();
+			if (x !== 2) { // check for stash corruption
+				throw new Error("x="+x);
+			}
+			if (y !== 3) { // check for stack corruption
+				throw new Error("y="+y);
+			}
+			return res;
+		}
+	};
+	f1();
+	`)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !res.SameAs(valueInt(1)) {
+		t.Fatal(res)
 	}
 }
 
@@ -1783,13 +1834,13 @@ func TestArrayCycleDouble(t *testing.T) {
     "use strict";
     function cycle() {
 		var n = [1,2,3,4,5];
-		var m = [4,5,6];  
+		var m = [4,5,6];
 		m.push(n);
 		n.push(m);
 
 		// test that multiple calls to toString() does not affect result
 		var tmp0 = n.toString();
-		var tmp1 = m.toString(); 
+		var tmp1 = m.toString();
 
         return n.toString();
     }
@@ -1814,11 +1865,11 @@ func TestArrayCycleTriple(t *testing.T) {
     "use strict";
     function cycle() {
 		var n = [1,2,3,4,5];
-		var m = [1,2,3];  
-		var p = [4,5,6];  
-		p.push(n);  
-		m.push(p); 
-		n[2] = m;  
+		var m = [1,2,3];
+		var p = [4,5,6];
+		p.push(n);
+		m.push(p);
+		n[2] = m;
 
 		// test that multiple calls to toString() does not affect result
 		var tmp0 = m.toString();
@@ -1932,6 +1983,163 @@ func TestRuntime_SetParserOptions_Eval(t *testing.T) {
 	`)
 	if err != nil {
 		t.Fatal(err)
+	}
+}
+
+func TestNativeCallWithRuntimeParameter(t *testing.T) {
+	vm := New()
+	vm.Set("f", func(_ FunctionCall, r *Runtime) Value {
+		if r == vm {
+			return valueTrue
+		}
+		return valueFalse
+	})
+	ret, err := vm.RunString(`f()`)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if ret != valueTrue {
+		t.Fatal(ret)
+	}
+}
+
+func TestNestedEnumerate(t *testing.T) {
+	const SCRIPT = `
+	var o = {baz: true, foo: true, bar: true};
+	var res = "";
+	for (var i in o) {
+		delete o.baz;
+		Object.defineProperty(o, "hidden", {value: true, configurable: true});
+		for (var j in o) {
+			Object.defineProperty(o, "0", {value: true, configurable: true});
+			Object.defineProperty(o, "1", {value: true, configurable: true});
+			for (var k in o) {}
+			res += i + "-" + j + " ";
+		}
+	}
+	assert(compareArray(Reflect.ownKeys(o), ["0","1","foo","bar","hidden"]), "keys");
+	res;
+	`
+	testScript1(TESTLIB+SCRIPT, asciiString("baz-foo baz-bar foo-foo foo-bar bar-foo bar-bar "), t)
+}
+
+func TestAbandonedEnumerate(t *testing.T) {
+	const SCRIPT = `
+	var o = {baz: true, foo: true, bar: true};
+	var res = "";
+	for (var i in o) {
+		delete o.baz;
+		for (var j in o) {
+			res += i + "-" + j + " ";
+			break;
+		}
+	}
+	res;
+	`
+	testScript1(SCRIPT, asciiString("baz-foo foo-foo bar-foo "), t)
+}
+
+func TestDeclareGlobalFunc(t *testing.T) {
+	const SCRIPT = `
+	var initial;
+
+	Object.defineProperty(this, 'f', {
+	  enumerable: true,
+	  writable: true,
+	  configurable: false
+	});
+
+	(0,eval)('initial = f; function f() { return 2222; }');
+	var desc = Object.getOwnPropertyDescriptor(this, "f");
+	assert(desc.enumerable, "enumerable");
+	assert(desc.writable, "writable");
+	assert(!desc.configurable, "configurable");
+	assert.sameValue(initial(), 2222);
+	`
+	testScript1(TESTLIB+SCRIPT, _undefined, t)
+}
+
+func TestStackOverflowError(t *testing.T) {
+	vm := New()
+	vm.SetMaxCallStackSize(3)
+	_, err := vm.RunString(`
+	function f() {
+		f();
+	}
+	f();
+	`)
+	if _, ok := err.(*StackOverflowError); !ok {
+		t.Fatal(err)
+	}
+}
+
+func TestStacktraceLocationThrowFromCatch(t *testing.T) {
+	vm := New()
+	_, err := vm.RunString(`
+	function main(arg) {
+		try {
+			if (arg === 1) {
+				return f1();
+			}
+			if (arg === 2) {
+				return f2();
+			}
+			if (arg === 3) {
+				return f3();
+			}
+		} catch (e) {
+			throw e;
+		}
+	}
+	function f1() {}
+	function f2() {
+		throw new Error();
+	}
+	function f3() {}
+	main(2);
+	`)
+	if err == nil {
+		t.Fatal("Expected error")
+	}
+	stack := err.(*Exception).stack
+	if len(stack) != 2 {
+		t.Fatalf("Unexpected stack len: %v", stack)
+	}
+	if frame := stack[0]; frame.funcName != "main" || frame.pc != 30 {
+		t.Fatalf("Unexpected stack frame 0: %#v", frame)
+	}
+	if frame := stack[1]; frame.funcName != "" || frame.pc != 7 {
+		t.Fatalf("Unexpected stack frame 1: %#v", frame)
+	}
+}
+
+func TestStacktraceLocationThrowFromGo(t *testing.T) {
+	vm := New()
+	f := func() {
+		panic(vm.ToValue("Test"))
+	}
+	vm.Set("f", f)
+	_, err := vm.RunString(`
+	function main() {
+		return f();
+	}
+	main();
+	`)
+	if err == nil {
+		t.Fatal("Expected error")
+	}
+	stack := err.(*Exception).stack
+	if len(stack) != 3 {
+		t.Fatalf("Unexpected stack len: %v", stack)
+	}
+	if frame := stack[0]; !strings.HasSuffix(frame.funcName.String(), "TestStacktraceLocationThrowFromGo.func1") {
+		t.Fatalf("Unexpected stack frame 0: %#v", frame)
+	}
+	if frame := stack[1]; frame.funcName != "main" || frame.pc != 1 {
+		t.Fatalf("Unexpected stack frame 1: %#v", frame)
+	}
+	if frame := stack[2]; frame.funcName != "" || frame.pc != 3 {
+		t.Fatalf("Unexpected stack frame 2: %#v", frame)
 	}
 }
 

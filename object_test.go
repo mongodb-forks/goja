@@ -6,15 +6,6 @@ import (
 	"testing"
 )
 
-func TestArray1(t *testing.T) {
-	r := &Runtime{}
-	a := r.newArray(nil)
-	a.setOwnIdx(valueInt(0), asciiString("test"), true)
-	if l := a.getStr("length", nil).ToInteger(); l != 1 {
-		t.Fatalf("Unexpected length: %d", l)
-	}
-}
-
 func TestDefineProperty(t *testing.T) {
 	r := New()
 	o := r.NewObject()
@@ -111,6 +102,23 @@ func TestDefinePropertiesSymbol(t *testing.T) {
 	`
 
 	testScript1(SCRIPT, valueTrue, t)
+}
+
+func TestObjectShorthandProperties(t *testing.T) {
+	const SCRIPT = `
+	var b = 1;
+	var a = {b, get() {return "c"}};
+
+	assert.sameValue(a.b, b, "#1");
+	assert.sameValue(a.get(), "c", "#2");
+
+	var obj = {
+		w\u0069th() { return 42; }
+    };
+
+	assert.sameValue(obj['with'](), 42, 'property exists');
+	`
+	testScript1(TESTLIB+SCRIPT, _undefined, t)
 }
 
 func TestObjectAssign(t *testing.T) {
@@ -406,85 +414,6 @@ func BenchmarkConv(b *testing.B) {
 	if count == 0 {
 		b.Fatal("zero")
 	}
-}
-
-func BenchmarkArrayGetStr(b *testing.B) {
-	b.StopTimer()
-	r := New()
-	v := &Object{runtime: r}
-
-	a := &arrayObject{
-		baseObject: baseObject{
-			val:        v,
-			extensible: true,
-		},
-	}
-	v.self = a
-
-	a.init()
-
-	v.setOwn(valueInt(0), asciiString("test"), false)
-	b.StartTimer()
-
-	for i := 0; i < b.N; i++ {
-		a.getStr("0", nil)
-	}
-
-}
-
-func BenchmarkArrayGet(b *testing.B) {
-	b.StopTimer()
-	r := New()
-	v := &Object{runtime: r}
-
-	a := &arrayObject{
-		baseObject: baseObject{
-			val:        v,
-			extensible: true,
-		},
-	}
-	v.self = a
-
-	a.init()
-
-	var idx Value = valueInt(0)
-
-	v.setOwn(idx, asciiString("test"), false)
-
-	b.StartTimer()
-
-	for i := 0; i < b.N; i++ {
-		v.get(idx, nil)
-	}
-
-}
-
-func BenchmarkArrayPut(b *testing.B) {
-	b.StopTimer()
-	r := New()
-
-	v := &Object{runtime: r}
-
-	a := &arrayObject{
-		baseObject: baseObject{
-			val:        v,
-			extensible: true,
-		},
-	}
-
-	v.self = a
-
-	a.init()
-
-	var idx Value = valueInt(0)
-	var val Value = asciiString("test")
-
-	b.StartTimer()
-
-	for i := 0; i < b.N; i++ {
-		v.setOwn(idx, val, false)
-	}
-
 }
 
 func BenchmarkToUTF8String(b *testing.B) {
