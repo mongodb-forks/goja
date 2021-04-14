@@ -601,7 +601,6 @@ func (r *Runtime) initObject() {
 	o._putProp("assign", r.newNativeFunc(r.object_assign, nil, "assign", nil, 2), true, false, true)
 	o._putProp("defineProperty", r.newNativeFunc(r.object_defineProperty, nil, "defineProperty", nil, 3), true, false, true)
 	o._putProp("defineProperties", r.newNativeFunc(r.object_defineProperties, nil, "defineProperties", nil, 2), true, false, true)
-	o._putProp("entries", r.newNativeFunc(r.object_entries, nil, "entries", nil, 1), true, false, true)
 	o._putProp("getOwnPropertyDescriptor", r.newNativeFunc(r.object_getOwnPropertyDescriptor, nil, "getOwnPropertyDescriptor", nil, 2), true, false, true)
 	o._putProp("getOwnPropertyDescriptors", r.newNativeFunc(r.object_getOwnPropertyDescriptors, nil, "getOwnPropertyDescriptors", nil, 1), true, false, true)
 	o._putProp("getPrototypeOf", r.newNativeFunc(r.object_getPrototypeOf, nil, "getPrototypeOf", nil, 1), true, false, true)
@@ -623,9 +622,7 @@ func (r *Runtime) initObject() {
 	o._putSym(SymIterator, valueProp(entriesFunc, true, false, true))
 	o._putSym(SymToStringTag, valueProp(asciiString(classObject), false, false, true))
 
-	o._putProp("values", r.newNativeFunc(r.object_values, nil, "values", nil, 1), true, false, true)
-	o._putProp("entries", r.newNativeFunc(r.object_entries, nil, "entries", nil, 1), true, false, true)
-
+	o._putProp("entries", entriesFunc, true, false, true)
 	o._putProp("fromEntries", r.newNativeFunc(r.object_fromEntries, nil, "fromEntries", nil, 1), true, false, true)
 
 	r.addToGlobal("Object", r.global.Object)
