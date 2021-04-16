@@ -570,9 +570,7 @@ func (vm *vm) try(ctx1 context.Context, f func()) (ex *Exception) {
 				ex = &Exception{
 					val: x1,
 				}
-				// TODO: this was a functionality added to match otto but it's causing
-				// an error since x1.ExportType() can be nil
-				if x1.ExportType().Kind() == reflect.String {
+				if x1.ExportType() != nil && x1.ExportType().Kind() == reflect.String {
 					ex.ignoreStack = true
 				}
 				v := x1.baseObject(vm.r)
