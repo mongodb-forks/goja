@@ -601,26 +601,26 @@ func TestRegexpOverrideSpecies(t *testing.T) {
 	testScript1(SCRIPT, _undefined, t)
 }
 
-// func TestRegexpSymbolMatchAllCallsIsRegexp(t *testing.T) {
-// 	// This is tc39's test/built-ins/RegExp/prototype/Symbol.matchAll/isregexp-this-throws.js
-// 	const SCRIPT = `
-// 	var a = new Object();
-// 	Object.defineProperty(a, Symbol.match, {
-// 		get: function() {
-// 			throw "passed";
-// 		}
-// 	});
-// 	try {
-// 		RegExp.prototype[Symbol.matchAll].call(a, '');
-// 		throw new Error("Expected error");
-// 	} catch(e) {
-// 		if (e !== "passed") {
-// 			throw e;
-// 		}
-// 	}
-// 	`
-// 	testScript1(SCRIPT, _undefined, t)
-// }
+func TestRegexpSymbolMatchAllCallsIsRegexp(t *testing.T) {
+	// This is tc39's test/built-ins/RegExp/prototype/Symbol.matchAll/isregexp-this-throws.js
+	const SCRIPT = `
+	var a = new Object();
+	Object.defineProperty(a, Symbol.match, {
+		get: function() {
+			throw "passed";
+		}
+	});
+	try {
+		RegExp.prototype[Symbol.matchAll].call(a, '');
+		throw new Error("Expected error");
+	} catch(e) {
+		if (e !== "passed") {
+			throw e;
+		}
+	}
+	`
+	testScript1(SCRIPT, _undefined, t)
+}
 
 func TestRegexpMatchAllConstructor(t *testing.T) {
 	// This is tc39's test/built-ins/RegExp/prototype/Symbol.matchAll/species-constuctor.js
@@ -676,32 +676,32 @@ func TestRegexpInvalidGroup(t *testing.T) {
 	testScript1(TESTLIB+SCRIPT, _undefined, t)
 }
 
-// func TestRegexpLookbehindAssertion(t *testing.T) {
-// 	const SCRIPT = `
-// 	var re = /(?<=Jack|Tom)Sprat/;
-// 	assert(re.test("JackSprat"), "#1");
-// 	assert(!re.test("JohnSprat"), "#2");
+func TestRegexpLookbehindAssertion(t *testing.T) {
+	const SCRIPT = `
+	var re = /(?<=Jack|Tom)Sprat/;
+	assert(re.test("JackSprat"), "#1");
+	assert(!re.test("JohnSprat"), "#2");
 
-// 	re = /(?<!-)\d+/;
-// 	assert(re.test("3"), "#3");
-// 	assert(!re.test("-3"), "#4");
+	re = /(?<!-)\d+/;
+	assert(re.test("3"), "#3");
+	assert(!re.test("-3"), "#4");
 
-// 	var match = "JackSprat".match(/(?<=Jack|Tom)Sprat/)
-// 	assert.sameValue(match.length, 1);
-// 	assert.sameValue(match[0], "Sprat");
+	var match = "JackSprat".match(/(?<=Jack|Tom)Sprat/)
+	assert.sameValue(match.length, 1);
+	assert.sameValue(match[0], "Sprat");
 
-// 	var matchWithCaptureGroup = "1 turkey costs $30 or £5".match(/(?<=(\$|£))\d+/)
-// 	assert.sameValue(matchWithCaptureGroup.length, 2);
-// 	assert.sameValue(matchWithCaptureGroup[0], "30");
-// 	assert.sameValue(matchWithCaptureGroup[1], "$");
+	var matchWithCaptureGroup = "1 turkey costs $30 or £5".match(/(?<=(\$|£))\d+/)
+	assert.sameValue(matchWithCaptureGroup.length, 2);
+	assert.sameValue(matchWithCaptureGroup[0], "30");
+	assert.sameValue(matchWithCaptureGroup[1], "$");
 
-// 	var matchWithGlobalFlag = "1 turkey costs $30 or £5".match(/(?<=(\$|£))\d+/g)
-// 	assert.sameValue(matchWithGlobalFlag.length, 2);
-// 	assert.sameValue(matchWithGlobalFlag[0], "30");
-// 	assert.sameValue(matchWithGlobalFlag[1], "5");
-// 	`
-// 	testScript1(TESTLIB+SCRIPT, _undefined, t)
-// }
+	var matchWithGlobalFlag = "1 turkey costs $30 or £5".match(/(?<=(\$|£))\d+/g)
+	assert.sameValue(matchWithGlobalFlag.length, 2);
+	assert.sameValue(matchWithGlobalFlag[0], "30");
+	assert.sameValue(matchWithGlobalFlag[1], "5");
+	`
+	testScript1(TESTLIB+SCRIPT, _undefined, t)
+}
 
 func TestRegexpLookaheadAssertion(t *testing.T) {
 	const SCRIPT = `

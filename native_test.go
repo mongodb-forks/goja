@@ -97,10 +97,9 @@ func TestNativeClass(t *testing.T) {
 	is(t, err, nil)
 	is(t, ret.ToBoolean(), true)
 
-	// TODO: this test fails, the toString method fails a cast
-	// ret, err = vm.RunString(`Carrot("yum").toString()`)
-	// is(t, err, nil)
-	// is(t, ret.String(), "yum")
+	ret, err = vm.RunString(`Carrot("yum").toString()`)
+	is(t, err, nil)
+	is(t, ret.String(), "yum")
 
 	ret, err = vm.RunString(`Carrot("yum") instanceof Carrot`)
 	is(t, err, nil)
