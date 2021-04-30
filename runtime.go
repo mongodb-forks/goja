@@ -1355,9 +1355,11 @@ func (r *Runtime) RunProgram(p *Program) (result Value, err error) {
 		vm.stash = &r.global.stash
 		vm.sb = vm.sp - 1
 	}
+
 	vm.prg = p
 	vm.pc = 0
 	vm.result = _undefined
+
 	ex := r.vm.runTry(r.vm.ctx)
 	if ex == nil {
 		result = r.vm.result
@@ -2277,8 +2279,10 @@ func AssertFunction(v Value) (Callable, bool) {
 			return func(this Value, args ...Value) (ret Value, err error) {
 				defer func() {
 					if x := recover(); x != nil {
-						if ex, ok := x.(*uncatchableException); ok {
-							err = ex.err
+						if ex, ok := x.(*InterruptedError); ok {
+							if ex.Error() != "" && ex.Error() != "<nil>" {
+								err = ex
+							}
 						} else {
 							panic(x)
 						}

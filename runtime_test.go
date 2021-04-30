@@ -2370,6 +2370,7 @@ func TestExceptionWithinAppliedNativeFunc(t *testing.T) {
 	if !ok {
 		t.Fatalf("Expected err to be of type Exception, but got %T", err)
 	}
+
 	// TODO: revisit this as it was the original expected value
 	// 	expected := `TypeError: oh no!
 	// 	at myNativeFunc (native)

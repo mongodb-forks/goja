@@ -1094,6 +1094,14 @@ func (o *Object) baseObject(*Runtime) *Object {
 // the Object is a wrapped Go value (created using ToValue()).
 // This method will panic with an *Exception if a JavaScript exception is thrown in the process.
 func (o *Object) Export() (ret interface{}) {
+	if o.__wrapped != nil {
+		return o.__wrapped
+	}
+
+	if bo, ok := o.baseObject(o.runtime).self.(*objectGoReflect); ok {
+		return bo.export(&objectExportCtx{})
+	}
+
 	o.runtime.tryPanic(func() {
 		ret = o.self.export(&objectExportCtx{})
 	})
@@ -1211,7 +1219,7 @@ func (o *Object) Symbols() []*Symbol {
 // DefineDataProperty is a Go equivalent of Object.defineProperty(o, name, {value: value, writable: writable,
 // configurable: configurable, enumerable: enumerable})
 func (o *Object) DefineDataProperty(name string, value Value, writable, configurable, enumerable Flag) error {
-	return o.runtime.try(func() {
+	return o.runtime.tryFunc(func() {
 		o.self.defineOwnPropertyStr(unistring.NewFromString(name), PropertyDescriptor{
 			Value:        value,
 			Writable:     writable,
@@ -1224,7 +1232,7 @@ func (o *Object) DefineDataProperty(name string, value Value, writable, configur
 // DefineAccessorProperty is a Go equivalent of Object.defineProperty(o, name, {get: getter, set: setter,
 // configurable: configurable, enumerable: enumerable})
 func (o *Object) DefineAccessorProperty(name string, getter, setter Value, configurable, enumerable Flag) error {
-	return o.runtime.try(func() {
+	return o.runtime.tryFunc(func() {
 		o.self.defineOwnPropertyStr(unistring.NewFromString(name), PropertyDescriptor{
 			Getter:       getter,
 			Setter:       setter,
@@ -1237,7 +1245,7 @@ func (o *Object) DefineAccessorProperty(name string, getter, setter Value, confi
 // DefineDataPropertySymbol is a Go equivalent of Object.defineProperty(o, name, {value: value, writable: writable,
 // configurable: configurable, enumerable: enumerable})
 func (o *Object) DefineDataPropertySymbol(name *Symbol, value Value, writable, configurable, enumerable Flag) error {
-	return o.runtime.try(func() {
+	return o.runtime.tryFunc(func() {
 		o.self.defineOwnPropertySym(name, PropertyDescriptor{
 			Value:        value,
 			Writable:     writable,
@@ -1250,7 +1258,7 @@ func (o *Object) DefineDataPropertySymbol(name *Symbol, value Value, writable, c
 // DefineAccessorPropertySymbol is a Go equivalent of Object.defineProperty(o, name, {get: getter, set: setter,
 // configurable: configurable, enumerable: enumerable})
 func (o *Object) DefineAccessorPropertySymbol(name *Symbol, getter, setter Value, configurable, enumerable Flag) error {
-	return o.runtime.try(func() {
+	return o.runtime.tryFunc(func() {
 		o.self.defineOwnPropertySym(name, PropertyDescriptor{
 			Getter:       getter,
 			Setter:       setter,
@@ -1261,25 +1269,25 @@ func (o *Object) DefineAccessorPropertySymbol(name *Symbol, getter, setter Value
 }
 
 func (o *Object) Set(name string, value interface{}) error {
-	return o.runtime.try(func() {
+	return o.runtime.tryFunc(func() {
 		o.self.setOwnStr(unistring.NewFromString(name), o.runtime.ToValue(value), true)
 	})
 }
 
 func (o *Object) SetSymbol(name *Symbol, value interface{}) error {
-	return o.runtime.try(func() {
+	return o.runtime.tryFunc(func() {
 		o.self.setOwnSym(name, o.runtime.ToValue(value), true)
 	})
 }
 
 func (o *Object) Delete(name string) error {
-	return o.runtime.try(func() {
+	return o.runtime.tryFunc(func() {
 		o.self.deleteStr(unistring.NewFromString(name), true)
 	})
 }
 
 func (o *Object) DeleteSymbol(name *Symbol) error {
-	return o.runtime.try(func() {
+	return o.runtime.tryFunc(func() {
 		o.self.deleteSym(name, true)
 	})
 }

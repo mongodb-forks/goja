@@ -570,7 +570,6 @@ func TestRegexpMatchAll(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-
 	_, err = f(false)
 	if err != nil {
 		t.Fatal(err)
@@ -660,6 +659,10 @@ func TestRegexp2InvalidEscape(t *testing.T) {
 	testScript1(`/(?=)\x0/.test("x0")`, valueTrue, t)
 }
 
+// func TestRegexp2InvalidEscape(t *testing.T) {
+// 	testScript1(`/(?=)\x0/.test("x0")`, valueTrue, t)
+// }
+
 func TestRegexpUnicodeEmptyMatch(t *testing.T) {
 	testScript1(`/(0)0|/gu.exec("0\xef").length === 2`, valueTrue, t)
 }
@@ -742,7 +745,7 @@ func TestRegexpExec(t *testing.T) {
 								break;
 						}
 				} while (true);
-				
+
 				assert(deepEqual(found, ["ab","cd2","ab3","cd"]));
 			`,
 		},

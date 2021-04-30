@@ -1335,7 +1335,6 @@ func (r *Runtime) createArrayProto(val *Object) objectImpl {
 	o._putProp("values", r.global.arrayValues, true, false, true)
 
 	o._putSym(SymIterator, valueProp(r.global.arrayValues, true, false, true))
-
 	bl := r.newBaseObject(nil, classObject)
 	bl.setOwnStr("copyWithin", valueTrue, true)
 	bl.setOwnStr("entries", valueTrue, true)
