@@ -860,10 +860,9 @@ func (r *Runtime) builtin_thrower(FunctionCall) Value {
 	return nil
 }
 
-func (r *Runtime) eval(srcVal valueString, direct, strict bool, this Value) Value {
-	src := escapeInvalidUtf16(srcVal)
+func (r *Runtime) common_eval(name, src string, direct, strict bool, this Value) Value {
 	vm := r.vm
-	p, err := r.compile("<eval>", src, strict, true, !direct || vm.stash == &r.global.stash)
+	p, err := r.compile(name, src, strict, true, !direct || vm.stash == &r.global.stash)
 	if err != nil {
 		panic(err)
 	}
@@ -884,6 +883,13 @@ func (r *Runtime) eval(srcVal valueString, direct, strict bool, this Value) Valu
 	vm.halt = false
 	vm.sp -= 1
 	return retval
+}
+
+func (r *Runtime) eval(srcVal valueString, direct, strict bool, this Value) Value {
+	src := escapeInvalidUtf16(srcVal)
+	// Both eval and Eval share the same logic, any change the goja team
+	// makes to the "eval" function should be reflected in "common_eval"
+	return r.common_eval("<eval>", src, direct, strict, this)
 }
 
 func (r *Runtime) builtin_eval(call FunctionCall) Value {
