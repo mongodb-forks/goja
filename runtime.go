@@ -2245,10 +2245,8 @@ func ToFunctionWithContext(v Value) (CallableWithContext, bool) {
 			return func(ctx context.Context, this Value, args ...Value) (ret Value, err error) {
 				defer func() {
 					if x := recover(); x != nil {
-						if ex, ok := x.(*InterruptedError); ok {
-							if ex.Error() != "" && ex.Error() != "<nil>" {
-								err = ex
-							}
+						if ex, ok := x.(*uncatchableException); ok {
+							err = ex.err
 						} else {
 							panic(x)
 						}
@@ -2283,12 +2281,7 @@ func AssertFunction(v Value) (Callable, bool) {
 			return func(this Value, args ...Value) (ret Value, err error) {
 				defer func() {
 					if x := recover(); x != nil {
-						// TODO: Are these two error handling supposed to live side by side ?
-						if ex, ok := x.(*InterruptedError); ok {
-							if ex.Error() != "" && ex.Error() != "<nil>" {
-								err = ex
-							}
-						} else if ex, ok := x.(*uncatchableException); ok {
+						if ex, ok := x.(*uncatchableException); ok {
 							err = ex.err
 						} else {
 							panic(x)
