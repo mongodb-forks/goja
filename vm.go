@@ -462,7 +462,10 @@ func (vm *vm) run() {
 						iface: x,
 					}
 					v.traceLimit = vm.r.stackTraceLimit
-					panic(v)
+					panic(&uncatchableException{
+						stack: &v.stack,
+						err:   v,
+					})
 				}
 			}()
 			interruptFunc()
