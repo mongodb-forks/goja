@@ -252,10 +252,8 @@ func (b *valueStringBuilder) WriteSubstring(source valueString, start int, end i
 	if ascii, ok := source.(asciiString); ok {
 		if b.ascii() {
 			b.asciiBuilder.WriteString(string(ascii[start:end]))
-		} else {
-			b.unicodeBuilder.writeASCIIString(string(ascii[start:end]))
+			return
 		}
-		return
 	}
 	us := source.(unicodeString)
 	if b.ascii() {
