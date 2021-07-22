@@ -871,7 +871,16 @@ func (r *Runtime) builtin_thrower(FunctionCall) Value {
 
 func (r *Runtime) common_eval(name, src string, direct, strict bool, this Value) Value {
 	vm := r.vm
-	p, err := r.compile(name, src, strict, true, !direct || vm.stash == &r.global.stash)
+	inGlobal := true
+	if direct {
+		for s := vm.stash; s != nil; s = s.outer {
+			if s.variable {
+				inGlobal = false
+				break
+			}
+		}
+	}
+	p, err := r.compile("<eval>", src, strict, true, inGlobal)
 	if err != nil {
 		panic(err)
 	}
