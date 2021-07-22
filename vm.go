@@ -2942,7 +2942,7 @@ func (e *enterFuncBody) exec(vm *vm) {
 			vv[i] = nil
 		}
 	}
-	sp = nsp
+	vm.sp = nsp
 	vm.pc++
 }
 
