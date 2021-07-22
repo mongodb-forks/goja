@@ -389,6 +389,7 @@ var (
 		"sec-function-definitions-static-semantics-early-errors",
 		"sec-functiondeclarationinstantiation",
 		"sec-functiondeclarations-in-ifstatement-statement-clauses",
+		"sec-evaldeclarationinstantiation",
 	}
 )
 

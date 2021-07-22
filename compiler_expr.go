@@ -886,7 +886,6 @@ func (e *compiledFunctionLiteral) emitGetter(putOnStack bool) {
 				firstDupIdx = offset
 			}
 			b.isArg = true
-			b.isVar = true
 		case ast.Pattern:
 			b := e.c.scope.addBinding(int(item.Idx0()) - 1)
 			b.isArg = true
@@ -944,16 +943,21 @@ func (e *compiledFunctionLiteral) emitGetter(putOnStack bool) {
 	preambleLen := 4 // enter, boxThis, createArgs, set
 	e.c.p.code = make([]instruction, preambleLen, 8)
 
-	if calleeBinding != nil {
-		e.c.emit(loadCallee)
-		calleeBinding.emitInit()
-	}
-
 	emitArgsRestMark := -1
 	firstForwardRef := -1
 	enterFunc2Mark := -1
 
 	if hasPatterns || hasInits {
+		if e.isExpr && e.expr.Name != nil {
+			if b, created := s.bindNameLexical(e.expr.Name.Name, false, 0); created {
+				b.isConst = true
+				calleeBinding = b
+			}
+		}
+		if calleeBinding != nil {
+			e.c.emit(loadCallee)
+			calleeBinding.emitInit()
+		}
 		for i, item := range e.expr.ParameterList.List {
 			if pattern, ok := item.Target.(ast.Pattern); ok {
 				i := i
@@ -1028,6 +1032,11 @@ func (e *compiledFunctionLiteral) emitGetter(putOnStack bool) {
 			}
 		}
 	} else {
+		// To avoid triggering variable conflict when binding from non-strict direct eval().
+		// Parameters are supposed to be in a parent scope, hence no conflict.
+		for _, b := range s.bindings[:paramsCount] {
+			b.isVar = true
+		}
 		e.c.compileDeclList(e.expr.DeclarationList, true)
 		e.c.createFunctionBindings(funcs)
 		e.c.compileLexicalDeclarations(body, true)
@@ -1057,22 +1066,26 @@ func (e *compiledFunctionLiteral) emitGetter(putOnStack bool) {
 	}
 
 	if s.argsNeeded {
-		pos := preambleLen - 2
-		delta += 2
-		if s.strict || hasPatterns || hasInits {
-			code[pos] = createArgsUnmapped(paramsCount)
+		b, created := s.bindNameLexical("arguments", false, 0)
+		if !created && !b.isVar {
+			s.argsNeeded = false
 		} else {
-			code[pos] = createArgsMapped(paramsCount)
+			if s.strict {
+				b.isConst = true
+			} else {
+				b.isVar = true
+			}
+			pos := preambleLen - 2
+			delta += 2
+			if s.strict || hasPatterns || hasInits {
+				code[pos] = createArgsUnmapped(paramsCount)
+			} else {
+				code[pos] = createArgsMapped(paramsCount)
+			}
+			pos++
+			b.markAccessPointAtScope(s, pos)
+			code[pos] = storeStashP(0)
 		}
-		pos++
-		b, _ := s.bindNameLexical("arguments", false, 0)
-		if s.strict {
-			b.isConst = true
-		} else {
-			b.isVar = true
-		}
-		b.markAccessPointAtScope(s, pos)
-		code[pos] = storeStashP(0)
 	}
 
 	stashSize, stackSize := s.finaliseVarAlloc(0)
