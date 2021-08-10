@@ -2288,9 +2288,9 @@ func AssertFunction(v Value) (Callable, bool) {
 						}
 					}
 				}()
-				ex := obj.runtime.vm.try(obj.runtime.ctx, func() {
+				ex := obj.runtime.vm.try(obj.runtime.vm.ctx, func() {
 					ret = f(FunctionCall{
-						ctx:       obj.runtime.ctx,
+						ctx:       obj.runtime.vm.ctx,
 						This:      this,
 						Arguments: args,
 					})

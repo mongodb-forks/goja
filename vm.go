@@ -3516,7 +3516,7 @@ func (jmp iterNext) exec(vm *vm) {
 	var done bool
 	var value Value
 	ex := vm.try(vm.ctx, func() {
-		res = vm.r.toObject(toMethod(iter.self.getStr("next", nil))(FunctionCall{This: iter}))
+		res = vm.r.toObject(toMethod(iter.self.getStr("next", nil))(FunctionCall{ctx: vm.ctx, This: iter}))
 		done = nilSafe(res.self.getStr("done", nil)).ToBoolean()
 		if !done {
 			value = nilSafe(res.self.getStr("value", nil))
