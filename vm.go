@@ -2423,7 +2423,7 @@ func (r *resolveMixedStack) exec(vm *vm) {
 	if r.idx > 0 {
 		idx = vm.sb + vm.args + r.idx
 	} else {
-		idx = vm.sb + r.idx
+		idx = vm.sb - r.idx
 	}
 
 	ref = newStashRef(r.typ, r.name, (*valueStack)(&vm.stack), idx)
