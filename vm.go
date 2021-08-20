@@ -656,6 +656,7 @@ func (vm *vm) saveCtx(ctx *vmContext) {
 	} else if ctx.prg != nil && ctx.prg.funcName != "" {
 		ctx.funcName = ctx.prg.funcName
 	}
+	ctx.ctx = vm.ctx
 }
 
 func (vm *vm) pushCtx() {
@@ -674,6 +675,7 @@ func (vm *vm) pushCtx() {
 func (vm *vm) restoreCtx(ctx *vmContext) {
 	vm.prg, vm.funcName, vm.stash, vm.newTarget, vm.result, vm.pc, vm.sb, vm.args =
 		ctx.prg, ctx.funcName, ctx.stash, ctx.newTarget, ctx.result, ctx.pc, ctx.sb, ctx.args
+	vm.ctx = ctx.ctx
 }
 
 func (vm *vm) popCtx() {
