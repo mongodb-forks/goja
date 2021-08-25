@@ -259,14 +259,14 @@ func TestMemCheck(t *testing.T) {
 				message1: "hello",
 				message2: "everyone"
 			};
-			
+
 			var handler = {
 				get: function(target, prop, receiver) {
 					return "world";
 				}
 			};
 			var proxy1 = new Proxy(target, handler);
-			
+
 			checkMem();
 			proxy2 = new Proxy(target, handler);
 			checkMem();
