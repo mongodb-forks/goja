@@ -476,7 +476,7 @@ func (r *Runtime) MemUsage(ctx *MemUsageContext) (uint64, error) {
 	}
 
 	if r.vm.stack != nil {
-		inc, err := r.vm.stack.MemUsageWithPrint(ctx)
+		inc, err := r.vm.stack.MemUsage(ctx)
 		total += inc
 		if err != nil {
 			return total, err
