@@ -133,7 +133,7 @@ func TestMemCheck(t *testing.T) {
 				SizeEmpty, // undefined return value on stack
 		},
 		{
-			"overhead_of_each_scope_is_equivalent_regardless_of_depth",
+			"overhead of each scope is equivalent regardless of depth",
 			`checkMem();
 			(function(){
 				(function(){
@@ -184,7 +184,7 @@ func TestMemCheck(t *testing.T) {
 			checkMem()
 			x[10] = "abc";
 			checkMem()`,
-			3,
+			2,
 		},
 		{
 			"sparse array (sparseArrayObject)",
@@ -193,7 +193,7 @@ func TestMemCheck(t *testing.T) {
 			checkMem()
 			x[5001] = "abc";
 			checkMem()`,
-			SizeInt32 + 3,
+			SizeInt32 + 2,
 		},
 		{
 			"array with non-numeric keys",
