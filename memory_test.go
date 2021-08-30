@@ -152,7 +152,8 @@ func TestMemCheck(t *testing.T) {
 				(6 * SizeEmpty) + // undefined return value for each function on stack
 				(6 * emptyFunctionScopeOverhead),
 		},
-		{"values attached to lexical scope in a function",
+		{
+			"values attached to lexical scope in a function",
 			`checkMem();
 			(function(){
 				var zzzx = 10;
@@ -178,22 +179,23 @@ func TestMemCheck(t *testing.T) {
 			2 + SizeEmpty + SizeEmpty, // "x" and "y" property names + references to each object
 		},
 		{
-			"sparse array (arrayObject)",
+			"sparse array with arrayObject",
 			`x = []
 			x[1] = "abcd";
 			checkMem()
 			x[10] = "abc";
 			checkMem()`,
-			2,
+			2, // 3 -> "abc" added to global memory | -1 difference on stack betwen "abc" and  "abcd"
 		},
 		{
-			"sparse array (sparseArrayObject)",
+			"sparse array with sparseArrayObject",
 			`x = []
 			x[5000] = "abcd";
 			checkMem()
 			x[5001] = "abc";
 			checkMem()`,
-			SizeInt32 + 2,
+			SizeInt32 +
+				2, // 3 -> "abc" added to global memory | -1 difference on stack betwen "abc" and  "abcd"
 		},
 		{
 			"array with non-numeric keys",
