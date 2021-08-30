@@ -263,7 +263,7 @@ func TestMemCheck(t *testing.T) {
 				SizeEmpty + SizeEmpty + // outer object + reference to its prototype
 				(1 + SizeNumber) + // "a" and number
 				(1 + 4) + // "b" and "1234" string
-				6, // ???
+				6, // stack difference
 		},
 		{
 			"Proxy",
