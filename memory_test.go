@@ -160,7 +160,6 @@ func TestMemCheck(t *testing.T) {
 				checkMem();
 			})();`,
 			// function overhead plus the number value of the "zzzx" property and its string name
-			// functionOverhead + SizeNumber + 4,
 			emptyFunctionScopeOverhead + SizeNumber + functionStackOverhead +
 				SizeEmpty + // undefined return value on stack
 				SizeNumber, // number 10 on stack
