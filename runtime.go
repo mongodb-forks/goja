@@ -38,6 +38,7 @@ var (
 	typeValue    = reflect.TypeOf((*Value)(nil)).Elem()
 	typeObject   = reflect.TypeOf((*Object)(nil))
 	typeTime     = reflect.TypeOf(time.Time{})
+	typeBytes    = reflect.TypeOf(([]byte)(nil))
 )
 
 type iterationKind int
@@ -1993,7 +1994,7 @@ func (r *Runtime) toReflectValue(v Value, dst reflect.Value, ctx *objectExportCt
 			return nil
 		}
 		expKind := et.Kind()
-		if expKind == kind && et.ConvertibleTo(typ) {
+		if expKind == kind && et.ConvertibleTo(typ) || expKind == reflect.String && typ == typeBytes {
 			ev := reflect.ValueOf(exportValue(v, ctx))
 			for ; i > 0; i-- {
 				ev = ev.Elem()
