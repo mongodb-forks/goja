@@ -3987,6 +3987,7 @@ func (copyStash) exec(vm *vm) {
 	}
 	vm.stashAllocs++
 	newStash.values = append([]Value(nil), oldStash.values...)
+	newStash.names = oldStash.names
 	vm.stash = newStash
 	vm.pc++
 }
