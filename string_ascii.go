@@ -252,7 +252,7 @@ func (s asciiString) charAt(idx int) rune {
 }
 
 func (s asciiString) length() int {
-	return len(s)
+	return len([]rune(s))
 }
 
 func (s asciiString) concat(other valueString) valueString {

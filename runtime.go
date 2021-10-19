@@ -13,7 +13,10 @@ import (
 	"reflect"
 	"runtime"
 	"strconv"
+	"syscall"
 	"time"
+	"unicode"
+	"unicode/utf16"
 
 	"github.com/dop251/goja/file"
 
@@ -1625,7 +1628,7 @@ func (r *Runtime) ToValue(i interface{}) Value {
 	case string:
 		// for baas purposes, we only need the string representation of the value which is why we force the asciiString type here
 		// the Export / String was obfuscating the return value of BSON hex values
-		return asciiString(i)
+		return newStringValue(i)
 	case bool:
 		if i {
 			return valueTrue
