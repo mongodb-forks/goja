@@ -13,10 +13,7 @@ import (
 	"reflect"
 	"runtime"
 	"strconv"
-	"syscall"
 	"time"
-	"unicode"
-	"unicode/utf16"
 
 	"github.com/dop251/goja/file"
 
