@@ -33,6 +33,7 @@ var (
 	typeValue    = reflect.TypeOf((*Value)(nil)).Elem()
 	typeObject   = reflect.TypeOf((*Object)(nil))
 	typeTime     = reflect.TypeOf(time.Time{})
+	typeBytes    = reflect.TypeOf(([]byte)(nil))
 )
 
 type iterationKind int
@@ -57,6 +58,7 @@ type global struct {
 	Date     *Object
 	Symbol   *Object
 	Proxy    *Object
+	Promise  *Object
 
 	ArrayBuffer       *Object
 	DataView          *Object
@@ -77,6 +79,7 @@ type global struct {
 	Set     *Object
 
 	Error          *Object
+	AggregateError *Object
 	TypeError      *Object
 	ReferenceError *Object
 	SyntaxError    *Object
@@ -103,6 +106,7 @@ type global struct {
 	WeakMapPrototype     *Object
 	MapPrototype         *Object
 	SetPrototype         *Object
+	PromisePrototype     *Object
 
 	IteratorPrototype             *Object
 	ArrayIteratorPrototype        *Object
@@ -112,6 +116,7 @@ type global struct {
 	RegExpStringIteratorPrototype *Object
 
 	ErrorPrototype          *Object
+	AggregateErrorPrototype *Object
 	TypeErrorPrototype      *Object
 	SyntaxErrorPrototype    *Object
 	RangeErrorPrototype     *Object
@@ -176,6 +181,10 @@ type Runtime struct {
 	vm    *vm
 	hash  *maphash.Hash
 	idSeq uint64
+
+	jobQueue []func()
+
+	promiseRejectionTracker PromiseRejectionTracker
 }
 
 type StackFrame struct {
@@ -386,6 +395,7 @@ func (r *Runtime) init() {
 	r.initWeakMap()
 	r.initMap()
 	r.initSet()
+	r.initPromise()
 
 	r.global.thrower = r.newNativeFunc(r.builtin_thrower, nil, "thrower", nil, 0)
 	r.global.throwerProperty = &valueProperty{
@@ -773,14 +783,6 @@ func (r *Runtime) error_toString(call FunctionCall) Value {
 	sb.WriteString(asciiString(": "))
 	sb.WriteString(msgStr)
 	return sb.String()
-}
-
-func (r *Runtime) builtin_Error(args []Value, proto *Object) *Object {
-	obj := r.newBaseObject(proto, classError)
-	if len(args) > 0 && args[0] != _undefined {
-		obj._putProp("message", args[0], true, false, true)
-	}
-	return obj.val
 }
 
 func (r *Runtime) builtin_new(construct *Object, args []Value) *Object {
@@ -1788,7 +1790,76 @@ func (r *Runtime) wrapReflectFunc(value reflect.Value) func(FunctionCall) Value 
 
 func (r *Runtime) toReflectValue(v Value, dst reflect.Value, ctx *objectExportCtx) error {
 	typ := dst.Type()
-	switch typ.Kind() {
+
+	if typ == typeValue {
+		dst.Set(reflect.ValueOf(v))
+		return nil
+	}
+
+	if typ == typeObject {
+		if obj, ok := v.(*Object); ok {
+			dst.Set(reflect.ValueOf(obj))
+			return nil
+		}
+	}
+
+	if typ == typeCallable {
+		if fn, ok := AssertFunction(v); ok {
+			dst.Set(reflect.ValueOf(fn))
+			return nil
+		}
+	}
+
+	et := v.ExportType()
+	if et == nil || et == reflectTypeNil {
+		dst.Set(reflect.Zero(typ))
+		return nil
+	}
+
+	kind := typ.Kind()
+	for i := 0; ; i++ {
+		if et.AssignableTo(typ) {
+			ev := reflect.ValueOf(exportValue(v, ctx))
+			for ; i > 0; i-- {
+				ev = ev.Elem()
+			}
+			dst.Set(ev)
+			return nil
+		}
+		expKind := et.Kind()
+		if expKind == kind && et.ConvertibleTo(typ) || expKind == reflect.String && typ == typeBytes {
+			ev := reflect.ValueOf(exportValue(v, ctx))
+			for ; i > 0; i-- {
+				ev = ev.Elem()
+			}
+			dst.Set(ev.Convert(typ))
+			return nil
+		}
+		if expKind == reflect.Ptr {
+			et = et.Elem()
+		} else {
+			break
+		}
+	}
+
+	if typ == typeTime {
+		if obj, ok := v.(*Object); ok {
+			if d, ok := obj.self.(*dateObject); ok {
+				dst.Set(reflect.ValueOf(d.time()))
+				return nil
+			}
+		}
+		if et.Kind() == reflect.String {
+			tme, ok := dateParse(v.String())
+			if !ok {
+				return fmt.Errorf("could not convert string %v to %v", v, typ)
+			}
+			dst.Set(reflect.ValueOf(tme))
+			return nil
+		}
+	}
+
+	switch kind {
 	case reflect.String:
 		dst.Set(reflect.ValueOf(v.String()).Convert(typ))
 		return nil
@@ -1831,69 +1902,6 @@ func (r *Runtime) toReflectValue(v Value, dst reflect.Value, ctx *objectExportCt
 	case reflect.Float32:
 		dst.Set(reflect.ValueOf(toFloat32(v)).Convert(typ))
 		return nil
-	}
-
-	if typ == typeCallable {
-		if fn, ok := AssertFunction(v); ok {
-			dst.Set(reflect.ValueOf(fn))
-			return nil
-		}
-	}
-
-	if typ == typeValue {
-		dst.Set(reflect.ValueOf(v))
-		return nil
-	}
-
-	if typ == typeObject {
-		if obj, ok := v.(*Object); ok {
-			dst.Set(reflect.ValueOf(obj))
-			return nil
-		}
-	}
-
-	{
-		et := v.ExportType()
-		if et == nil || et == reflectTypeNil {
-			dst.Set(reflect.Zero(typ))
-			return nil
-		}
-
-		for i := 0; ; i++ {
-			if et.ConvertibleTo(typ) {
-				ev := reflect.ValueOf(exportValue(v, ctx))
-				for ; i > 0; i-- {
-					ev = ev.Elem()
-				}
-				dst.Set(ev.Convert(typ))
-				return nil
-			}
-			if et.Kind() == reflect.Ptr {
-				et = et.Elem()
-			} else {
-				break
-			}
-		}
-
-		if typ == typeTime {
-			if obj, ok := v.(*Object); ok {
-				if d, ok := obj.self.(*dateObject); ok {
-					dst.Set(reflect.ValueOf(d.time()))
-					return nil
-				}
-			}
-			if et.Kind() == reflect.String {
-				tme, ok := dateParse(v.String())
-				if !ok {
-					return fmt.Errorf("could not convert string %v to %v", v, typ)
-				}
-				dst.Set(reflect.ValueOf(tme))
-				return nil
-			}
-		}
-	}
-
-	switch typ.Kind() {
 	case reflect.Slice:
 		if o, ok := v.(*Object); ok {
 			if o.self.className() == classArray {
@@ -2388,7 +2396,16 @@ func (r *Runtime) getHash() *maphash.Hash {
 
 // called when the top level function returns (i.e. control is passed outside the Runtime).
 func (r *Runtime) leave() {
-	// run jobs, etc...
+	for {
+		jobs := r.jobQueue
+		r.jobQueue = nil
+		if len(jobs) == 0 {
+			break
+		}
+		for _, job := range jobs {
+			job()
+		}
+	}
 }
 
 func nilSafe(v Value) Value {
@@ -2496,6 +2513,38 @@ func (r *Runtime) setGlobal(name unistring.String, v Value, strict bool) {
 			o.setOwnStr(name, v, false)
 		}
 	}
+}
+
+func (r *Runtime) trackPromiseRejection(p *Promise, operation PromiseRejectionOperation) {
+	if r.promiseRejectionTracker != nil {
+		r.promiseRejectionTracker(p, operation)
+	}
+}
+
+func (r *Runtime) callJobCallback(job *jobCallback, this Value, args ...Value) Value {
+	return job.callback(FunctionCall{This: this, Arguments: args})
+}
+
+func (r *Runtime) invoke(v Value, p unistring.String, args ...Value) Value {
+	o := v.ToObject(r)
+	return r.toCallable(o.self.getStr(p, nil))(FunctionCall{This: v, Arguments: args})
+}
+
+func (r *Runtime) iterableToList(items Value, method func(FunctionCall) Value) []Value {
+	iter := r.getIterator(items, method)
+	var values []Value
+	r.iterate(iter, func(item Value) {
+		values = append(values, item)
+	})
+	return values
+}
+
+func (r *Runtime) putSpeciesReturnThis(o objectImpl) {
+	o._putSym(SymSpecies, &valueProperty{
+		getterFunc:   r.newNativeFunc(r.returnThis, nil, "get [Symbol.species]", nil, 0),
+		accessor:     true,
+		configurable: true,
+	})
 }
 
 func strToArrayIdx(s unistring.String) uint32 {
@@ -2708,4 +2757,11 @@ func strToIdx64(s unistring.String) int64 {
 		return n
 	}
 	return -1
+}
+
+func assertCallable(v Value) (func(FunctionCall) Value, bool) {
+	if obj, ok := v.(*Object); ok {
+		return obj.self.assertCallable()
+	}
+	return nil, false
 }
