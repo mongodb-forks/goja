@@ -1447,6 +1447,7 @@ func (r *Runtime) RunProgram(p *Program) (result Value, err error) {
 	} else {
 		vm.stack = nil
 		vm.prg = nil
+		vm.funcName = ""
 		r.leave()
 	}
 	return

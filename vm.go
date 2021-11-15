@@ -36,7 +36,7 @@ type stash struct {
 type vmContext struct {
 	ctx       context.Context
 	prg       *Program
-	funcName  unistring.String
+	funcName  unistring.String // only valid when prg is nil
 	stash     *stash
 	newTarget Value
 	result    Value
@@ -177,7 +177,7 @@ type vm struct {
 	ctx          context.Context
 	r            *Runtime
 	prg          *Program
-	funcName     unistring.String
+	funcName     unistring.String // only valid when prg == nil
 	pc           int
 	stack        valueStack
 	sp, sb, args int
@@ -531,11 +531,23 @@ func (vm *vm) ClearInterrupt() {
 func (vm *vm) captureStack(stack []StackFrame, ctxOffset int) []StackFrame {
 	// Unroll the context stack
 	if vm.pc != -1 {
-		stack = append(stack, StackFrame{prg: vm.prg, pc: vm.pc, funcName: vm.funcName})
+		var funcName unistring.String
+		if vm.prg != nil {
+			funcName = vm.prg.funcName
+		} else {
+			funcName = vm.funcName
+		}
+		stack = append(stack, StackFrame{prg: vm.prg, pc: vm.pc, funcName: funcName})
 	}
 	for i := len(vm.callStack) - 1; i > ctxOffset-1; i-- {
 		if vm.callStack[i].pc != -1 {
-			stack = append(stack, StackFrame{prg: vm.callStack[i].prg, pc: vm.callStack[i].pc - 1, funcName: vm.callStack[i].funcName})
+			var funcName unistring.String
+			if prg := vm.callStack[i].prg; prg != nil {
+				funcName = prg.funcName
+			} else {
+				funcName = vm.callStack[i].funcName
+			}
+			stack = append(stack, StackFrame{prg: vm.callStack[i].prg, pc: vm.callStack[i].pc - 1, funcName: funcName})
 		}
 	}
 	return stack
