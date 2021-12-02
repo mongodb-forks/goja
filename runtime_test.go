@@ -830,7 +830,7 @@ func ExampleRuntime_ExportTo_func() {
 // 	_, err = fn("")
 
 // 	fmt.Println(err)
-// 	// Output: Error: testing at f (<eval>:3:9(4))
+// 	// Output: Error: testing at f (<eval>:3:9(3))
 // }
 
 func ExampleRuntime_ExportTo_funcVariadic() {
@@ -2384,6 +2384,79 @@ func TestStringToBytesConversion(t *testing.T) {
 	}
 }
 
+// func TestPromiseAll(t *testing.T) {
+// 	const SCRIPT = `
+// var p1 = new Promise(function() {});
+// var p2 = new Promise(function() {});
+// var p3 = new Promise(function() {});
+// var callCount = 0;
+// var currentThis = p1;
+// var nextThis = p2;
+// var afterNextThis = p3;
+
+// p1.then = p2.then = p3.then = function(a, b) {
+//   assert.sameValue(typeof a, 'function', 'type of first argument');
+//   assert.sameValue(
+//     a.length,
+//     1,
+//     'ES6 25.4.1.3.2: The length property of a promise resolve function is 1.'
+//   );
+//   assert.sameValue(typeof b, 'function', 'type of second argument');
+//   assert.sameValue(
+//     b.length,
+//     1,
+//     'ES6 25.4.1.3.1: The length property of a promise reject function is 1.'
+//   );
+//   assert.sameValue(arguments.length, 2, '"then"" invoked with two arguments');
+//   assert.sameValue(this, currentThis, '"this" value');
+
+//   currentThis = nextThis;
+//   nextThis = afterNextThis;
+//   afterNextThis = null;
+
+//   callCount += 1;
+// };
+
+// Promise.all([p1, p2, p3]);
+
+// assert.sameValue(callCount, 3, '"then"" invoked once for every iterated value');
+// 	`
+// 	testScript1(TESTLIB+SCRIPT, _undefined, t)
+// }
+
+// func TestPromiseExport(t *testing.T) {
+// 	vm := New()
+// 	p, _, _ := vm.NewPromise()
+// 	pv := vm.ToValue(p)
+// 	if actual := pv.ExportType(); actual != reflect.TypeOf((*Promise)(nil)) {
+// 		t.Fatalf("Export type: %v", actual)
+// 	}
+
+// 	if ev := pv.Export(); ev != p {
+// 		t.Fatalf("Export value: %v", ev)
+// 	}
+// }
+
+func TestErrorStack(t *testing.T) {
+	const SCRIPT = `
+	const err = new Error("test");
+	if (!("stack" in err)) {
+		throw new Error("in");
+	}
+	if (Reflect.ownKeys(err)[0] !== "stack") {
+		throw new Error("property order");
+	}
+	if (err.stack !== "Error\n\tat test.js:2:14(3)\n") {
+		throw new Error(stack);
+	}
+	delete err.stack;
+	if ("stack" in err) {
+		throw new Error("stack still in err after delete");
+	}
+	`
+	testScript1(SCRIPT, _undefined, t)
+}
+
 /*
 func TestArrayConcatSparse(t *testing.T) {
 function foo(a,b,c)
@@ -2516,7 +2589,7 @@ func TestException(t *testing.T) {
 	}
 
 	expected := `Error: oh no!
-	at myFunc (<eval>:4:10(8))
+	at myFunc (<eval>:4:10(7))
 	at myFunc (<eval>:6:9(13))
 	at myFunc (<eval>:6:9(13))
 `
@@ -2658,7 +2731,7 @@ func TestExceptionWithinAppliedObjectFunc(t *testing.T) {
 	}
 
 	expected := `Error: oh no!
-	at foo (<eval>:4:10(7))
+	at foo (<eval>:4:10(6))
 	at myFunc (<eval>:9:19(5))
 	at <eval>:12:8(4)
 `
