@@ -4222,6 +4222,7 @@ func TestArrowBoxedThis(t *testing.T) {
 
 	testScript1(SCRIPT, valueTrue, t)
 }
+
 func TestParameterOverride(t *testing.T) {
 	const SCRIPT = `
 	function f(arg) {
