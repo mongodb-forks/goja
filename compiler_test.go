@@ -3958,6 +3958,33 @@ func TestParameterOverride(t *testing.T) {
 	testScript1(SCRIPT, asciiString("default"), t)
 }
 
+func TestDuplicateGlobalFunc(t *testing.T) {
+	const SCRIPT = `
+	function a(){}
+	function b(){ return "b" }
+	function c(){ return "c" }
+	function a(){}
+	b();
+	`
+
+	testScript1(SCRIPT, asciiString("b"), t)
+}
+
+func TestDuplicateFunc(t *testing.T) {
+	const SCRIPT = `
+	function f() {
+		function a(){}
+		function b(){ return "b" }
+		function c(){ return "c" }
+		function a(){}
+		return b();
+	}
+	f();
+	`
+
+	testScript1(SCRIPT, asciiString("b"), t)
+}
+
 /*
 func TestBabel(t *testing.T) {
 	src, err := ioutil.ReadFile("babel7.js")
