@@ -282,25 +282,6 @@ func assertInt64(v Value) (int64, bool) {
 	return 0, false
 }
 
-func toIntIgnoreNegZero(v Value) (int64, bool) {
-	num := v.ToNumber()
-	if i, ok := num.(valueInt); ok {
-		return int64(i), true
-	}
-	if i, ok := num.(valueInt64); ok {
-		return int64(i), true
-	}
-	if f, ok := num.(valueFloat); ok {
-		if v == _negativeZero {
-			return 0, true
-		}
-		if i, ok := floatToInt(float64(f)); ok {
-			return i, true
-		}
-	}
-	return 0, false
-}
-
 func (s *valueStack) expand(idx int) {
 	if idx < len(*s) {
 		return
@@ -495,8 +476,7 @@ func (vm *vm) run() {
 						}
 						v.traceLimit = vm.r.stackTraceLimit
 						panic(&uncatchableException{
-							stack: &v.stack,
-							err:   v,
+							err: v,
 						})
 					}
 				}()
@@ -530,13 +510,13 @@ func (vm *vm) run() {
 		v := &InterruptedError{
 			iface: vm.interruptVal,
 		}
+		v.stack = vm.captureStack(nil, 0)
 		v.traceLimit = vm.r.stackTraceLimit
 		atomic.StoreUint32(&vm.interrupted, 0)
 		vm.interruptVal = nil
 		vm.interruptLock.Unlock()
 		panic(&uncatchableException{
-			stack: &v.stack,
-			err:   v,
+			err: v,
 		})
 	}
 }
@@ -564,14 +544,15 @@ func (vm *vm) captureStack(stack []StackFrame, ctxOffset int) []StackFrame {
 		stack = append(stack, StackFrame{prg: vm.prg, pc: vm.pc, funcName: funcName})
 	}
 	for i := len(vm.callStack) - 1; i > ctxOffset-1; i-- {
-		if vm.callStack[i].pc != -1 {
+		frame := &vm.callStack[i]
+		if frame.pc != -1 {
 			var funcName unistring.String
-			if prg := vm.callStack[i].prg; prg != nil {
+			if prg := frame.prg; prg != nil {
 				funcName = prg.funcName
 			} else {
-				funcName = vm.callStack[i].funcName
+				funcName = frame.funcName
 			}
-			stack = append(stack, StackFrame{prg: vm.callStack[i].prg, pc: vm.callStack[i].pc - 1, funcName: funcName})
+			stack = append(stack, StackFrame{prg: vm.callStack[i].prg, pc: frame.pc - 1, funcName: funcName})
 		}
 	}
 	return stack
@@ -612,6 +593,13 @@ func (vm *vm) try(ctx1 context.Context, f func()) (ex *Exception) {
 				vm.refStack = vm.refStack[:refLen]
 			}()
 			switch x1 := x.(type) {
+			case *Object:
+				ex = &Exception{
+					val: x1,
+				}
+				if er, ok := x1.self.(*errorObject); ok {
+					ex.stack = er.stack
+				}
 			case Value:
 				ex = &Exception{
 					val: x1,
@@ -640,7 +628,6 @@ func (vm *vm) try(ctx1 context.Context, f func()) (ex *Exception) {
 			case *Exception:
 				ex = x1
 			case *uncatchableException:
-				*x1.stack = vm.captureStack(*x1.stack, ctxOffset)
 				panic(x1)
 			case typeError:
 				ex = &Exception{
@@ -665,7 +652,9 @@ func (vm *vm) try(ctx1 context.Context, f func()) (ex *Exception) {
 				panic(x)
 			}
 			ex.traceLimit = vm.r.stackTraceLimit
-			ex.stack = vm.captureStack(ex.stack, ctxOffset)
+			if ex.stack == nil {
+				ex.stack = vm.captureStack(make([]StackFrame, 0, len(vm.callStack)+1), 0)
+			}
 		}
 	}()
 
@@ -706,9 +695,9 @@ func (vm *vm) saveCtx(ctx *vmContext) {
 func (vm *vm) pushCtx() {
 	if len(vm.callStack) > vm.maxCallStackSize {
 		ex := &StackOverflowError{}
+		ex.stack = vm.captureStack(nil, 0)
 		panic(&uncatchableException{
-			stack: &ex.stack,
-			err:   ex,
+			err: ex,
 		})
 	}
 	vm.callStack = append(vm.callStack, vmContext{})
@@ -3789,7 +3778,27 @@ type _throw struct{}
 var throw _throw
 
 func (_throw) exec(vm *vm) {
-	panic(vm.stack[vm.sp-1])
+	v := vm.stack[vm.sp-1]
+	if o, ok := v.(*Object); ok {
+		if e, ok := o.self.(*errorObject); ok {
+			if len(e.stack) > 0 {
+				frame0 := e.stack[0]
+				// If the Error was created immediately before throwing it (i.e. 'throw new Error(....)')
+				// avoid capturing the stack again by the reusing the stack from the Error.
+				// These stacks would be almost identical and the difference doesn't matter for debugging.
+				if frame0.prg == vm.prg && vm.pc-frame0.pc == 1 {
+					panic(&Exception{
+						val:   v,
+						stack: e.stack,
+					})
+				}
+			}
+		}
+	}
+	panic(&Exception{
+		val:   v,
+		stack: vm.captureStack(make([]StackFrame, 0, len(vm.callStack)+1), 0),
+	})
 }
 
 type _newVariadic struct{}
