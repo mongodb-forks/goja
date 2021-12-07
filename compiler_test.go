@@ -4244,7 +4244,7 @@ func TestFuncParamScope(t *testing.T) {
 	const SCRIPT = `
 	var x = 'outside';
 	var probe1, probe2;
-	
+
 	function f(
 		_ = probe1 = function() { return x; },
 		__ = (eval('var x = "inside";'), probe2 = function() { return x; })
@@ -4256,33 +4256,6 @@ func TestFuncParamScope(t *testing.T) {
 	testScript(SCRIPT, asciiString("inside inside"), t)
 }
 
-func TestDuplicateGlobalFunc(t *testing.T) {
-	const SCRIPT = `
-	function a(){}
-	function b(){ return "b" }
-	function c(){ return "c" }
-	function a(){}
-	b();
-	`
-
-	testScript(SCRIPT, asciiString("b"), t)
-}
-
-func TestDuplicateFunc(t *testing.T) {
-	const SCRIPT = `
-	function f() {
-		function a(){}
-		function b(){ return "b" }
-		function c(){ return "c" }
-		function a(){}
-		return b();
-	}
-	f();
-	`
-
-	testScript(SCRIPT, asciiString("b"), t)
-}
-
 func TestDefParamsStackPtr(t *testing.T) {
 	const SCRIPT = `
 	function A() {};
@@ -4291,7 +4264,7 @@ func TestDefParamsStackPtr(t *testing.T) {
 	  var C = A.B;
 	  C([1,2,3]);
 	};
-	
+
 	D();
 	`
 	testScript(SCRIPT, _undefined, t)
@@ -4440,6 +4413,106 @@ func TestTaggedTemplate(t *testing.T) {
 		`
 
 	testScript(SCRIPT, valueTrue, t)
+}
+
+func TestDuplicateGlobalFunc(t *testing.T) {
+	const SCRIPT = `
+	function a(){}
+	function b(){ return "b" }
+	function c(){ return "c" }
+	function a(){}
+	b();
+	`
+
+	testScript(SCRIPT, asciiString("b"), t)
+}
+
+func TestDuplicateFunc(t *testing.T) {
+	const SCRIPT = `
+	function f() {
+		function a(){}
+		function b(){ return "b" }
+		function c(){ return "c" }
+		function a(){}
+		return b();
+	}
+	f();
+	`
+
+	testScript(SCRIPT, asciiString("b"), t)
+}
+
+func TestSrcLocations(t *testing.T) {
+	// Do not reformat, assertions depend on line and column numbers
+	const SCRIPT = `
+	let i = {
+		valueOf() {
+			throw new Error();
+		}
+	};
+	try {
+		i++;
+	} catch(e) {
+		assertStack(e, [["test.js", "valueOf", 4, 10],
+						["test.js", "", 8, 3]
+						]);
+	}
+
+	Object.defineProperty(globalThis, "x", {
+		get() {
+			throw new Error();
+		},
+		set() {
+			throw new Error();
+		}
+	});
+
+	try {
+		x;
+	} catch(e) {
+		assertStack(e, [["test.js", "get", 17, 10],
+						["test.js", "", 25, 3]
+						]);
+	}
+
+	try {
+		x++;
+	} catch(e) {
+		assertStack(e, [["test.js", "get", 17, 10],
+						["test.js", "", 33, 3]
+						]);
+	}
+
+	try {
+		x = 2;
+	} catch(e) {
+		assertStack(e, [["test.js", "set", 20, 10],
+						["test.js", "", 41, 3]
+						]);
+	}
+
+	try {
+		+i;
+	} catch(e) {
+		assertStack(e, [["test.js", "valueOf", 4, 10],
+						["test.js", "", 49, 4]
+						]);
+	}
+
+
+	function assertStack(e, expected) {
+		const lines = e.stack.split('\n');
+		let lnum = 1;
+		for (const [file, func, line, col] of expected) {
+			const expLine = func === "" ?
+				"\tat " + file + ":" + line + ":" + col + "(" :
+				"\tat " + func + " (" + file + ":" + line + ":" + col + "(";
+			assert.sameValue(lines[lnum].substring(0, expLine.length), expLine, "line " + lnum);
+			lnum++;
+		}
+	}
+	`
+	testScriptWithTestLib(SCRIPT, _undefined, t)
 }
 
 /*
