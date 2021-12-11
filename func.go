@@ -186,7 +186,7 @@ func (f *baseJsFuncObject) _call(call FunctionCall, newTarget, this Value) Value
 	if pc != -1 {
 		vm.pc++ // fake "return address" so that captureStack() records the correct call location
 		vm.pushCtx()
-		vm.callStack = append(vm.callStack, context{pc: -1}) // extra frame so that run() halts after ret
+		vm.callStack = append(vm.callStack, vmContext{pc: -1}) // extra frame so that run() halts after ret
 	} else {
 		vm.pushCtx()
 	}

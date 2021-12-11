@@ -2653,6 +2653,7 @@ func TestExceptionWithinAppliedObjectFunc(t *testing.T) {
 
 	expected := `Error: oh no!
 	at foo (<eval>:4:10(6))
+	at apply (native)
 	at myFunc (<eval>:9:19(5))
 	at <eval>:12:8(4)
 `
