@@ -2,8 +2,9 @@ package goja
 
 import (
 	"fmt"
-	"github.com/dop251/goja/token"
 	"sort"
+
+	"github.com/dop251/goja/token"
 
 	"github.com/dop251/goja/ast"
 	"github.com/dop251/goja/file"
@@ -382,6 +383,13 @@ func (p *Program) sourceOffset(pc int) int {
 	}
 
 	return 0
+}
+
+func (p *Program) addSrcMap(srcPos int) {
+	if len(p.srcMap) > 0 && p.srcMap[len(p.srcMap)-1].srcPos == srcPos {
+		return
+	}
+	p.srcMap = append(p.srcMap, srcMapItem{pc: len(p.code), srcPos: srcPos})
 }
 
 func (p *Program) MemUsage(ctx *MemUsageContext) (uint64, error) {
