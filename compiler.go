@@ -22,6 +22,7 @@ const (
 	blockWith
 	blockScope
 	blockIterScope
+	blockOptChain
 )
 
 const (
