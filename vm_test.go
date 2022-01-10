@@ -8,6 +8,14 @@ import (
 	"github.com/dop251/goja/unistring"
 )
 
+func TestTaggedTemplateArgExport(t *testing.T) {
+	vm := New()
+	vm.Set("f", func(v Value) {
+		v.Export()
+	})
+	vm.RunString("f`test`")
+}
+
 func TestVM1(t *testing.T) {
 	r := &Runtime{}
 	r.init()
