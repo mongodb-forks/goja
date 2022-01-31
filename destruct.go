@@ -262,5 +262,9 @@ func (d *destructKeyedSource) _putSym(s *Symbol, prop Value) {
 }
 
 func (d *destructKeyedSource) MemUsage(ctx *MemUsageContext) (uint64, error) {
+	if d.wrapped == nil {
+		return 0, nil
+	}
+
 	return d.wrapped.MemUsage(ctx)
 }
