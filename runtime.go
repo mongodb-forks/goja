@@ -1784,14 +1784,6 @@ func (r *Runtime) ToValue(i interface{}) Value {
 		obj.self = a
 		a.init()
 		return obj
-	case []uint8:
-		buf := r._newArrayBuffer(r.global.ArrayBufferPrototype, nil)
-		buf.data = i
-		o := &Object{runtime: r}
-		a := r.newUint8ArrayObject(buf, 0, len(buf.data), r.global.Uint8Array)
-		o.self = a
-		a.init()
-		return o
 	}
 
 	origValue := reflect.ValueOf(i)
