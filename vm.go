@@ -544,23 +544,25 @@ func (vm *vm) captureStack(stack []StackFrame, ctxOffset int) []StackFrame {
 func (vm *vm) captureStackWithLogs(stack []StackFrame, ctxOffset int) string {
 	var logs string
 
-	// Unroll the context stack
-	if vm.pc != -1 {
-		frame := StackFrame{prg: vm.prg, pc: vm.pc, funcName: vm.funcName}
-		stack = append(stack, frame)
-		stackElements := make([]string, 0, ctxOffset)
-		for _, stackEl := range vm.stack[:ctxOffset] {
-			stackElStr := "nil"
-			if stackEl != nil {
-				stackElStr = stackEl.String()
-			}
-			if len(stackElStr) > 250 {
-				stackElStr = stackElStr[:250] + "...[truncated]\n"
-			}
-			stackElements = append(stackElements, stackElStr)
-		}
-		logs = logs + fmt.Sprintf("\nlast vm func name:       %v\nwith source stack:       %v\n", vm.funcName, stackElements)
+	if vm.pc == 1 {
+		return logs
 	}
+
+	// Unroll the context stack
+	frame := StackFrame{prg: vm.prg, pc: vm.pc, funcName: vm.funcName}
+	stack = append(stack, frame)
+	stackElements := make([]string, 0, ctxOffset)
+	for _, stackEl := range vm.stack[:ctxOffset] {
+		stackElStr := "nil"
+		if stackEl != nil {
+			stackElStr = stackEl.String()
+		}
+		if len(stackElStr) > 250 {
+			stackElStr = stackElStr[:250] + "...[truncated]\n"
+		}
+		stackElements = append(stackElements, stackElStr)
+	}
+	logs = logs + fmt.Sprintf("\nlast vm func name:       %v\nwith source stack:       %v\n", vm.funcName, stackElements)
 
 	for i := len(vm.callStack) - 1; i > ctxOffset-1; i-- {
 		if vm.callStack[i].pc != -1 {
