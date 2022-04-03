@@ -147,8 +147,8 @@ func (r *Runtime) arrayproto_pop(call FunctionCall) Value {
 	obj := call.This.ToObject(r)
 	if a, ok := obj.self.(*arrayObject); ok {
 		l := a.length
+		var val Value
 		if l > 0 {
-			var val Value
 			l--
 			if l < uint32(len(a.values)) {
 				val = a.values[l]
@@ -164,10 +164,15 @@ func (r *Runtime) arrayproto_pop(call FunctionCall) Value {
 			//a._setLengthInt(l, false)
 			a.values[l] = nil
 			a.values = a.values[:l]
-			a.length = l
-			return val
+		} else {
+			val = _undefined
 		}
-		return _undefined
+		if a.lengthProp.writable {
+			a.length = l
+		} else {
+			a.setLength(0, true) // will throw
+		}
+		return val
 	} else {
 		return r.arrayproto_pop_generic(obj)
 	}
@@ -330,7 +335,7 @@ func (r *Runtime) arrayproto_slice(call FunctionCall) Value {
 
 	a := arraySpeciesCreate(o, count)
 	if src := r.checkStdArrayObj(o); src != nil {
-		if dst, ok := a.self.(*arrayObject); ok {
+		if dst := r.checkStdArrayObjWithProto(a); dst != nil {
 			values := make([]Value, count)
 			copy(values, src.values[start:])
 			setArrayValues(dst, values)
@@ -414,7 +419,7 @@ func (r *Runtime) arrayproto_splice(call FunctionCall) Value {
 	itemCount := max(int64(len(call.Arguments)-2), 0)
 	newLength := length - actualDeleteCount + itemCount
 	if src := r.checkStdArrayObj(o); src != nil {
-		if dst, ok := a.self.(*arrayObject); ok {
+		if dst := r.checkStdArrayObjWithProto(a); dst != nil {
 			values := make([]Value, actualDeleteCount)
 			copy(values, src.values[actualStart:])
 			setArrayValues(dst, values)
@@ -502,7 +507,7 @@ func (r *Runtime) arrayproto_unshift(call FunctionCall) Value {
 	argCount := int64(len(call.Arguments))
 	newLen := intToValue(length + argCount)
 	newSize := length + argCount
-	if arr := r.checkStdArrayObj(o); arr != nil && newSize < math.MaxUint32 {
+	if arr := r.checkStdArrayObjWithProto(o); arr != nil && newSize < math.MaxUint32 {
 		if int64(cap(arr.values)) >= newSize {
 			arr.values = arr.values[:newSize]
 			copy(arr.values[argCount:], arr.values[:length])
@@ -942,8 +947,11 @@ func (r *Runtime) arrayproto_reverse(call FunctionCall) Value {
 
 func (r *Runtime) arrayproto_shift(call FunctionCall) Value {
 	o := call.This.ToObject(r)
-	if a := r.checkStdArrayObj(o); a != nil {
+	if a := r.checkStdArrayObjWithProto(o); a != nil {
 		if len(a.values) == 0 {
+			if !a.lengthProp.writable {
+				a.setLength(0, true) // will throw
+			}
 			return _undefined
 		}
 		first := a.values[0]
@@ -1166,6 +1174,20 @@ func (r *Runtime) checkStdArrayObj(obj *Object) *arrayObject {
 	return nil
 }
 
+func (r *Runtime) checkStdArrayObjWithProto(obj *Object) *arrayObject {
+	if arr := r.checkStdArrayObj(obj); arr != nil {
+		if p1, ok := arr.prototype.self.(*arrayObject); ok && p1.propValueCount == 0 {
+			if p2, ok := p1.prototype.self.(*baseObject); ok && p2.prototype == nil {
+				p2.ensurePropOrder()
+				if p2.idxPropCount == 0 {
+					return arr
+				}
+			}
+		}
+	}
+	return nil
+}
+
 func (r *Runtime) checkStdArray(v Value) *arrayObject {
 	if obj, ok := v.(*Object); ok {
 		return r.checkStdArrayObj(obj)
@@ -1223,7 +1245,7 @@ func (r *Runtime) array_from(call FunctionCall) Value {
 		}
 		iter := r.getIterator(items, usingIterator)
 		if mapFn == nil {
-			if a := r.checkStdArrayObj(arr); a != nil {
+			if a := r.checkStdArrayObjWithProto(arr); a != nil {
 				var values []Value
 				iter.iterate(func(val Value) {
 					values = append(values, val)
@@ -1250,7 +1272,7 @@ func (r *Runtime) array_from(call FunctionCall) Value {
 			arr = r.newArrayValues(nil)
 		}
 		if mapFn == nil {
-			if a := r.checkStdArrayObj(arr); a != nil {
+			if a := r.checkStdArrayObjWithProto(arr); a != nil {
 				values := make([]Value, l)
 				for k := int64(0); k < l; k++ {
 					values[k] = nilSafe(arrayLike.self.getIdx(valueInt(k), nil))
@@ -1372,6 +1394,8 @@ func (r *Runtime) createArrayProto(val *Object) objectImpl {
 	bl.setOwnStr("includes", valueTrue, true)
 	bl.setOwnStr("keys", valueTrue, true)
 	bl.setOwnStr("values", valueTrue, true)
+	bl.setOwnStr("groupBy", valueTrue, true)
+	bl.setOwnStr("groupByToMap", valueTrue, true)
 	o._putSym(SymUnscopables, valueProp(bl.val, false, false, true))
 
 	return o
