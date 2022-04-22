@@ -782,6 +782,11 @@ func (e *compiledAssignExpr) emitGetter(putOnStack bool) {
 			e.right.emitGetter(true)
 			e.c.emit(mul)
 		}, false, putOnStack)
+	case token.EXPONENT:
+		e.left.emitUnary(nil, func() {
+			e.right.emitGetter(true)
+			e.c.emit(exp)
+		}, false, putOnStack)
 	case token.SLASH:
 		e.left.emitUnary(nil, func() {
 			e.right.emitGetter(true)
@@ -1721,6 +1726,8 @@ func (e *compiledBinaryExpr) emitGetter(putOnStack bool) {
 		e.c.emit(sub)
 	case token.MULTIPLY:
 		e.c.emit(mul)
+	case token.EXPONENT:
+		e.c.emit(exp)
 	case token.SLASH:
 		e.c.emit(div)
 	case token.REMAINDER:
