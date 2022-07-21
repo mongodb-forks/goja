@@ -526,6 +526,10 @@ func (*baseDynamicObject) _putProp(name unistring.String, value Value, writable,
 func (*baseDynamicObject) _putSym(s *Symbol, prop Value) {
 }
 
+func (o *baseDynamicObject) getPrivateEnv(*privateEnvType, bool) *privateElements {
+	panic(o.val.runtime.NewTypeError("Dynamic objects cannot have private elements"))
+}
+
 func (b *baseDynamicObject) MemUsage(ctx *MemUsageContext) (uint64, error) {
 	return b.val.MemUsage(ctx)
 }

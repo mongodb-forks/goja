@@ -132,6 +132,7 @@ type valueContainer interface {
 type typeError string
 type rangeError string
 type referenceError string
+type syntaxError string
 
 type valueNumber struct {
 	_type reflect.Type
