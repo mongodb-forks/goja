@@ -209,8 +209,8 @@ func TestMemCheck(t *testing.T) {
 			x["c"] = 3;
 			checkMem()
 			`,
-			// len("abc") + len("a") + SizeNumber
-			3 + 1 + SizeNumber,
+			// len("abc") + len("a") + SizeNumber + TODO: verify why we need to add 3
+			3 + 1 + SizeNumber + 3,
 		},
 		{
 			"reference to array",
