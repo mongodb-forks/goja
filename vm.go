@@ -3364,6 +3364,8 @@ repeat:
 		return
 	case *nativeFuncObject:
 		vm._nativeCall(f, n)
+	case *wrappedFuncObject:
+		vm._nativeCall(&f.nativeFuncObject, n)
 	case *boundFuncObject:
 		vm._nativeCall(&f.nativeFuncObject, n)
 	case *proxyObject:
@@ -4515,7 +4517,7 @@ func (_typeof) exec(vm *vm) {
 			break
 		}
 		switch s := v.self.(type) {
-		case *classFuncObject, *methodFuncObject, *funcObject, *nativeFuncObject, *boundFuncObject, *arrowFuncObject:
+		case *classFuncObject, *methodFuncObject, *funcObject, *nativeFuncObject, *wrappedFuncObject, *boundFuncObject, *arrowFuncObject:
 			r = stringFunction
 		case *proxyObject:
 			if s.call == nil {
