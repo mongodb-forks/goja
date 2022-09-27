@@ -54,6 +54,7 @@ var (
 	reflectTypeArray  = reflect.TypeOf([]interface{}{})
 	reflectTypeString = reflect.TypeOf("")
 	reflectTypeFunc   = reflect.TypeOf((func(FunctionCall) Value)(nil))
+	reflectTypeError  = reflect.TypeOf((*error)(nil)).Elem()
 )
 
 var intCache [256]Value
