@@ -570,3 +570,79 @@ func TestMemArraysWithLenThreshold(t *testing.T) {
 		})
 	}
 }
+
+func TestMemObjectWithPropLenThreshold(t *testing.T) {
+	for _, tc := range []struct {
+		description      string
+		script           string
+		threshold        int
+		expectedSizeDiff uint64
+	}{
+		{
+			"object within threshold",
+			`y = []
+			y.push(null)
+			checkMem()
+			y.push({"a":10, "b":0})
+			checkMem()`,
+			100,
+			SizeEmpty + SizeEmpty + // outer object + reference to its prototype
+				(1 + SizeNumber) + // "a" and number
+				(1 + SizeNumber) + // "b" and number
+				SizeEmpty, // stack difference from popping null(8) and then adding outer obj(8) + "c" obj (8)
+		},
+		{
+			"object over threshold",
+			`y = []
+			y.push(null)
+			checkMem()
+			y.push({
+				"a":0, "b":1, "c":2, "d":3, "e":4, "f":5, "g":6, "h":7, "i":8, "j":9,
+				"k":10, "l":11, "m":12, "n":13, "o":14, "p":15, "q":16, "r":17, "s":18, "t":19,
+				"u":20, "v":21, "w":22, "x":23, "y":24, "z":25, "1":26, "2":27, "3":28, "4":29,
+				"5":30, "6":31, "7":32, "8":33, "9":34, "@":35, "#":36, "$":37, "%":38, "^":39,
+				"A":40, "B":41, "C":42, "D":43, "E":44, "F":45, "G":46, "H":47, "I":48, "J":49,
+				"K":50, "L":51, "M":52, "N":53, "O":54, "P":55, "Q":56, "R":57, "S":58, "T":59,
+				"U":60, "V":61, "W":62, "X":63, "Y":64, "Z":65
+			})
+			checkMem()`,
+			60,
+			SizeEmpty + SizeEmpty + // outer object + reference to its prototype
+				66*(1+SizeNumber) + // "a" and number
+				SizeEmpty, // stack difference from popping null(8) and then adding outer obj(8) + "c" obj (8)
+		},
+	} {
+		t.Run(fmt.Sprintf(tc.description), func(t *testing.T) {
+			objPropsLenThreshold = tc.threshold
+			memChecks := []uint64{}
+			vm := New()
+			vm.Set("checkMem", func(call FunctionCall) Value {
+				mem, err := vm.MemUsage(NewMemUsageContext(vm, 100, TestNativeMemUsageChecker{}))
+				if err != nil {
+					t.Fatal(err)
+				}
+				memChecks = append(memChecks, mem)
+				return UndefinedValue()
+			})
+
+			nc := vm.CreateNativeClass("MyNativeVal", func(call FunctionCall) interface{} {
+				return TestNativeValue{}
+			}, nil, nil)
+
+			vm.Set("MyNativeVal", nc.Function)
+
+			_, err := vm.RunString(tc.script)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if len(memChecks) < 2 {
+				t.Fatalf("expected at least two entries in mem check function, but got %d", len(memChecks))
+			}
+
+			memDiff := memChecks[len(memChecks)-1] - memChecks[0]
+			if memDiff != tc.expectedSizeDiff {
+				t.Fatalf("expected memory change to equal %d but got %d instead", tc.expectedSizeDiff, memDiff)
+			}
+		})
+	}
+}

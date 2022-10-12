@@ -1673,6 +1673,7 @@ func (o *baseObject) estimateMemUsage(ctx *MemUsageContext) (uint64, error) {
 		inc, err := v.MemUsage(ctx)
 		samplesVisited += 1
 		total += inc
+		total += uint64(len(k))
 		averageMemUsage = float32(total) / float32(samplesVisited)
 		if err != nil {
 			return uint64(averageMemUsage * float32(len(o.propNames))), err
@@ -1700,23 +1701,20 @@ func (o *baseObject) MemUsage(ctx *MemUsageContext) (uint64, error) {
 		if err != nil {
 			return total, err
 		}
+	} else {
+		for _, k := range o.propNames {
+			v := o.values[k]
+			if v == nil {
+				continue
+			}
 
-		ctx.Ascend()
-		return total, nil
-	}
+			inc, err := v.MemUsage(ctx)
+			total += inc
+			total += uint64(len(k))
 
-	for _, k := range o.propNames {
-		v := o.values[k]
-		if v == nil {
-			continue
-		}
-
-		inc, err := v.MemUsage(ctx)
-		total += inc
-		total += uint64(len(k))
-
-		if err != nil {
-			return total, err
+			if err != nil {
+				return total, err
+			}
 		}
 	}
 
