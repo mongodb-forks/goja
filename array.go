@@ -534,6 +534,8 @@ func estimateMemUsage(ctx *MemUsageContext, values []Value) (uint64, error) {
 	var averageMemUsage float32
 	sampleSize := len(values) / 10
 
+	// grabbing one sample every "sampleSize" to provide consistent
+	// memory usage across function executions
 	for i := 0; i < len(values); i += sampleSize {
 		if values[i] == nil {
 			continue
