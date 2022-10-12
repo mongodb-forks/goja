@@ -521,7 +521,8 @@ func toIdx(v valueInt) uint32 {
 	return math.MaxUint32
 }
 
-var arrayLenThreshold = 1000
+// array length threshold above which we should estimate mem usage
+var arrayLenThreshold = 1_000
 
 // for very large arrays calculating mem usage for each item becomes
 // expensive both in terms of memory used by the host to compute it
