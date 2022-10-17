@@ -51,6 +51,14 @@ func (dt *depthTracker) Ascend() {
 	dt.curDepth--
 }
 
+type limitChecker struct {
+	memUsageLimit uint64
+}
+
+func (lc limitChecker) MemUsageExceedsLimit(memUsage uint64) bool {
+	return memUsage > lc.memUsageLimit
+}
+
 type NativeMemUsageChecker interface {
 	NativeMemUsage(goNativeValue interface{}) (uint64, bool)
 }
@@ -90,14 +98,16 @@ func (self *stash) MemUsage(ctx *MemUsageContext) (uint64, error) {
 type MemUsageContext struct {
 	visitTracker
 	*depthTracker
+	limitChecker
 	NativeMemUsageChecker
 }
 
-func NewMemUsageContext(vm *Runtime, maxDepth int, nativeChecker NativeMemUsageChecker) *MemUsageContext {
+func NewMemUsageContext(vm *Runtime, maxDepth int, memLimit uint64, nativeChecker NativeMemUsageChecker) *MemUsageContext {
 	return &MemUsageContext{
 		visitTracker:          visitTracker{objsVisited: map[objectImpl]bool{}, stashesVisited: map[*stash]bool{}},
 		depthTracker:          &depthTracker{curDepth: 0, maxDepth: maxDepth},
 		NativeMemUsageChecker: nativeChecker,
+		limitChecker:          limitChecker{memUsageLimit: memLimit},
 	}
 }
 

@@ -591,6 +591,9 @@ func (a *arrayObject) MemUsage(ctx *MemUsageContext) (uint64, error) {
 		if err != nil {
 			return total, err
 		}
+		if ctx.MemUsageExceedsLimit(total) {
+			return total, nil
+		}
 	}
 
 	ctx.Ascend()
