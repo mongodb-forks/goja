@@ -8,6 +8,7 @@ import (
 const (
 	testNativeValueMemUsage = 100
 	memUsageLimit           = uint64(10000)
+	arrLenThreshold         = 1_000
 )
 
 type TestNativeValue struct {
@@ -381,7 +382,7 @@ func TestMemCheck(t *testing.T) {
 			memChecks := []uint64{}
 			vm := New()
 			vm.Set("checkMem", func(call FunctionCall) Value {
-				mem, err := vm.MemUsage(NewMemUsageContext(vm, 100, memUsageLimit, TestNativeMemUsageChecker{}))
+				mem, err := vm.MemUsage(NewMemUsageContext(vm, 100, memUsageLimit, arrLenThreshold, TestNativeMemUsageChecker{}))
 				if err != nil {
 					t.Fatal(err)
 				}
@@ -450,12 +451,12 @@ func TestMemMaxDepth(t *testing.T) {
 
 			// All global variables are contained in the Runtime's globalObject field, which causes
 			// them to be one level deeper
-			_, err = vm.MemUsage(NewMemUsageContext(vm, tc.expectedDepth, memUsageLimit, TestNativeMemUsageChecker{}))
+			_, err = vm.MemUsage(NewMemUsageContext(vm, tc.expectedDepth, memUsageLimit, arrLenThreshold, TestNativeMemUsageChecker{}))
 			if err != ErrMaxDepth {
 				t.Fatalf("expected mem check to hit depth limit error, but got nil %v", err)
 			}
 
-			_, err = vm.MemUsage(NewMemUsageContext(vm, tc.expectedDepth+1, memUsageLimit, TestNativeMemUsageChecker{}))
+			_, err = vm.MemUsage(NewMemUsageContext(vm, tc.expectedDepth+1, memUsageLimit, arrLenThreshold, TestNativeMemUsageChecker{}))
 			if err != nil {
 				t.Fatalf("expected to NOT hit mem check hit depth limit error, but got %v", err)
 			}
@@ -560,11 +561,10 @@ func TestMemArraysWithLenThreshold(t *testing.T) {
 		},
 	} {
 		t.Run(fmt.Sprintf(tc.description), func(t *testing.T) {
-			arrayLenThreshold = tc.threshold
 			memChecks := []uint64{}
 			vm := New()
 			vm.Set("checkMem", func(call FunctionCall) Value {
-				mem, err := vm.MemUsage(NewMemUsageContext(vm, 100, tc.memLimit, TestNativeMemUsageChecker{}))
+				mem, err := vm.MemUsage(NewMemUsageContext(vm, 100, tc.memLimit, tc.threshold, TestNativeMemUsageChecker{}))
 				if err != nil {
 					t.Fatal(err)
 				}

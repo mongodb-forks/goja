@@ -521,9 +521,6 @@ func toIdx(v valueInt) uint32 {
 	return math.MaxUint32
 }
 
-// array length threshold above which we should estimate mem usage
-var arrayLenThreshold = 1_000
-
 // for very large arrays calculating mem usage for each item becomes
 // expensive both in terms of memory used by the host to compute it
 // and timeout. With this function we grab a sample of 10% items
@@ -548,6 +545,9 @@ func estimateMemUsage(ctx *MemUsageContext, values []Value) (uint64, error) {
 		if err != nil {
 			return uint64(averageMemUsage * float32(len(values))), err
 		}
+		if ctx.MemUsageExceedsLimit(total) {
+			return uint64(averageMemUsage * float32(len(values))), nil
+		}
 	}
 
 	return uint64(averageMemUsage * float32(len(values))), nil
@@ -570,7 +570,7 @@ func (a *arrayObject) MemUsage(ctx *MemUsageContext) (uint64, error) {
 		return total, err
 	}
 
-	if len(a.values) > arrayLenThreshold {
+	if ctx.ArrayLenExceedsThreshold(len(a.values)) {
 		inc, err := estimateMemUsage(ctx, a.values)
 		total += inc
 		if err != nil {
