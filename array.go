@@ -527,8 +527,7 @@ func toIdx(v valueInt) uint32 {
 // determine their average mem usage and use that to estimate mem
 // usage of the whole array
 func estimateMemUsage(ctx *MemUsageContext, values []Value) (uint64, error) {
-	var total, samplesVisited uint64
-	var averageMemUsage float32
+	var total, samplesVisited, runningEstimate uint64
 	sampleSize := len(values) / 10
 
 	// grabbing one sample every "sampleSize" to provide consistent
@@ -541,16 +540,17 @@ func estimateMemUsage(ctx *MemUsageContext, values []Value) (uint64, error) {
 		inc, err := values[i].MemUsage(ctx)
 		samplesVisited += 1
 		total += inc
-		averageMemUsage = float32(total) / float32(samplesVisited)
+		// average * number of values
+		runningEstimate = uint64((float32(total) / float32(samplesVisited)) * float32(len(values)))
 		if err != nil {
-			return uint64(averageMemUsage * float32(len(values))), err
+			return runningEstimate, err
 		}
 		if ctx.MemUsageExceedsLimit(total) {
-			return uint64(averageMemUsage * float32(len(values))), nil
+			return runningEstimate, nil
 		}
 	}
 
-	return uint64(averageMemUsage * float32(len(values))), nil
+	return runningEstimate, nil
 }
 
 func (a *arrayObject) MemUsage(ctx *MemUsageContext) (uint64, error) {
