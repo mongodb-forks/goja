@@ -521,9 +521,9 @@ func toIdx(v valueInt) uint32 {
 	return math.MaxUint32
 }
 
-// for very large arrays calculating mem usage for each item becomes
-// expensive both in terms of memory used by the host to compute it
-// and timeout. With this function we grab a sample of 10% items
+// For very large arrays calculating mem usage for each item becomes
+// expensive for mem/cpu which eventually can lead to timeouts.
+// With this function we sample 10% of the array values,
 // determine their average mem usage and use that to estimate mem
 // usage of the whole array
 func estimateMemUsage(ctx *MemUsageContext, values []Value) (uint64, error) {
@@ -591,6 +591,8 @@ func (a *arrayObject) MemUsage(ctx *MemUsageContext) (uint64, error) {
 		if err != nil {
 			return total, err
 		}
+		// This is an early exit in case we reach the mem usage
+		// limit before we get to scan the whole array.
 		if ctx.MemUsageExceedsLimit(total) {
 			return total, nil
 		}
