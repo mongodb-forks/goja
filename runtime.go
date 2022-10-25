@@ -2850,7 +2850,11 @@ func (r *Runtime) getIterator(obj Value, method func(FunctionCall) Value) *itera
 func (ir *iteratorRecord) iterate(step func(Value)) {
 	r := ir.iterator.runtime
 	for {
-		res := r.toObject(ir.next(FunctionCall{ctx: ir.ctx, This: ir.iterator}))
+		if ir.next == nil {
+			panic(r.NewTypeError("object null is not a function"))
+		}
+		nextVal := ir.next(FunctionCall{ctx: ir.ctx, This: ir.iterator})
+		res := r.toObject(nextVal)
 		if nilSafe(res.self.getStr("done", nil)).ToBoolean() {
 			break
 		}
