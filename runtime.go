@@ -2839,7 +2839,15 @@ func (r *Runtime) getIterator(obj Value, method func(FunctionCall) Value) *itera
 		ctx:  r.vm.ctx,
 		This: obj,
 	}))
-	next := toMethod(iter.self.getStr("next", nil))
+
+	var next func(FunctionCall) Value
+
+	if obj, ok := iter.self.getStr("next", nil).(*Object); ok {
+		if call, ok := obj.self.assertCallable(); ok {
+			next = call
+		}
+	}
+
 	return &iteratorRecord{
 		iterator: iter,
 		next:     next,
@@ -2851,10 +2859,9 @@ func (ir *iteratorRecord) iterate(step func(Value)) {
 	r := ir.iterator.runtime
 	for {
 		if ir.next == nil {
-			panic(r.NewTypeError("object null is not a function"))
+			panic(r.NewTypeError("iterator.next is missing or not a function"))
 		}
-		nextVal := ir.next(FunctionCall{ctx: ir.ctx, This: ir.iterator})
-		res := r.toObject(nextVal)
+		res := r.toObject(ir.next(FunctionCall{ctx: ir.ctx, This: ir.iterator}))
 		if nilSafe(res.self.getStr("done", nil)).ToBoolean() {
 			break
 		}
