@@ -1036,7 +1036,7 @@ func TestToValueNil(t *testing.T) {
 	}
 
 	var ar []interface{}
-	if v := vm.ToValue(ar); !IsNull(v) {
+	if v := vm.ToValue(ar); IsNull(v) {
 		t.Fatalf("[]interface{}: %v", v)
 	}
 
