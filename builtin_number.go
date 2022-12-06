@@ -211,6 +211,10 @@ func (r *Runtime) number_isSafeInteger(call FunctionCall) Value {
 	if i, ok := call.Argument(0).(valueInt64); ok && i >= -(maxInt-1) && i <= maxInt-1 {
 		return valueTrue
 	}
+	// valueFloat can come in from other nativefuncs like math_abs, this will make sure that the valueFloat is a valid integer
+	if i, ok := call.Argument(0).(valueFloat); ok && i >= -(maxInt-1) && i <= maxInt-1 {
+		return r.number_isInteger(call)
+	}
 	return valueFalse
 }
 
