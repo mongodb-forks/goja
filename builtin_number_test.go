@@ -5,8 +5,8 @@ import "testing"
 func TestIsSafeInteger(t *testing.T) {
 	const SCRIPT = `
 	var maxInt = 9007199254740991
-    var overflowInt = 9007199254740992
-    var maxIntFloat = 9007199254740991.0
+        var overflowInt = 9007199254740992
+        var maxIntFloat = 9007199254740991.0
 	var overflowIntInFloat = 9007199254740992.0
 
 	assert.sameValue(Number.isSafeInteger(1.0), true);
