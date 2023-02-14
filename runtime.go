@@ -194,15 +194,15 @@ type Runtime struct {
 	ticks            uint64
 }
 
-func (self *Runtime) Ticks() uint64 {
-	return self.ticks
+func (r *Runtime) Ticks() uint64 {
+	return r.ticks
 }
 
 // SetStackTraceLimit sets an upper limit to the number of stack frames that
 // goja will use when formatting an error's stack trace. By default, the limit
 // is 10. This is consistent with V8 and SpiderMonkey.
-func (self *Runtime) SetStackTraceLimit(limit int) {
-	self.stackTraceLimit = limit
+func (r *Runtime) SetStackTraceLimit(limit int) {
+	r.stackTraceLimit = limit
 }
 
 type StackFrame struct {
@@ -2919,10 +2919,10 @@ func (r *Runtime) setGlobal(name unistring.String, v Value, strict bool) {
 // 	return job.callback(FunctionCall{This: this, Arguments: args})
 // }
 
-func (r *Runtime) invoke(v Value, p unistring.String, args ...Value) Value {
-	o := v.ToObject(r)
-	return r.toCallable(o.self.getStr(p, nil))(FunctionCall{ctx: r.ctx, This: v, Arguments: args})
-}
+// func (r *Runtime) invoke(v Value, p unistring.String, args ...Value) Value {
+// 	o := v.ToObject(r)
+// 	return r.toCallable(o.self.getStr(p, nil))(FunctionCall{ctx: r.ctx, This: v, Arguments: args})
+// }
 
 func (r *Runtime) iterableToList(iterable Value, method func(FunctionCall) Value) []Value {
 	iter := r.getIterator(iterable, method)
@@ -2933,13 +2933,13 @@ func (r *Runtime) iterableToList(iterable Value, method func(FunctionCall) Value
 	return values
 }
 
-func (r *Runtime) putSpeciesReturnThis(o objectImpl) {
-	o._putSym(SymSpecies, &valueProperty{
-		getterFunc:   r.newNativeFunc(r.returnThis, nil, "get [Symbol.species]", nil, 0),
-		accessor:     true,
-		configurable: true,
-	})
-}
+// func (r *Runtime) putSpeciesReturnThis(o objectImpl) {
+// 	o._putSym(SymSpecies, &valueProperty{
+// 		getterFunc:   r.newNativeFunc(r.returnThis, nil, "get [Symbol.species]", nil, 0),
+// 		accessor:     true,
+// 		configurable: true,
+// 	})
+// }
 
 func strToArrayIdx(s unistring.String) uint32 {
 	if s == "" {

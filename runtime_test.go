@@ -2160,7 +2160,7 @@ func TestStackOverflowRangeErrorCanBeCaught(t *testing.T) {
             callStackSize;
 	`)
 	if callStackSize := v.ToInteger(); callStackSize != 11 {
-		t.Fatal(fmt.Sprintf("Didn't reach a callstack size of 11. Instead reached %d", callStackSize))
+		t.Fatalf("Didn't reach a callstack size of 11. Instead reached %d", callStackSize)
 	}
 
 	if err != nil {

@@ -526,8 +526,8 @@ func (*baseDynamicObject) _putProp(name unistring.String, value Value, writable,
 func (*baseDynamicObject) _putSym(s *Symbol, prop Value) {
 }
 
-func (b *baseDynamicObject) MemUsage(ctx *MemUsageContext) (uint64, error) {
-	return b.val.MemUsage(ctx)
+func (o *baseDynamicObject) MemUsage(ctx *MemUsageContext) (uint64, error) {
+	return o.val.MemUsage(ctx)
 }
 
 func (a *dynamicArray) sortLen() int64 {

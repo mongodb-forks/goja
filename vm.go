@@ -43,7 +43,7 @@ type vmContext struct {
 	pc, sb    int
 	args      int
 
-	mu sync.RWMutex
+	// mu sync.RWMutex
 }
 
 func (vc *vmContext) MemUsage(ctx *MemUsageContext) (uint64, error) {
@@ -3838,7 +3838,6 @@ func (n _new) exec(vm *vm) {
 	sp := vm.sp - int(n)
 	obj := vm.stack[sp-1]
 
-	obj = vm.stack[sp-1]
 	if ctor := vm.r.toObject(obj).self.assertConstructor(); ctor != nil {
 		vm.stack[sp-1] = ctor(vm.stack[sp:vm.sp], nil)
 	} else if f, ok := vm.r.toObject(obj).self.(*nativeFuncObject); ok {
@@ -4308,9 +4307,9 @@ func (c *getTaggedTmplObject) exec(vm *vm) {
 	vm.pc++
 }
 
-func (stack valueStack) MemUsage(ctx *MemUsageContext) (uint64, error) {
+func (s valueStack) MemUsage(ctx *MemUsageContext) (uint64, error) {
 	total := uint64(0)
-	for _, self := range stack {
+	for _, self := range s {
 		if self == nil {
 			continue
 		}

@@ -8,39 +8,39 @@ import (
 )
 
 // SetRateLimiter sets the rate limiter
-func (self *Runtime) SetRateLimiter(limiter *rate.Limiter) {
-	self.limiter = limiter
+func (r *Runtime) SetRateLimiter(limiter *rate.Limiter) {
+	r.limiter = limiter
 	if limiter == nil {
 		return
 	}
 
-	self.fillBucket()
+	r.fillBucket()
 }
 
 // NOTE: we should try to avoid making expensive operations within this
 // function since it gets called millions of times per second.
-func (self *Runtime) waitOneTick() {
-	self.ticks++
-	if self.limiter == nil {
+func (r *Runtime) waitOneTick() {
+	r.ticks++
+	if r.limiter == nil {
 		return
 	}
 
-	if self.limiterTicksLeft > 0 {
-		self.limiterTicksLeft--
+	if r.limiterTicksLeft > 0 {
+		r.limiterTicksLeft--
 		return
 	}
-	self.fillBucket()
+	r.fillBucket()
 
-	ctx := self.vm.ctx
+	ctx := r.vm.ctx
 	if ctx == nil {
 		ctx = context.Background()
 	}
 
-	if waitErr := self.limiter.WaitN(ctx, self.limiterTicksLeft); waitErr != nil {
-		if self.vm.ctx == nil {
+	if waitErr := r.limiter.WaitN(ctx, r.limiterTicksLeft); waitErr != nil {
+		if r.vm.ctx == nil {
 			panic(waitErr)
 		}
-		if ctxErr := self.vm.ctx.Err(); ctxErr != nil {
+		if ctxErr := r.vm.ctx.Err(); ctxErr != nil {
 			panic(ctxErr)
 		}
 		if strings.Contains(waitErr.Error(), "would exceed") {
@@ -52,6 +52,6 @@ func (self *Runtime) waitOneTick() {
 
 const burstDivisor = 5
 
-func (self *Runtime) fillBucket() {
-	self.limiterTicksLeft = self.limiter.Burst() / burstDivisor
+func (r *Runtime) fillBucket() {
+	r.limiterTicksLeft = r.limiter.Burst() / burstDivisor
 }

@@ -55,29 +55,29 @@ type NativeMemUsageChecker interface {
 	NativeMemUsage(goNativeValue interface{}) (uint64, bool)
 }
 
-func (self *stash) MemUsage(ctx *MemUsageContext) (uint64, error) {
-	if ctx.IsStashVisited(self) {
+func (s *stash) MemUsage(ctx *MemUsageContext) (uint64, error) {
+	if ctx.IsStashVisited(s) {
 		return 0, nil
 	}
-	ctx.VisitStash(self)
+	ctx.VisitStash(s)
 	total := uint64(0)
-	if self.obj != nil {
-		inc, err := self.obj.MemUsage(ctx)
+	if s.obj != nil {
+		inc, err := s.obj.MemUsage(ctx)
 		total += inc
 		if err != nil {
 			return total, err
 		}
 	}
 
-	if self.outer != nil {
-		inc, err := self.outer.MemUsage(ctx)
+	if s.outer != nil {
+		inc, err := s.outer.MemUsage(ctx)
 		total += inc
 		if err != nil {
 			return total, err
 		}
 	}
-	if len(self.values) > 0 {
-		inc, err := self.values.MemUsage(ctx)
+	if len(s.values) > 0 {
+		inc, err := s.values.MemUsage(ctx)
 		total += inc
 		if err != nil {
 			return total, err
