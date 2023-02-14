@@ -1767,7 +1767,7 @@ an index < length will set it to a zero value (but the property will remain). Ni
 `null`. Accessing an element beyond `length` returns `undefined`. Also see the warning above about passing slices as
 values (as opposed to pointers).
 
-Arrays
+# Arrays
 
 Arrays are converted similarly to slices, except the resulting Arrays are not resizable (and therefore the 'length'
 property is non-writable).
@@ -2294,16 +2294,16 @@ func (r *Runtime) wrapJSFunc(fn Callable, typ reflect.Type) func(args []reflect.
 //
 // Notes on specific cases:
 //
-// Empty interface
+// # Empty interface
 //
 // Exporting to an interface{} results in a value of the same type as Value.Export() would produce.
 //
-// Numeric types
+// # Numeric types
 //
 // Exporting to numeric types uses the standard ECMAScript conversion operations, same as used when assigning
 // values to non-clamped typed array items, e.g. https://262.ecma-international.org/#sec-toint32.
 //
-// Functions
+// # Functions
 //
 // Exporting to a 'func' creates a strictly typed 'gateway' into an ES function which can be called from Go.
 // The arguments are converted into ES values using Runtime.ToValue(). If the func has no return values,
@@ -2320,7 +2320,7 @@ func (r *Runtime) wrapJSFunc(fn Callable, typ reflect.Type) func(args []reflect.
 //
 // For a more low-level mechanism see AssertFunction().
 //
-// Map types
+// # Map types
 //
 // An ES Map can be exported into a Go map type. If any exported key value is non-hashable, the operation panics
 // (as reflect.Value.SetMapIndex() would). Symbol.iterator is ignored.
@@ -2331,7 +2331,7 @@ func (r *Runtime) wrapJSFunc(fn Callable, typ reflect.Type) func(args []reflect.
 //
 // Any other Object populates the map with own enumerable non-symbol properties.
 //
-// Slice types
+// # Slice types
 //
 // Exporting an ES Set into a slice type results in its elements being exported.
 //
@@ -2345,18 +2345,17 @@ func (r *Runtime) wrapJSFunc(fn Callable, typ reflect.Type) func(args []reflect.
 //
 // For any other Object an error is returned.
 //
-// Array types
+// # Array types
 //
 // Anything that can be exported to a slice type can also be exported to an array type, as long as the lengths
 // match. If they do not, an error is returned.
 //
-// Proxy
+// # Proxy
 //
 // Proxy objects are treated the same way as if they were accessed from ES code in regard to their properties
 // (such as 'length' or [Symbol.iterator]). This means exporting them to slice types works, however
 // exporting a proxied Map into a map type does not produce its contents, because the Proxy is not recognised
 // as a Map. Same applies to a proxied Set.
-//
 func (r *Runtime) ExportTo(v Value, target interface{}) error {
 	tval := reflect.ValueOf(target)
 	if tval.Kind() != reflect.Ptr || tval.IsNil() {
