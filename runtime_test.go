@@ -2416,6 +2416,7 @@ func TestStringToBytesConversion(t *testing.T) {
 	}
 }
 
+// This is commented out as we have our own Promises
 // func TestPromiseAll(t *testing.T) {
 // 	const SCRIPT = `
 // var p1 = new Promise(function() {});
