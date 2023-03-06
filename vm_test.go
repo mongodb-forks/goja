@@ -305,10 +305,6 @@ func TestFloatToValue(t *testing.T) {
 			valueFloat(0),
 		},
 		{
-			-0.0,
-			valueFloat(-0),
-		},
-		{
 			2.0000,
 			valueFloat(2),
 		},

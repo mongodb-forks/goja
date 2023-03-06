@@ -2,6 +2,7 @@ package goja
 
 import (
 	"fmt"
+
 	"github.com/dop251/goja/ast"
 	"github.com/dop251/goja/file"
 	"github.com/dop251/goja/token"
@@ -2084,6 +2085,7 @@ func (c *compiler) compileNumberLiteral(v *ast.NumberLiteral) compiledExpr {
 		c.throwSyntaxError(int(v.Idx)-1, "Octal literals are not allowed in strict mode")
 		panic("Unreachable")
 	}
+
 	var val Value
 	switch num := v.Value.(type) {
 	case int:

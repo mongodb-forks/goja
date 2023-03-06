@@ -247,6 +247,7 @@ func intToValue(i int64) Value {
 	}
 	return valueFloat(i)
 }
+
 func int64ToValue(i int64) Value {
 	if i >= -128 && i <= 127 {
 		return int64Cache[i+128]
