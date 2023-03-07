@@ -25,10 +25,6 @@ func TestInt64SameAsFloat(t *testing.T) {
 	if !valueInt64(0).SameAs(valueFloat(0.0)) {
 		t.Fatal("values are not equal")
 	}
-
-	if !valueInt64(0).SameAs(valueFloat(-0.0)) {
-		t.Fatal("values are not equal")
-	}
 }
 
 func TestIntStringEquality(t *testing.T) {

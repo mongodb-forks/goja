@@ -26,10 +26,7 @@ func TestIntZeroSameAsFloatZero(t *testing.T) {
 	if !valueInt(0).SameAs(valueFloat(0.0)) {
 		t.Fatal("values are not equal")
 	}
-	if !valueInt(0).SameAs(valueFloat(-0.0)) {
-		t.Fatal("values are not equal")
-	}
-	if !valueInt(-0).SameAs(valueFloat(-0.0)) {
+	if !valueInt(-0).SameAs(valueFloat(0.0)) {
 		t.Fatal("values are not equal")
 	}
 }

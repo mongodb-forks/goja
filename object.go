@@ -50,7 +50,6 @@ type Object struct {
 
 	weakRefs map[weakMap]Value
 
-	depth     int
 	__wrapped interface{}
 
 	mu            sync.RWMutex
@@ -1912,23 +1911,23 @@ func (o *baseObject) MemUsage(ctx *MemUsageContext) (uint64, error) {
 	return total, nil
 }
 
-func (self *primitiveValueObject) MemUsage(ctx *MemUsageContext) (uint64, error) {
-	if self == nil || ctx.IsObjVisited(self) {
+func (o *primitiveValueObject) MemUsage(ctx *MemUsageContext) (uint64, error) {
+	if o == nil || ctx.IsObjVisited(o) {
 		return SizeEmpty, nil
 	}
-	ctx.VisitObj(self)
+	ctx.VisitObj(o)
 
 	total := uint64(0)
 
-	if self.pValue != nil {
-		inc, err := self.pValue.MemUsage(ctx)
+	if o.pValue != nil {
+		inc, err := o.pValue.MemUsage(ctx)
 		total += inc
 		if err != nil {
 			return total, err
 		}
 	}
 
-	inc, baseErr := self.baseObject.MemUsage(ctx)
+	inc, baseErr := o.baseObject.MemUsage(ctx)
 	total += inc
 	return total, baseErr
 

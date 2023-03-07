@@ -139,6 +139,7 @@ type valueNumber struct {
 }
 
 type valueInt int
+
 type valueUInt32 uint32
 type valueInt32 int32
 type valueInt64 int64
@@ -351,7 +352,7 @@ func (i valueInt) hash(*maphash.Hash) uint64 {
 	return uint64(i)
 }
 
-func (o valueBool) MemUsage(ctx *MemUsageContext) (uint64, error) {
+func (b valueBool) MemUsage(ctx *MemUsageContext) (uint64, error) {
 	return SizeBool, nil
 }
 
@@ -385,18 +386,18 @@ func (b valueBool) assertFloat() (float64, bool) {
 func (b valueBool) assertString() (valueString, bool) {
 	return nil, false
 }
-func (o valueBool) assertInt() (int, bool) {
+func (b valueBool) assertInt() (int, bool) {
 	return 0, false
 }
 
-func (o valueBool) assertInt32() (int32, bool) {
+func (b valueBool) assertInt32() (int32, bool) {
 	return 0, false
 }
-func (o valueBool) assertUInt32() (uint32, bool) {
+func (b valueBool) assertUInt32() (uint32, bool) {
 	return 0, false
 }
 
-func (o valueBool) assertInt64() (int64, bool) {
+func (b valueBool) assertInt64() (int64, bool) {
 	return 0, false
 }
 
@@ -928,7 +929,7 @@ func (f valueFloat) ToObject(r *Runtime) *Object {
 func (f valueFloat) ToNumber() Value {
 	return f
 }
-func (i valueFloat) assertString() (valueString, bool) {
+func (f valueFloat) assertString() (valueString, bool) {
 	return nil, false
 }
 func (f valueFloat) assertInt() (int, bool) {

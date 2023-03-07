@@ -534,20 +534,19 @@ func (i valueInt64) SameAs(other Value) bool {
 }
 
 func (i valueInt64) Equals(other Value) bool {
-	if o, ok := other.assertInt64(); ok {
-		return int64(i) == o
-	}
-	if o, ok := other.assertFloat(); ok {
-		return float64(i) == o
-	}
-	if o, ok := other.assertString(); ok {
+	switch o := other.(type) {
+	case valueInt:
+		return int64(i) == int64(o)
+	case valueInt64:
+		return i == o
+	case valueFloat:
+		return float64(i) == float64(o)
+	case valueString:
 		return o.ToNumber().Equals(i)
-	}
-	if o, ok := other.(valueBool); ok {
+	case valueBool:
 		return int(i) == o.ToInt()
-	}
-	if o, ok := other.(*Object); ok {
-		return i.Equals(o.self.toPrimitiveNumber())
+	case *Object:
+		return i.Equals(o.toPrimitive())
 	}
 	return false
 }
