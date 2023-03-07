@@ -3837,16 +3837,8 @@ type _new uint32
 func (n _new) exec(vm *vm) {
 	sp := vm.sp - int(n)
 	obj := vm.stack[sp-1]
-
-	if ctor := vm.r.toObject(obj).self.assertConstructor(); ctor != nil {
-		vm.stack[sp-1] = ctor(vm.stack[sp:vm.sp], nil)
-	} else if f, ok := vm.r.toObject(obj).self.(*nativeFuncObject); ok {
-		vm.stack[sp-1] = f.f(FunctionCall{
-			ctx:       vm.ctx,
-			Arguments: vm.stack[vm.sp-vm.args : vm.sp],
-			This:      obj,
-		})
-	}
+	ctor := vm.r.toConstructor(obj)
+	vm.stack[sp-1] = ctor(vm.stack[sp:vm.sp], nil)
 	vm.sp = sp
 	vm.pc++
 }

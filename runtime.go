@@ -619,8 +619,7 @@ func (r *Runtime) NewTypeError(args ...interface{}) *Object {
 		f, _ := args[0].(string)
 		msg = fmt.Sprintf(f, args[1:]...)
 	}
-	e := r.builtin_new(r.global.TypeError, []Value{newStringValue(msg)})
-	return e
+	return r.builtin_new(r.global.TypeError, []Value{newStringValue(msg)})
 }
 
 func (r *Runtime) NewGoError(err error) *Object {
