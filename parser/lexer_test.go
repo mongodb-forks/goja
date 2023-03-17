@@ -39,6 +39,15 @@ func TestLexer(t *testing.T) {
 			token.EOF, "", 1,
 		)
 
+		test("#!",
+			token.EOF, "", 3,
+		)
+
+		test("#!\n1",
+			token.NUMBER, "1", 4,
+			token.EOF, "", 5,
+		)
+
 		test("1",
 			token.NUMBER, "1", 1,
 			token.EOF, "", 2,
@@ -200,7 +209,7 @@ Second line \
 			token.VAR, "var", 1,
 			token.IF, "if", 5,
 			token.VAR, "var", 8,
-			token.KEYWORD, "class", 12,
+			token.CLASS, "class", 12,
 			token.EOF, "", 17,
 		)
 
