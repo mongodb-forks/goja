@@ -1925,6 +1925,39 @@ func (i *privateId) string() unistring.String {
 	return privateIdString(i.name)
 }
 
+// for very large objects calculating mem usage on each key/value pair
+// becomes expensive both in terms of memory used by the host to compute it
+// and timeout. With this function we grab a sample of 10% items to
+// determine their average mem usage and use that to estimate mem
+// usage of the whole object
+func (o *baseObject) estimateMemUsage(ctx *MemUsageContext) (uint64, error) {
+	var total, samplesVisited uint64
+	var averageMemUsage float32
+	sampleSize := len(o.propNames) / 10
+
+	// grabbing one sample every "sampleSize" to provide consistent
+	// memory usage across function executions
+	for i := 0; i < len(o.propNames); i += sampleSize {
+		k := o.propNames[i]
+		v := o.values[k]
+		if v == nil {
+			continue
+		}
+
+		inc, err := v.MemUsage(ctx)
+		samplesVisited += 1
+		total += inc
+		kMem := uint64(len(k))
+		total += kMem
+		averageMemUsage = float32(total) / float32(samplesVisited)
+		if err != nil {
+			return uint64(averageMemUsage * float32(len(o.propNames))), err
+		}
+	}
+
+	return uint64(averageMemUsage * float32(len(o.propNames))), nil
+}
+
 func (o *baseObject) MemUsage(ctx *MemUsageContext) (uint64, error) {
 	if o == nil || ctx.IsObjVisited(o) {
 		return SizeEmpty, nil
@@ -1936,19 +1969,26 @@ func (o *baseObject) MemUsage(ctx *MemUsageContext) (uint64, error) {
 	}
 
 	total := SizeEmpty
-
-	for _, k := range o.propNames {
-		v := o.values[k]
-		if v == nil {
-			continue
-		}
-
-		inc, err := v.MemUsage(ctx)
+	if ctx.ObjectPropsLenExceedsThreshold(len(o.propNames)) {
+		inc, err := o.estimateMemUsage(ctx)
 		total += inc
-		total += uint64(len(k))
-
 		if err != nil {
 			return total, err
+		}
+	} else {
+		for _, k := range o.propNames {
+			v := o.values[k]
+			if v == nil {
+				continue
+			}
+
+			inc, err := v.MemUsage(ctx)
+			total += inc
+			total += uint64(len(k))
+
+			if err != nil {
+				return total, err
+			}
 		}
 	}
 
