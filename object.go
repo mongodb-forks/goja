@@ -1925,11 +1925,9 @@ func (i *privateId) string() unistring.String {
 	return privateIdString(i.name)
 }
 
-// for very large objects calculating mem usage on each key/value pair
-// becomes expensive both in terms of memory used by the host to compute it
-// and timeout. With this function we grab a sample of 10% items to
-// determine their average mem usage and use that to estimate mem
-// usage of the whole object
+// estimateMemUsage helps calculating mem usage for large objects.
+// It will sample the object and use those samples to estimate the
+// mem usage.
 func (o *baseObject) estimateMemUsage(ctx *MemUsageContext) (uint64, error) {
 	var total, samplesVisited uint64
 	var averageMemUsage float32
