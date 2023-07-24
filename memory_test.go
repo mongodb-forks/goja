@@ -80,7 +80,7 @@ func TestMemCheck(t *testing.T) {
 			checkMem()
 			x.push("12345")
 			checkMem()`,
-			5,
+			5 + SizeString,
 		},
 		{
 			"string with multi-byte characters",
@@ -89,7 +89,7 @@ func TestMemCheck(t *testing.T) {
 			checkMem()
 			x.push("\u2318")
 			checkMem()`,
-			3, // single char with 3-byte width
+			3 + SizeString, // single char with 3-byte width
 		},
 		{
 			"nested objects",
@@ -99,9 +99,9 @@ func TestMemCheck(t *testing.T) {
 			y.push({"a":10, "b":"1234", "c":{}})
 			checkMem()`,
 			SizeEmpty + SizeEmpty + // outer object + reference to its prototype
-				(1 + SizeNumber) + // "a" and number
-				(1 + 4) + // "b" and string
-				(1 + SizeEmpty + SizeEmpty) + //  "c" (object + prototype reference)
+				(1 + SizeString) + SizeNumber + // "a" and number 10
+				(1 + SizeString) + (4 + SizeString) + // "b" and string "1234"
+				(1 + SizeString) + SizeEmpty + SizeEmpty + //  "c" (object + prototype reference)
 				SizeEmpty, // stack difference from popping null(8) and then adding outer obj(8) + "c" obj (8)
 		},
 		{
@@ -126,6 +126,8 @@ func TestMemCheck(t *testing.T) {
 			})();`, // over
 			emptyFunctionScopeOverhead +
 				functionStackOverhead + // anonymous function on stack
+				SizeString + // empty string for anon function name
+				SizeString + SizeString + // overhead of "name" and "length" props on function object
 				SizeEmpty, // undefined return on stack
 		},
 		{
@@ -154,6 +156,8 @@ func TestMemCheck(t *testing.T) {
 				})();
 			})();`,
 			(6 * functionStackOverhead) + // anonymous functions on stack
+				(6 * SizeString) + // empty string for anon function name
+				(6 * (SizeString + SizeString)) + // overhead of "name" and "length" props on function object
 				(6 * SizeEmpty) + // undefined return value for each function on stack
 				(6 * emptyFunctionScopeOverhead),
 		},
@@ -166,6 +170,8 @@ func TestMemCheck(t *testing.T) {
 			})();`,
 			// function overhead plus the number value of the "zzzx" property and its string name
 			emptyFunctionScopeOverhead + SizeNumber + functionStackOverhead +
+				SizeString + // empty string for anon function name
+				SizeString + SizeString + // overhead of "name" and "length" props on function object
 				SizeEmpty + // undefined return value on stack
 				SizeNumber, // number 10 on stack
 		},
@@ -180,7 +186,8 @@ func TestMemCheck(t *testing.T) {
 			 zzza.y = zzzb
 			 zzzb.x = zzza
 			 checkMem()`,
-			2 + SizeEmpty + SizeEmpty, // "x" and "y" property names + references to each object
+			(1 + SizeString) + SizeEmpty + // "x" property name + references to object
+				(1 + SizeString) + SizeEmpty, // "y" property names + references to object
 		},
 		{
 			"sparse array with arrayObject",
@@ -189,7 +196,7 @@ func TestMemCheck(t *testing.T) {
 			checkMem()
 			x[10] = "abc";
 			checkMem()`,
-			2, // 3 -> "abc" added to global memory | -1 difference on stack betwen "abc" and  "abcd"
+			2 + SizeString, // 3 -> "abc" added to global memory | -1 difference on stack between "abc" and  "abcd"
 		},
 		{
 			"sparse array with sparseArrayObject",
@@ -199,7 +206,7 @@ func TestMemCheck(t *testing.T) {
 			x[5001] = "abc";
 			checkMem()`,
 			SizeInt32 +
-				2, // 3 -> "abc" added to global memory | -1 difference on stack betwen "abc" and  "abcd"
+				2 + SizeString, // 3 -> "abc" added to global memory | -1 difference on stack between "abc" and  "abcd"
 		},
 		{
 			"array with non-numeric keys",
@@ -210,8 +217,9 @@ func TestMemCheck(t *testing.T) {
 			x[1] = 3;
 			checkMem()
 			`,
-			// len("abc") + len("a") + SizeNumber
-			3 + 1 + SizeNumber,
+			1 + SizeString + // len("a")
+				3 + SizeString + // len("abc")
+				SizeNumber, // number 3
 		},
 		{
 			"reference to array",
@@ -222,7 +230,7 @@ func TestMemCheck(t *testing.T) {
 			y = x;
 			checkMem()`,
 			// len("y") + reference to array
-			1 + SizeEmpty,
+			(1 + SizeString) + SizeEmpty,
 		},
 		{
 			"reference to sparse array",
@@ -233,7 +241,7 @@ func TestMemCheck(t *testing.T) {
 			y = x;
 			// len("y") + reference to array
 			checkMem()`,
-			1 + SizeEmpty,
+			(1 + SizeString) + SizeEmpty,
 		},
 		{
 			"Date object",
@@ -244,7 +252,7 @@ func TestMemCheck(t *testing.T) {
 			checkMem()
 			`,
 			// len("d2") + size of msec + reference to visited base object + base object prototype reference
-			2 + SizeNumber + SizeEmpty + SizeEmpty,
+			(2 + SizeString) + SizeNumber + SizeEmpty + SizeEmpty,
 		},
 		{
 			"Empty object",
@@ -254,20 +262,24 @@ func TestMemCheck(t *testing.T) {
 			checkMem()
 			`,
 			// len("o") + object's starting size + reference to prototype
-			1 + SizeEmpty + SizeNumber,
+			(1 + SizeString) + SizeEmpty + SizeNumber,
 		},
 		{
 			"Map",
 			`var m = new Map();
-			m.set("a", 1);
+			m.set("first", 1);
 			checkMem();
 			m.set("abc", {"a":10, "b":"1234"});
 			checkMem();`,
-			3 + // "abc"
+			3 + SizeString + // "abc"
 				SizeEmpty + SizeEmpty + // outer object + reference to its prototype
-				(1 + SizeNumber) + // "a" and number
-				(1 + 4) + // "b" and "1234" string
-				6, // stack difference
+				(1 + SizeString) + SizeNumber + // "a" and number
+				(1 + SizeString) + (4 + SizeString) + // "b" and "1234" string
+				// stack difference in going from
+				//	[..other, first, 1]
+				//  to
+				//	[..other, abc, [object Object], 1234]
+				18,
 		},
 		{
 			"Proxy",
@@ -287,7 +299,7 @@ func TestMemCheck(t *testing.T) {
 			proxy2 = new Proxy(target, handler);
 			checkMem();
 			`,
-			6 + // "proxy2"
+			(6 + SizeString) + // "proxy2"
 				SizeEmpty + // proxy overhead
 				SizeEmpty + SizeEmpty + // base object + prototype
 				SizeEmpty + // target object reference
@@ -301,8 +313,8 @@ func TestMemCheck(t *testing.T) {
 			str2 = new String("hello")
 			checkMem();
 			`,
-			4 + // "str2"
-				5 + // "hello"
+			(4 + SizeString) + // "str2"
+				(5 + SizeString) + // "hello"
 				SizeEmpty + SizeEmpty + // base object + prototype
 				6 + SizeNumber, // "length" + number
 		},
@@ -313,7 +325,7 @@ func TestMemCheck(t *testing.T) {
 			ta2 = new Uint8Array([1, 2, 3, 4]);
 			checkMem();
 			`,
-			3 + // "ta2"
+			(3 + SizeString) + // "ta2"
 				SizeEmpty + // typed array overhead
 				SizeEmpty + SizeEmpty + // base object + prototype
 				4 + SizeEmpty + SizeEmpty + // array buffer data +  base object + prototype
@@ -327,7 +339,7 @@ func TestMemCheck(t *testing.T) {
 			checkMem();
 			buffer2 = new ArrayBuffer(16);
 			checkMem();`,
-			7 + // "buffer2"
+			(7 + SizeString) + // "buffer2"
 				16 + // data size
 				SizeEmpty + SizeEmpty, // base object + prototype
 		},
@@ -340,7 +352,7 @@ func TestMemCheck(t *testing.T) {
 			checkMem();
 			view2 = new DataView(buffer2, 0);
 			checkMem();`,
-			5 + // "view2"
+			(5 + SizeString) + // "view2"
 				SizeEmpty + // DataView overhead
 				SizeEmpty + SizeEmpty + // base object + prototype
 				SizeEmpty, // array buffer reference
@@ -352,7 +364,7 @@ func TestMemCheck(t *testing.T) {
 			checkMem();
 			num2 = new Number("2")
 			checkMem();`,
-			4 + // "num2"
+			(4 + SizeString) + // "num2"
 				SizeNumber +
 				SizeEmpty + SizeEmpty, // base object + prototype
 		},
@@ -366,8 +378,8 @@ func TestMemCheck(t *testing.T) {
 				checkMem();
 			}
 			`,
-			7 + 3 + // Error "message" field + len("abc")
-				4 + 5 + // Error "name" field + len("Error")
+			(7 + SizeString) + (3 + SizeString) + // Error "message" field + len("abc")
+				(4 + SizeString) + (5 + SizeString) + // Error "name" field + len("Error")
 				SizeEmpty + SizeEmpty, // base object + prototype
 		},
 		{
@@ -375,7 +387,8 @@ func TestMemCheck(t *testing.T) {
 			`checkMem();
 			nv = new MyNativeVal()
 			checkMem();`,
-			testNativeValueMemUsage + 2,
+			testNativeValueMemUsage +
+				(2 + SizeString), // "nv"
 		},
 	} {
 		t.Run(fmt.Sprintf(tc.description), func(t *testing.T) {
@@ -481,8 +494,8 @@ func TestMemArraysWithLenThreshold(t *testing.T) {
 		{
 			"array of numbers under length threshold",
 			`y = []
-			var i = 0;
 			y.push([]);
+			let i=0;
 			checkMem();
 			for(i=0;i<20;i++){
 				y[0].push(i);
@@ -490,29 +503,29 @@ func TestMemArraysWithLenThreshold(t *testing.T) {
 			checkMem()`,
 			100,
 			memUsageLimit,
-			// Array overhead,
-			// size of property values,
-			SizeEmpty + 20*SizeNumber,
+			SizeEmpty + // Array overhead
+				20*SizeNumber, // size of property values
 		},
 		{
 			"array of numbers over threshold",
 			`y = []
-			var j = 0;
 			y.push([]);
+			let i=0;
 			checkMem();
 			for(i=0;i<200;i++){
-				y[0].push(j);
+				y[0].push(i);
 			};
 			checkMem()`,
 			100,
 			memUsageLimit,
-			// len("j") + value 0 + Array overhead + estimate of property values
-			1 + SizeNumber + SizeEmpty + 200*SizeNumber,
+			SizeEmpty + // Array overhead
+				200*SizeNumber, // size of property values
 		},
 		{
 			"mixed array under threshold",
 			`y = []
 			y.push([]);
+			let i = 0;
 			checkMem();
 			for(i=0;i<100;i++){
 				y[0].push(i<50?0:true);
@@ -520,27 +533,34 @@ func TestMemArraysWithLenThreshold(t *testing.T) {
 			checkMem()`,
 			200,
 			memUsageLimit,
-			// Array overhead, size of property values
-			2 + SizeEmpty + SizeNumber + (50 * SizeNumber) + (50 * SizeBool),
+			SizeEmpty + // Array overhead
+				(50 * SizeNumber) + (50 * SizeBool) + // (450) size of property values
+				// stack difference in going from
+				//	[..other, []]
+				//  to
+				//	[..other, true, 50]
+				+1,
 		},
 		{
 			"array under threshold but over limit",
 			`y = []
 			y.push([]);
+			let i = 0;
 			checkMem();
 			for(i=0;i<10;i++){
-				y[0].push(true);
+				y[0].push(i);
 			};
 			checkMem()`,
 			200,
-			40,
+			70,
 			// Array overhead, size of property values, only 3 values before we hit the mem limit
-			2 + SizeEmpty + (3 * SizeBool),
+			SizeEmpty + (3 * SizeNumber),
 		},
 		{
 			"mixed array over threshold",
 			`y = []
 			y.push([]);
+			let i = 0;
 			checkMem();
 			for(i=0;i<100;i++){
 				y[0].push(i<50?0:true);
@@ -549,12 +569,19 @@ func TestMemArraysWithLenThreshold(t *testing.T) {
 			50,
 			memUsageLimit,
 			// Array overhead, size of property values
-			2 + SizeEmpty + SizeNumber + (50 * SizeNumber) + (50 * SizeBool),
+			SizeEmpty + // Array overhead
+				(50 * SizeNumber) + (50 * SizeBool) + // (450) size of property values
+				// stack difference in going from
+				//	[..other, []]
+				//  to
+				//	[..other, true, 50]
+				+1,
 		},
 		{
 			"mixed scattered array over threshold wcs",
 			`y = []
 			y.push([]);
+			let i = 0;
 			checkMem();
 			for(i=0;i < 100;i++){
 				y[0].push(i%10==0?0:true);
@@ -562,8 +589,13 @@ func TestMemArraysWithLenThreshold(t *testing.T) {
 			checkMem()`,
 			50,
 			memUsageLimit,
-			// Array overhead, size of property values
-			2 + SizeEmpty + SizeNumber + (100 * SizeNumber),
+			SizeEmpty + // Array overhead,
+				(100 * SizeNumber) + // size of property values
+				// stack difference in going from
+				//	[..other, []]
+				//  to
+				//	[..other, true, 50]
+				+1,
 		},
 	} {
 		t.Run(fmt.Sprintf(tc.description), func(t *testing.T) {
@@ -613,36 +645,35 @@ func TestMemObjectsWithPropsLenThreshold(t *testing.T) {
 		{
 			"object under threshold",
 			`y = {}
-				checkMem();
-				for (i=0;i<10;i++) {
-					y["i"+i] = i
-				}
-				checkMem()`,
+			let i =0;
+			checkMem();
+			for (i=0;i<10;i++) {
+				y["i"+i] = i
+			}
+			checkMem()`,
 			100,
 			memUsageLimit,
-			// len("i0") + value i
-			10*2 + 10*SizeNumber +
-				// for loop 0 + 10 + len("i")
-				SizeNumber + SizeNumber + 1,
+			// object overhead + len("i0") + value i
+			SizeEmpty + 10*(2+SizeString) + 10*SizeNumber,
 		},
 		{
 			"object under threshold but over limit",
 			`y = {}
-				checkMem();
-				for (i=0;i<10;i++) {
-					y["i"+i] = i
-				}
-				checkMem()`,
+			let i = 0;
+			checkMem();
+			for (i=0;i<10;i++) {
+				y["i"+i] = i
+			}
+			checkMem()`,
 			100,
 			40,
-			// len("i0") + value i
-			10*2 + 10*SizeNumber +
-				// for loop 0 + 10 + len("i")
-				SizeNumber + SizeNumber + 1,
+			// object overhead + len("i0") + value i
+			SizeEmpty + 10*(2+SizeString) + 10*SizeNumber,
 		},
 		{
 			"object over threshold",
 			`y = {}
+			let i = 0;
 			checkMem();
 			for (i=100;i<200;i++) {
 				y["i"+i] = i
@@ -650,14 +681,13 @@ func TestMemObjectsWithPropsLenThreshold(t *testing.T) {
 			checkMem()`,
 			75,
 			memUsageLimit,
-			// len("i100") + value i
-			100*4 + 100*SizeNumber +
-				// for loop 100 + 200 + len("i")
-				SizeNumber + SizeNumber + 1,
+			// object overhead + len("i100") + value i
+			SizeEmpty + 100*(4+SizeString) + 100*SizeNumber,
 		},
 		{
 			"mixed object over threshold",
 			`y = {}
+			let i = 0;
 			checkMem();
 			for (i=100;i<200;i++) {
 				y["i"+i] = i < 150 ? i : "i"+i
@@ -665,12 +695,12 @@ func TestMemObjectsWithPropsLenThreshold(t *testing.T) {
 			checkMem()`,
 			200,
 			memUsageLimit,
-			// len("i100") + value i
-			50*4 + 50*SizeNumber +
-				// len("i150") + len("i150") + 150 number + len("i")
-				50*4 + 50*4 + 3 + 1 +
-				// for loop 100 + 200 + len("i")
-				SizeNumber + SizeNumber + 1,
+			// object overhead + key len("i100") + value i for the items 100 to 149
+			SizeEmpty + 50*(4+SizeString) + 50*SizeNumber +
+				// len("i150") + len("i150") for the items 150 to 199
+				50*(4+SizeString) + 50*(4+SizeString) +
+				// 150 number + len("i") in "i"+i expression
+				3 + (1 + SizeString),
 		},
 	} {
 		t.Run(fmt.Sprintf(tc.description), func(t *testing.T) {

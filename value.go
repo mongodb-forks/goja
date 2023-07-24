@@ -126,6 +126,10 @@ const (
 	SizeInt32  = uint64(unsafe.Sizeof(int32(0)))
 	SizeInt    = uint64(unsafe.Sizeof(int(0)))
 	SizeEmpty  = uint64(unsafe.Sizeof((*baseObject)(nil)))
+	// SizeString allows us to take into account the 2 additional bytes
+	// for any string type in go including the pointer to the start of
+	// the string data and the length of the string
+	SizeString = uint64(unsafe.Sizeof(""))
 )
 
 type valueContainer interface {
