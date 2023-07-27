@@ -1985,6 +1985,10 @@ func (o *baseObject) MemUsage(ctx *MemUsageContext) (uint64, error) {
 			if err != nil {
 				return total, err
 			}
+			//if we know that it has exceeded the threshold then we can just exit
+			if exceeded, err := ctx.MemUsageLimitExceeded(total); exceeded || err != nil {
+				return total, err
+			}
 		}
 	}
 

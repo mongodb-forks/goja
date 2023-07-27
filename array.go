@@ -582,11 +582,8 @@ func (a *arrayObject) estimateMemUsage(ctx *MemUsageContext) (uint64, error) {
 		if err != nil {
 			return runningEstimate, err
 		}
-		if ctx.MemUsageExceedsLimit == nil {
-			return runningEstimate, errMemUsageExceedsLimitNil
-		}
-		if ctx.MemUsageExceedsLimit(total) {
-			return runningEstimate, nil
+		if exceeded, err := ctx.MemUsageLimitExceeded(total); exceeded || err != nil {
+			return total, err
 		}
 	}
 
@@ -634,13 +631,10 @@ func (a *arrayObject) MemUsage(ctx *MemUsageContext) (uint64, error) {
 		if err != nil {
 			return total, err
 		}
-		if ctx.MemUsageExceedsLimit == nil {
-			return total, errMemUsageExceedsLimitNil
-		}
 		// This is an early exit in case we reach the mem usage
 		// limit before we get to scan the whole array.
-		if ctx.MemUsageExceedsLimit(total) {
-			return total, nil
+		if exceeded, err := ctx.MemUsageLimitExceeded(total); exceeded || err != nil {
+			return total, err
 		}
 	}
 

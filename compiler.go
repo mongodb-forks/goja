@@ -469,6 +469,9 @@ func (p *Program) MemUsage(ctx *MemUsageContext) (uint64, error) {
 		if err != nil {
 			return total, err
 		}
+		if exceeded, err := ctx.MemUsageLimitExceeded(total); exceeded || err != nil {
+			return total, err
+		}
 	}
 
 	return total, nil

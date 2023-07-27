@@ -129,6 +129,9 @@ func (mo *mapObject) MemUsage(ctx *MemUsageContext) (uint64, error) {
 				return total, err
 			}
 		}
+		if exceeded, err := ctx.MemUsageLimitExceeded(total); exceeded || err != nil {
+			return total, err
+		}
 	}
 
 	ctx.Ascend()

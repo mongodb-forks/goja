@@ -521,6 +521,10 @@ func (r *Runtime) MemUsage(ctx *MemUsageContext) (uint64, error) {
 		if err != nil {
 			return total, err
 		}
+		//if we know that it has exceeded the threshold then we can just exit
+		if exceeded, err := ctx.MemUsageLimitExceeded(total); exceeded || err != nil {
+			return total, err
+		}
 	}
 
 	for idx := range r.vm.callStack {
@@ -529,12 +533,20 @@ func (r *Runtime) MemUsage(ctx *MemUsageContext) (uint64, error) {
 		if err != nil {
 			return total, err
 		}
+		//if we know that it has exceeded the threshold then we can just exit
+		if exceeded, err := ctx.MemUsageLimitExceeded(total); exceeded || err != nil {
+			return total, err
+		}
 	}
 
 	if r.vm.stash != nil {
 		inc, err := r.vm.stash.MemUsage(ctx)
 		total += inc
 		if err != nil {
+			return total, err
+		}
+		//if we know that it has exceeded the threshold then we can just exit
+		if exceeded, err := ctx.MemUsageLimitExceeded(total); exceeded || err != nil {
 			return total, err
 		}
 	}

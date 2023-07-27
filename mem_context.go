@@ -122,6 +122,20 @@ func NewMemUsageContext(
 	}
 }
 
+// MemUsageLimitExceeded ensures a limit function is defined and checks against the limit. If limit is breached
+// it will return true, if the limit check is undefined it will return an error
+func (m *MemUsageContext) MemUsageLimitExceeded(memUsage uint64) (bool, error) {
+	if m.MemUsageExceedsLimit == nil {
+		return false, errMemUsageExceedsLimitNil
+	}
+	// This is an early exit in case we reach the mem usage
+	// limit before we get to scan the whole array.
+	if m.MemUsageExceedsLimit(memUsage) {
+		return true, nil
+	}
+	return false, nil
+}
+
 var (
 	ErrMaxDepth = errors.New("reached max depth")
 )
