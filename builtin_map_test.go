@@ -244,7 +244,6 @@ func BenchmarkMapDeleteJS(b *testing.B) {
 }
 
 func TestMapObjectMemUsage(t *testing.T) {
-
 	tests := []struct {
 		name        string
 		mu          *MemUsageContext

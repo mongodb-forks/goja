@@ -264,7 +264,6 @@ func TestSparseArrayExportToSlice(t *testing.T) {
 }
 
 func TestSparseArrayObjectMemUsage(t *testing.T) {
-
 	tests := []struct {
 		name        string
 		mu          *MemUsageContext

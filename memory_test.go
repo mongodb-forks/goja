@@ -625,21 +625,21 @@ func TestMemObjectsWithPropsLenThreshold(t *testing.T) {
 				// for loop 0 + 10 + len("i")
 				SizeNumber + SizeNumber + 1,
 		},
-		// {
-		// 	"object under threshold but over limit",
-		// 	`y = {}
-		// 		checkMem();
-		// 		for (i=0;i<10;i++) {
-		// 			y["i"+i] = i
-		// 		}
-		// 		checkMem()`,
-		// 	100,
-		// 	40,
-		// 	// len("i0") + value i
-		// 	10*2 + 10*SizeNumber +
-		// 		// for loop 0 + 10 + len("i")
-		// 		SizeNumber + SizeNumber + 1,
-		// },
+		{
+			"object under threshold but over limit",
+			`y = {}
+				checkMem();
+				for (i=0;i<10;i++) {
+					y["i"+i] = i
+				}
+				checkMem()`,
+			100,
+			40,
+			// len("i0") + value i
+			10*2 + 10*SizeNumber +
+				// for loop 0 + 10 + len("i")
+				SizeNumber + SizeNumber + 1,
+		},
 		{
 			"object over threshold",
 			`y = {}

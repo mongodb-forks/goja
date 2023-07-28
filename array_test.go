@@ -133,7 +133,6 @@ func BenchmarkArraySetEmpty(b *testing.B) {
 }
 
 func TestArrayObjectMemUsage(t *testing.T) {
-
 	tests := []struct {
 		name        string
 		mu          *MemUsageContext
@@ -187,6 +186,59 @@ func TestArrayObjectMemUsage(t *testing.T) {
 				values: []Value{
 					New()._newString(newStringValue("key"), nil),
 				},
+			},
+			expected:    41,
+			errExpected: errMemUsageExceedsLimitNil,
+		},
+		{
+			name: "array limit function undefined throws error",
+			mu: &MemUsageContext{
+				visitTracker: visitTracker{
+					objsVisited:    map[objectImpl]bool{},
+					stashesVisited: map[*stash]bool{}},
+				depthTracker: &depthTracker{
+					curDepth: 0,
+					maxDepth: 50,
+				},
+				NativeMemUsageChecker: &TestNativeMemUsageChecker{},
+				MemUsageExceedsLimit: func(memUsage uint64) bool {
+					// memory usage limit above which we should stop mem usage computations
+					return memUsage > 50
+				},
+				ObjectPropsLenExceedsThreshold: func(objPropsLen int) bool {
+					// number of obj props beyond which we should estimate mem usage
+					return objPropsLen > 50
+				},
+			},
+			ao: &arrayObject{
+				values: []Value{New()._newString(newStringValue("key"), nil)},
+			},
+			expected:    16,
+			errExpected: errArrayLenExceedsThresholdNil,
+		},
+		{
+			name: "limit function undefined throws error with array over threshold",
+			mu: &MemUsageContext{
+				visitTracker: visitTracker{
+					objsVisited:    map[objectImpl]bool{},
+					stashesVisited: map[*stash]bool{},
+				},
+				depthTracker: &depthTracker{
+					curDepth: 0,
+					maxDepth: 50,
+				},
+				NativeMemUsageChecker: &TestNativeMemUsageChecker{},
+				ArrayLenExceedsThreshold: func(arrayLen int) bool {
+					// array length threshold above which we should estimate mem usage
+					return arrayLen > 0
+				},
+				ObjectPropsLenExceedsThreshold: func(objPropsLen int) bool {
+					// number of obj props beyond which we should estimate mem usage
+					return objPropsLen > 50
+				},
+			},
+			ao: &arrayObject{
+				values: []Value{New()._newString(newStringValue("key"), nil)},
 			},
 			expected:    41,
 			errExpected: errMemUsageExceedsLimitNil,

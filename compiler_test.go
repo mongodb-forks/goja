@@ -5648,7 +5648,6 @@ func BenchmarkCompile(b *testing.B) {
 }
 
 func TestProgramMemUsage(t *testing.T) {
-
 	tests := []struct {
 		name        string
 		mu          *MemUsageContext
