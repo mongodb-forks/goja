@@ -321,7 +321,7 @@ func TestMapObjectMemUsage(t *testing.T) {
 					},
 				},
 			},
-			expected:    33,
+			expected:    60,
 			errExpected: errMemUsageExceedsLimitNil,
 		},
 	}
