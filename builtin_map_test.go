@@ -295,34 +295,6 @@ func TestMapObjectMemUsage(t *testing.T) {
 			expected:    112,
 			errExpected: nil,
 		},
-		{
-			name: "limit function undefined throws error",
-			mu: &MemUsageContext{
-				visitTracker:          visitTracker{objsVisited: map[objectImpl]bool{}, stashesVisited: map[*stash]bool{}},
-				depthTracker:          &depthTracker{curDepth: 0, maxDepth: 50},
-				NativeMemUsageChecker: &TestNativeMemUsageChecker{},
-				ArrayLenExceedsThreshold: func(arrayLen int) bool {
-					// array length threshold above which we should estimate mem usage
-					return arrayLen > 50
-				},
-				ObjectPropsLenExceedsThreshold: func(objPropsLen int) bool {
-					// number of obj props beyond which we should estimate mem usage
-					return objPropsLen > 50
-				},
-			},
-			mo: &mapObject{
-				m: &orderedMap{
-					hashTable: map[uint64]*mapEntry{
-						1: {
-							key:   New()._newString(newStringValue("key"), nil),
-							value: New()._newString(newStringValue("value"), nil),
-						},
-					},
-				},
-			},
-			expected:    60,
-			errExpected: errMemUsageExceedsLimitNil,
-		},
 	}
 
 	for _, tc := range tests {

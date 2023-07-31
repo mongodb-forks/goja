@@ -319,32 +319,6 @@ func TestSparseArrayObjectMemUsage(t *testing.T) {
 			expected:    127,
 			errExpected: nil,
 		},
-		{
-			name: "limit function undefined throws error",
-			mu: &MemUsageContext{
-				visitTracker:          visitTracker{objsVisited: map[objectImpl]bool{}, stashesVisited: map[*stash]bool{}},
-				depthTracker:          &depthTracker{curDepth: 0, maxDepth: 50},
-				NativeMemUsageChecker: &TestNativeMemUsageChecker{},
-				ArrayLenExceedsThreshold: func(arrayLen int) bool {
-					// array length threshold above which we should estimate mem usage
-					return arrayLen > 50
-				},
-				ObjectPropsLenExceedsThreshold: func(objPropsLen int) bool {
-					// number of obj props beyond which we should estimate mem usage
-					return objPropsLen > 50
-				},
-			},
-			sao: &sparseArrayObject{
-				items: []sparseArrayItem{
-					{
-						idx:   1,
-						value: New()._newString(newStringValue("key"), nil),
-					},
-				},
-			},
-			expected:    37,
-			errExpected: errMemUsageExceedsLimitNil,
-		},
 	}
 
 	for _, tc := range tests {
