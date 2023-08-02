@@ -46,3 +46,52 @@ func TestIntStringEquality(t *testing.T) {
 		t.Fatal("values should not be equal")
 	}
 }
+
+func TestAddedValuesMemUsage(t *testing.T) {
+	vm := New()
+
+	for _, tc := range []struct {
+		name           string
+		val            MemUsageReporter
+		expectedMem    uint64
+		expectedNewMem uint64
+	}{
+		{
+			"should have memory usage of SizeNumber given a non-empty valueNumber",
+			valueNumber{val: 0},
+			SizeNumber,
+			SizeNumber,
+		},
+		{
+			"should have memory usage of SizeInt32 given a non-empty valueUInt32",
+			valueUInt32(1),
+			SizeInt32,
+			SizeInt32,
+		},
+		{
+			"should have memory usage of SizeInt32 given a non-empty valueInt32",
+			valueInt32(1),
+			SizeInt32,
+			SizeInt32,
+		},
+		{
+			"should have memory usage of SizeNumber given a non-empty valueInt64",
+			valueInt64(1),
+			SizeNumber,
+			SizeNumber,
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			mem, newMem, err := tc.val.MemUsage(NewMemUsageContext(vm, 100, 100, 100, 100, nil))
+			if err != nil {
+				t.Fatalf("Unexpected error. Actual: %v Expected: nil", err)
+			}
+			if mem != tc.expectedMem {
+				t.Fatalf("Unexpected memory return. Actual: %v Expected: %v", mem, tc.expectedMem)
+			}
+			if newMem != tc.expectedNewMem {
+				t.Fatalf("Unexpected new memory return. Actual: %v Expected: %v", newMem, tc.expectedNewMem)
+			}
+		})
+	}
+}
