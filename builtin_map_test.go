@@ -249,6 +249,7 @@ func TestMapObjectMemUsage(t *testing.T) {
 		mu          *MemUsageContext
 		mo          *mapObject
 		expected    uint64
+		newExpected uint64
 		errExpected error
 	}{
 		{
@@ -264,7 +265,18 @@ func TestMapObjectMemUsage(t *testing.T) {
 					},
 				},
 			},
-			expected:    60,
+			// baseObject + stringObject + len(key) + stringObject + len(key)
+			expected: SizeEmpty + 22 + 3 + 22 + 5,
+			// baseObject + stringObject + (len(key) + overhead) + stringObject + (len(key) + overhead)
+			newExpected: SizeEmpty + 38 + (3 + SizeString) + 38 + (5 + SizeString),
+			errExpected: nil,
+		},
+		{
+			name:        "mem is SizeEmpty given a nil map object",
+			mu:          NewMemUsageContext(New(), 88, 5000, 50, 50, TestNativeMemUsageChecker{}),
+			mo:          nil,
+			expected:    SizeEmpty,
+			newExpected: SizeEmpty,
 			errExpected: nil,
 		},
 		{
@@ -292,22 +304,36 @@ func TestMapObjectMemUsage(t *testing.T) {
 					},
 				},
 			},
-			expected:    112,
+			// baseObject
+			expected: SizeEmpty +
+				// stringObject + len(key) (we reach the limit after 2)
+				(22+3)*2 +
+				// stringObject + len(value) (we reach the limit after 2)
+				(22+5)*2,
+			// baseObject
+			newExpected: SizeEmpty +
+				// stringObject + len(key) + overhead (we reach the limit after 2)
+				(38+(3+SizeString))*2 +
+				// stringObject + len(value) + overhead (we reach the limit after 2)
+				(38+(5+SizeString))*2,
 			errExpected: nil,
 		},
 	}
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			total, err := tc.mo.MemUsage(tc.mu)
-			if err == nil && tc.errExpected != nil || err != nil && tc.errExpected == nil {
-				t.Fatalf("Unexpected error. Actual: %v Expected; %v", err, tc.errExpected)
+			total, newTotal, err := tc.mo.MemUsage(tc.mu)
+			if err != tc.errExpected {
+				t.Fatalf("Unexpected error. Actual: %v Expected: %v", err, tc.errExpected)
 			}
 			if err != nil && tc.errExpected != nil && err.Error() != tc.errExpected.Error() {
 				t.Fatalf("Errors do not match. Actual: %v Expected: %v", err, tc.errExpected)
 			}
 			if total != tc.expected {
 				t.Fatalf("Unexpected memory return. Actual: %v Expected: %v", total, tc.expected)
+			}
+			if newTotal != tc.newExpected {
+				t.Fatalf("Unexpected new memory return. Actual: %v Expected: %v", newTotal, tc.newExpected)
 			}
 		})
 	}
