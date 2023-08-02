@@ -1274,3 +1274,34 @@ func TestProxyEnumerableSymbols(t *testing.T) {
 
 	testScriptWithTestLib(SCRIPT, valueTrue, t)
 }
+
+func TestBuiltinProxyMemUsage(t *testing.T) {
+	tests := []struct {
+		name        string
+		val         *nativeProxyHandler
+		expected    uint64
+		newExpected uint64
+	}{
+		{
+			name:        "should have a value of 0 given a native proxy handler",
+			val:         &nativeProxyHandler{},
+			expected:    0,
+			newExpected: 0,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			total, newTotal, err := tc.val.MemUsage(NewMemUsageContext(New(), 100, 100, 100, 100, nil))
+			if err != nil {
+				t.Fatalf("Unexpected error. Actual: %v Expected: nil", err)
+			}
+			if total != tc.expected {
+				t.Fatalf("Unexpected memory return. Actual: %v Expected: %v", total, tc.expected)
+			}
+			if newTotal != tc.newExpected {
+				t.Fatalf("Unexpected new memory return. Actual: %v Expected: %v", newTotal, tc.newExpected)
+			}
+		})
+	}
+}
