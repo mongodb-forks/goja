@@ -307,3 +307,48 @@ func TestDateExportType(t *testing.T) {
 		t.Fatal(typ)
 	}
 }
+
+func TestDateMemUsage(t *testing.T) {
+	tests := []struct {
+		name        string
+		val         *dateObject
+		expected    uint64
+		newExpected uint64
+		errExpected error
+	}{
+		{
+			name: "should have a value given by baseObject and msec",
+			val:  &dateObject{msec: int64(100)},
+			// baseObject + msec value
+			expected: SizeEmpty + SizeNumber,
+			// baseObject + msec value
+			newExpected: SizeEmpty + SizeNumber,
+			errExpected: nil,
+		},
+		{
+			name:        "should have a value of SizeEmpty given a nil dateObject",
+			val:         nil,
+			expected:    SizeEmpty,
+			newExpected: SizeEmpty,
+			errExpected: nil,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			total, newTotal, err := tc.val.MemUsage(NewMemUsageContext(New(), 100, 100, 100, 100, nil))
+			if err != tc.errExpected {
+				t.Fatalf("Unexpected error. Actual: %v Expected: %v", err, tc.errExpected)
+			}
+			if err != nil && tc.errExpected != nil && err.Error() != tc.errExpected.Error() {
+				t.Fatalf("Errors do not match. Actual: %v Expected: %v", err, tc.errExpected)
+			}
+			if total != tc.expected {
+				t.Fatalf("Unexpected memory return. Actual: %v Expected: %v", total, tc.expected)
+			}
+			if newTotal != tc.newExpected {
+				t.Fatalf("Unexpected new memory return. Actual: %v Expected: %v", newTotal, tc.newExpected)
+			}
+		})
+	}
+}
