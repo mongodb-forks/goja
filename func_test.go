@@ -160,3 +160,104 @@ func ExampleAssertConstructor() {
 	}
 	// Output: Test
 }
+
+func TestNativeFuncObjectMemUsage(t *testing.T) {
+	tests := []struct {
+		name        string
+		val         *nativeFuncObject
+		expected    uint64
+		newExpected uint64
+		errExpected error
+	}{
+		{
+			name:        "should have a value given by the wrapped value",
+			val:         &nativeFuncObject{},
+			expected:    SizeEmpty, // baseFuncObject
+			newExpected: SizeEmpty, // baseFuncObject
+			errExpected: nil,
+		},
+		{
+			name:        "should have a value of SizeEmpty given a nil nativeFuncObject",
+			val:         nil,
+			expected:    SizeEmpty,
+			newExpected: SizeEmpty,
+			errExpected: nil,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			total, newTotal, err := tc.val.MemUsage(NewMemUsageContext(New(), 100, 100, 100, 100, nil))
+			if err != tc.errExpected {
+				t.Fatalf("Unexpected error. Actual: %v Expected: %v", err, tc.errExpected)
+			}
+			if err != nil && tc.errExpected != nil && err.Error() != tc.errExpected.Error() {
+				t.Fatalf("Errors do not match. Actual: %v Expected: %v", err, tc.errExpected)
+			}
+			if total != tc.expected {
+				t.Fatalf("Unexpected memory return. Actual: %v Expected: %v", total, tc.expected)
+			}
+			if newTotal != tc.newExpected {
+				t.Fatalf("Unexpected new memory return. Actual: %v Expected: %v", newTotal, tc.newExpected)
+			}
+		})
+	}
+}
+
+func TestFuncObjectMemUsage(t *testing.T) {
+	tests := []struct {
+		name        string
+		val         *funcObject
+		expected    uint64
+		newExpected uint64
+		errExpected error
+	}{
+		{
+			name:        "should have a value of SizeEmpty given a nil funcObject",
+			val:         nil,
+			expected:    SizeEmpty,
+			newExpected: SizeEmpty,
+			errExpected: nil,
+		},
+		{
+			name:        "should have a value given by baseObject with no stash",
+			val:         &funcObject{},
+			expected:    SizeEmpty, // baseFuncObject
+			newExpected: SizeEmpty, // baseFuncObject
+			errExpected: nil,
+		},
+		{
+			name: "should have a value given by baseObject and values in stash",
+			val: &funcObject{
+				baseJsFuncObject: baseJsFuncObject{
+					stash: &stash{
+						values: []Value{valueInt(0)},
+					},
+				},
+			},
+			// baseFuncObject + value in stash
+			expected: SizeEmpty + SizeInt,
+			// baseFuncObject + value in stash
+			newExpected: SizeEmpty + SizeInt,
+			errExpected: nil,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			total, newTotal, err := tc.val.MemUsage(NewMemUsageContext(New(), 100, 100, 100, 100, nil))
+			if err != tc.errExpected {
+				t.Fatalf("Unexpected error. Actual: %v Expected: %v", err, tc.errExpected)
+			}
+			if err != nil && tc.errExpected != nil && err.Error() != tc.errExpected.Error() {
+				t.Fatalf("Errors do not match. Actual: %v Expected: %v", err, tc.errExpected)
+			}
+			if total != tc.expected {
+				t.Fatalf("Unexpected memory return. Actual: %v Expected: %v", total, tc.expected)
+			}
+			if newTotal != tc.newExpected {
+				t.Fatalf("Unexpected new memory return. Actual: %v Expected: %v", newTotal, tc.newExpected)
+			}
+		})
+	}
+}
