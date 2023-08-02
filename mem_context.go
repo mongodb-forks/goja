@@ -130,5 +130,8 @@ var (
 )
 
 type MemUsageReporter interface {
-	MemUsage(ctx *MemUsageContext) (uint64, error)
+	// The newMemUsage value is used to allow tracking significant differences in how
+	// we track memory usage vs a more accurate tracking. This will help
+	// us evaluate the impact of any memory usage value change.
+	MemUsage(ctx *MemUsageContext) (memUsage uint64, newMemUsage uint64, err error)
 }

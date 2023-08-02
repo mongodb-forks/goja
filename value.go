@@ -117,7 +117,7 @@ type Value interface {
 
 	hash(hasher *maphash.Hash) uint64
 
-	MemUsage(ctx *MemUsageContext) (uint64, error)
+	MemUsage(ctx *MemUsageContext) (memUsage uint64, newMemUsage uint64, err error)
 }
 
 const (

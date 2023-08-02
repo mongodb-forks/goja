@@ -145,7 +145,7 @@ type proxyHandler interface {
 
 	toObject(*Runtime) *Object
 
-	MemUsage(ctx *MemUsageContext) (uint64, error)
+	MemUsage(ctx *MemUsageContext) (memUsage uint64, newMemUsage uint64, err error)
 }
 
 type jsProxyHandler struct {

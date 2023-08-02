@@ -267,7 +267,7 @@ type objectImpl interface {
 	_putSym(s *Symbol, prop Value)
 	getPrivateEnv(typ *privateEnvType, create bool) *privateElements
 
-	MemUsage(ctx *MemUsageContext) (uint64, error)
+	MemUsage(ctx *MemUsageContext) (memUsage uint64, newMemUsage uint64, err error)
 }
 
 type baseObject struct {
