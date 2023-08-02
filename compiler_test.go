@@ -5653,6 +5653,7 @@ func TestProgramMemUsage(t *testing.T) {
 		mu          *MemUsageContext
 		p           *Program
 		expected    uint64
+		newExpected uint64
 		errExpected error
 	}{
 		{
@@ -5663,7 +5664,10 @@ func TestProgramMemUsage(t *testing.T) {
 					New().newDateObject(time.Now(), true, nil),
 				},
 			},
-			expected:    16,
+			// baseObject + ms field in DateObject
+			expected: SizeEmpty + SizeNumber,
+			// baseObject + ms field in DateObject
+			newExpected: SizeEmpty + SizeNumber,
 			errExpected: nil,
 		},
 		{
@@ -5682,22 +5686,28 @@ func TestProgramMemUsage(t *testing.T) {
 					New().newDateObject(time.Now(), true, nil),
 				},
 			},
-			expected:    64,
+			// DateObject * 4 (we hit the limit at 4)
+			expected: (SizeEmpty + SizeNumber) * 4,
+			// DateObject * 4 (we hit the limit at 4)
+			newExpected: (SizeEmpty + SizeNumber) * 4,
 			errExpected: nil,
 		},
 	}
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			total, err := tc.p.MemUsage(tc.mu)
-			if err == nil && tc.errExpected != nil || err != nil && tc.errExpected == nil {
-				t.Fatalf("Unexpected error. Actual: %v Expected; %v", err, tc.errExpected)
+			total, newTotal, err := tc.p.MemUsage(tc.mu)
+			if err != tc.errExpected {
+				t.Fatalf("Unexpected error. Actual: %v Expected: %v", err, tc.errExpected)
 			}
 			if err != nil && tc.errExpected != nil && err.Error() != tc.errExpected.Error() {
 				t.Fatalf("Errors do not match. Actual: %v Expected: %v", err, tc.errExpected)
 			}
 			if total != tc.expected {
 				t.Fatalf("Unexpected memory return. Actual: %v Expected: %v", total, tc.expected)
+			}
+			if newTotal != tc.newExpected {
+				t.Fatalf("Unexpected new memory return. Actual: %v Expected: %v", newTotal, tc.newExpected)
 			}
 		})
 	}
