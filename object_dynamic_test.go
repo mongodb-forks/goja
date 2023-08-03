@@ -3,6 +3,8 @@ package goja
 import (
 	"sync"
 	"testing"
+
+	"github.com/dop251/goja/unistring"
 )
 
 type testDynObject struct {
@@ -416,5 +418,116 @@ func TestSharedDynamicArray(t *testing.T) {
 	err = <-ch
 	if err != nil {
 		t.Fatal(err)
+	}
+}
+
+func TestBaseDynamicObjectMemUsage(t *testing.T) {
+	tests := []struct {
+		name        string
+		val         *baseDynamicObject
+		expected    uint64
+		newExpected uint64
+		errExpected error
+	}{
+		{
+			name:        "should have a value of SizeEmpty given a nil base dynamic object",
+			val:         nil,
+			expected:    SizeEmpty,
+			newExpected: SizeEmpty,
+			errExpected: nil,
+		},
+		{
+			name:        "should have a value of SizeEmpty given an empty base dynamic object",
+			val:         &baseDynamicObject{},
+			expected:    SizeEmpty,
+			newExpected: SizeEmpty,
+			errExpected: nil,
+		},
+		{
+			name:        "should have a value of SizeEmpty given a base dynamic object with an empty Object",
+			val:         &baseDynamicObject{val: &Object{}},
+			expected:    SizeEmpty,
+			newExpected: SizeEmpty,
+			errExpected: nil,
+		},
+		{
+			name: "should have a value of SizeEmpty given a base dynamic object with an empty Object",
+			val: &baseDynamicObject{
+				val: &Object{
+					self: &baseObject{propNames: []unistring.String{"test"}, values: map[unistring.String]Value{"test": valueInt(99)}},
+				},
+			},
+			expected:    SizeEmpty + (4 + SizeInt),
+			newExpected: SizeEmpty + (4 + SizeString + SizeInt),
+			errExpected: nil,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			total, newTotal, err := tc.val.MemUsage(NewMemUsageContext(New(), 100, 100, 100, 100, nil))
+			if err != tc.errExpected {
+				t.Fatalf("Unexpected error. Actual: %v Expected: %v", err, tc.errExpected)
+			}
+			if err != nil && tc.errExpected != nil && err.Error() != tc.errExpected.Error() {
+				t.Fatalf("Errors do not match. Actual: %v Expected: %v", err, tc.errExpected)
+			}
+			if total != tc.expected {
+				t.Fatalf("Unexpected memory return. Actual: %v Expected: %v", total, tc.expected)
+			}
+			if newTotal != tc.newExpected {
+				t.Fatalf("Unexpected new memory return. Actual: %v Expected: %v", newTotal, tc.newExpected)
+			}
+		})
+	}
+}
+
+func TestDynamicArrayMemUsage(t *testing.T) {
+	tests := []struct {
+		name        string
+		val         *dynamicArray
+		expected    uint64
+		newExpected uint64
+		errExpected error
+	}{
+		{
+			name:        "should have a value of SizeEmpty given a nil dynamic array",
+			val:         nil,
+			expected:    SizeEmpty,
+			newExpected: SizeEmpty,
+			errExpected: nil,
+		},
+		{
+			name:        "should have a value of SizeEmpty given an empty base dynamic array",
+			val:         &dynamicArray{},
+			expected:    SizeEmpty,
+			newExpected: SizeEmpty,
+			errExpected: nil,
+		},
+		{
+			name:        "should have a value of SizeEmpty given a base dynamic array with an empty baseDynamicObject",
+			val:         &dynamicArray{baseDynamicObject: baseDynamicObject{}},
+			expected:    SizeEmpty,
+			newExpected: SizeEmpty,
+			errExpected: nil,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			total, newTotal, err := tc.val.MemUsage(NewMemUsageContext(New(), 100, 100, 100, 100, nil))
+			if err != tc.errExpected {
+				t.Fatalf("Unexpected error. Actual: %v Expected: %v", err, tc.errExpected)
+			}
+			if err != nil && tc.errExpected != nil && err.Error() != tc.errExpected.Error() {
+				t.Fatalf("Errors do not match. Actual: %v Expected: %v", err, tc.errExpected)
+			}
+			if total != tc.expected {
+				t.Fatalf("Unexpected memory return. Actual: %v Expected: %v", total, tc.expected)
+			}
+			if newTotal != tc.newExpected {
+				t.Fatalf("Unexpected new memory return. Actual: %v Expected: %v", newTotal, tc.newExpected)
+			}
+		})
 	}
 }
