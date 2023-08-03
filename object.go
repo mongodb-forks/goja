@@ -1927,97 +1927,103 @@ func (i *privateId) string() unistring.String {
 // estimateMemUsage helps calculating mem usage for large objects.
 // It will sample the object and use those samples to estimate the
 // mem usage.
-func (o *baseObject) estimateMemUsage(ctx *MemUsageContext) (uint64, error) {
-	var total, samplesVisited uint64
-	var averageMemUsage float32
+func (o *baseObject) estimateMemUsage(ctx *MemUsageContext) (memUsage uint64, newMemUsage uint64, err error) {
+	var samplesVisited uint64
+	var averageMemUsage, newAverageMemUsage float32
 	sampleSize := len(o.propNames) / 10
 
 	// grabbing one sample every "sampleSize" to provide consistent
 	// memory usage across function executions
 	for i := 0; i < len(o.propNames); i += sampleSize {
 		k := o.propNames[i]
+		memUsage += uint64(len(k))
+		newMemUsage += uint64(len(k)) + SizeString
 		v := o.values[k]
 		if v == nil {
 			continue
 		}
 
-		inc, err := v.MemUsage(ctx)
+		inc, newInc, err := v.MemUsage(ctx)
 		samplesVisited += 1
-		total += inc
-		total += uint64(len(k)) + SizeString
-		averageMemUsage = float32(total) / float32(samplesVisited)
+		memUsage += inc
+		newMemUsage += newInc
+		averageMemUsage = float32(memUsage) / float32(samplesVisited)
+		newAverageMemUsage = float32(newMemUsage) / float32(samplesVisited)
 		if err != nil {
-			return uint64(averageMemUsage * float32(len(o.propNames))), err
+			return uint64(averageMemUsage * float32(len(o.propNames))), uint64(newAverageMemUsage * float32(len(o.propNames))), err
 		}
 	}
 
-	return uint64(averageMemUsage * float32(len(o.propNames))), nil
+	return uint64(averageMemUsage * float32(len(o.propNames))), uint64(newAverageMemUsage * float32(len(o.propNames))), nil
 }
 
-func (o *baseObject) MemUsage(ctx *MemUsageContext) (uint64, error) {
+func (o *baseObject) MemUsage(ctx *MemUsageContext) (memUsage uint64, newMemUsage uint64, err error) {
 	if o == nil || ctx.IsObjVisited(o) {
-		return SizeEmpty, nil
+		return SizeEmpty, SizeEmpty, nil
 	}
 	ctx.VisitObj(o)
 
 	if err := ctx.Descend(); err != nil {
-		return 0, err
+		return 0, 0, err
 	}
 
-	total := SizeEmpty
+	memUsage = SizeEmpty
+	newMemUsage = SizeEmpty
 	if ctx.ObjectPropsLenExceedsThreshold(len(o.propNames)) {
-		inc, err := o.estimateMemUsage(ctx)
-		total += inc
+		inc, newInc, err := o.estimateMemUsage(ctx)
+		memUsage += inc
+		newMemUsage += newInc
 		if err != nil {
-			return total, err
+			return memUsage, newMemUsage, err
 		}
 	} else {
 		for _, k := range o.propNames {
 			v := o.values[k]
+			memUsage += uint64(len(k))
+			newMemUsage += uint64(len(k)) + SizeString
+
 			if v == nil {
 				continue
 			}
-
-			inc, err := v.MemUsage(ctx)
-			total += inc
-			total += uint64(len(k)) + SizeString
-
+			inc, newInc, err := v.MemUsage(ctx)
+			memUsage += inc
+			newMemUsage += newInc
 			if err != nil {
-				return total, err
+				return memUsage, newMemUsage, err
 			}
 		}
 	}
 
 	if o.prototype != nil {
-		inc, err := o.prototype.MemUsage(ctx)
-		total += inc
+		inc, newInc, err := o.prototype.MemUsage(ctx)
+		memUsage += inc
+		newMemUsage += newInc
 		if err != nil {
-			return total, err
+			return memUsage, newMemUsage, err
 		}
 	}
 
 	ctx.Ascend()
 
-	return total, nil
+	return memUsage, newMemUsage, nil
 }
 
-func (self *primitiveValueObject) MemUsage(ctx *MemUsageContext) (uint64, error) {
-	if self == nil || ctx.IsObjVisited(self) {
-		return SizeEmpty, nil
+func (o *primitiveValueObject) MemUsage(ctx *MemUsageContext) (memUsage uint64, newMemUsage uint64, err error) {
+	if o == nil || ctx.IsObjVisited(o) {
+		return SizeEmpty, SizeEmpty, nil
 	}
-	ctx.VisitObj(self)
+	ctx.VisitObj(o)
 
-	total := uint64(0)
-
-	if self.pValue != nil {
-		inc, err := self.pValue.MemUsage(ctx)
-		total += inc
+	if o.pValue != nil {
+		inc, newInc, err := o.pValue.MemUsage(ctx)
+		memUsage += inc
+		newMemUsage += newInc
 		if err != nil {
-			return total, err
+			return memUsage, newMemUsage, err
 		}
 	}
 
-	inc, baseErr := self.baseObject.MemUsage(ctx)
-	total += inc
-	return total, baseErr
+	inc, newInc, err := o.baseObject.MemUsage(ctx)
+
+	return memUsage + inc, newMemUsage + newInc, err
 }
