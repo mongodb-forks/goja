@@ -45,34 +45,41 @@ type vmContext struct {
 	args      int
 }
 
-func (vc *vmContext) MemUsage(ctx *MemUsageContext) (uint64, error) {
-	total := SizeEmpty
+func (vc *vmContext) MemUsage(ctx *MemUsageContext) (memUsage uint64, newMemUsage uint64, err error) {
+	if vc == nil {
+		return SizeEmpty, SizeEmpty, err
+	}
+	memUsage = SizeEmpty
+	newMemUsage = SizeEmpty
 
 	if vc.newTarget != nil {
-		inc, err := vc.newTarget.MemUsage(ctx)
-		total += inc
+		inc, newInc, err := vc.newTarget.MemUsage(ctx)
+		memUsage += inc
+		newMemUsage += newInc
 		if err != nil {
-			return total, err
+			return memUsage, newMemUsage, err
 		}
 	}
 
 	if vc.stash != nil {
-		inc, err := vc.stash.MemUsage(ctx)
-		total += inc
+		inc, newInc, err := vc.stash.MemUsage(ctx)
+		memUsage += inc
+		newMemUsage += newInc
 		if err != nil {
-			return total, err
+			return memUsage, newMemUsage, err
 		}
 	}
 
 	if vc.prg != nil {
-		inc, err := vc.prg.MemUsage(ctx)
-		total += inc
+		inc, newInc, err := vc.prg.MemUsage(ctx)
+		memUsage += inc
+		newMemUsage += newInc
 		if err != nil {
-			return total, err
+			return memUsage, newMemUsage, err
 		}
 	}
 
-	return total, nil
+	return memUsage, newMemUsage, nil
 }
 
 type iterStackItem struct {
@@ -5512,19 +5519,19 @@ func (r *getPrivateRefId) exec(vm *vm) {
 	vm.pc++
 }
 
-func (stack valueStack) MemUsage(ctx *MemUsageContext) (uint64, error) {
-	total := uint64(0)
-	for _, self := range stack {
-		if self == nil {
+func (s valueStack) MemUsage(ctx *MemUsageContext) (memUsage uint64, newMemUsage uint64, err error) {
+	for _, val := range s {
+		if val == nil {
 			continue
 		}
 
-		inc, err := self.MemUsage(ctx)
-		total += inc
+		inc, newInc, err := val.MemUsage(ctx)
+		memUsage += inc
+		newMemUsage += newInc
 		if err != nil {
-			return total, err
+			return memUsage, newMemUsage, err
 		}
 	}
 
-	return total, nil
+	return memUsage, newMemUsage, nil
 }

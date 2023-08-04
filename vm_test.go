@@ -333,3 +333,127 @@ func TestFloatToValue(t *testing.T) {
 		}
 	}
 }
+
+func TestValueStackMemUsage(t *testing.T) {
+	tests := []struct {
+		name        string
+		val         valueStack
+		expected    uint64
+		newExpected uint64
+		errExpected error
+	}{
+		{
+			name:        "should account for no memory usage given an empty value stack",
+			val:         []Value{},
+			expected:    0,
+			newExpected: 0,
+			errExpected: nil,
+		},
+		{
+			name:        "should account for no memory usage given a value stack with nil",
+			val:         []Value{nil},
+			expected:    0,
+			newExpected: 0,
+			errExpected: nil,
+		},
+		{
+			name: "should account for each value given a non-empty value stack",
+			val:  []Value{valueInt(99)},
+			// value
+			expected: SizeInt,
+			// value
+			newExpected: SizeInt,
+			errExpected: nil,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			total, newTotal, err := tc.val.MemUsage(NewMemUsageContext(New(), 100, 100, 100, 100, nil))
+			if err != tc.errExpected {
+				t.Fatalf("Unexpected error. Actual: %v Expected: %v", err, tc.errExpected)
+			}
+			if err != nil && tc.errExpected != nil && err.Error() != tc.errExpected.Error() {
+				t.Fatalf("Errors do not match. Actual: %v Expected: %v", err, tc.errExpected)
+			}
+			if total != tc.expected {
+				t.Fatalf("Unexpected memory return. Actual: %v Expected: %v", total, tc.expected)
+			}
+			if newTotal != tc.newExpected {
+				t.Fatalf("Unexpected new memory return. Actual: %v Expected: %v", newTotal, tc.newExpected)
+			}
+		})
+	}
+}
+
+func TestVMContextMemUsage(t *testing.T) {
+	tests := []struct {
+		name        string
+		val         *vmContext
+		expected    uint64
+		newExpected uint64
+		errExpected error
+	}{
+		{
+			name:        "should have a value of SizeEmpty given a nil vmContext",
+			val:         nil,
+			expected:    SizeEmpty,
+			newExpected: SizeEmpty,
+			errExpected: nil,
+		},
+		{
+			name:        "should have a value of SizeEmpty given an empty vmContext",
+			val:         &vmContext{},
+			expected:    SizeEmpty,
+			newExpected: SizeEmpty,
+			errExpected: nil,
+		},
+		{
+			name: "should account for newTarget given a vmContext with non-empty newTarget",
+			val:  &vmContext{newTarget: valueInt(99)},
+			// vmContext overhead + newTarget value
+			expected: SizeEmpty + SizeInt,
+			// vmContext overhead + newTarget value
+			newExpected: SizeEmpty + SizeInt,
+			errExpected: nil,
+		},
+		{
+			name: "should account for stash given a vmContext with non-empty stash",
+			val:  &vmContext{stash: &stash{values: []Value{valueInt(99)}}},
+			// vmContext overhead + stash value
+			expected: SizeEmpty + SizeInt,
+			// vmContext overhead + stash value
+			newExpected: SizeEmpty + SizeInt,
+			errExpected: nil,
+		},
+		{
+			name: "should account for stash given a vmContext with non-empty stash",
+			val: &vmContext{prg: &Program{
+				values: []Value{valueInt(99)},
+			}},
+			// vmContext overhead + prg value
+			expected: SizeEmpty + SizeInt,
+			// vmContext overhead + prg value
+			newExpected: SizeEmpty + SizeInt,
+			errExpected: nil,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			total, newTotal, err := tc.val.MemUsage(NewMemUsageContext(New(), 100, 100, 100, 100, nil))
+			if err != tc.errExpected {
+				t.Fatalf("Unexpected error. Actual: %v Expected: %v", err, tc.errExpected)
+			}
+			if err != nil && tc.errExpected != nil && err.Error() != tc.errExpected.Error() {
+				t.Fatalf("Errors do not match. Actual: %v Expected: %v", err, tc.errExpected)
+			}
+			if total != tc.expected {
+				t.Fatalf("Unexpected memory return. Actual: %v Expected: %v", total, tc.expected)
+			}
+			if newTotal != tc.newExpected {
+				t.Fatalf("Unexpected new memory return. Actual: %v Expected: %v", newTotal, tc.newExpected)
+			}
+		})
+	}
+}
