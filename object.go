@@ -1924,17 +1924,22 @@ func (i *privateId) string() unistring.String {
 	return privateIdString(i.name)
 }
 
+func computeMemUsageEstimate(memUsage, samplesVisited uint64, totalProps int) uint64 {
+	// averageMemUsage * total object props
+	return uint64(float32(memUsage) / float32(samplesVisited) * float32(totalProps))
+}
+
 // estimateMemUsage helps calculating mem usage for large objects.
 // It will sample the object and use those samples to estimate the
 // mem usage.
 func (o *baseObject) estimateMemUsage(ctx *MemUsageContext) (memUsage uint64, newMemUsage uint64, err error) {
 	var samplesVisited uint64
-	var averageMemUsage, newAverageMemUsage float32
-	sampleSize := len(o.propNames) / 10
+	totalProps := len(o.propNames)
+	sampleSize := totalProps / 10
 
 	// grabbing one sample every "sampleSize" to provide consistent
 	// memory usage across function executions
-	for i := 0; i < len(o.propNames); i += sampleSize {
+	for i := 0; i < totalProps; i += sampleSize {
 		k := o.propNames[i]
 		memUsage += uint64(len(k))
 		newMemUsage += uint64(len(k)) + SizeString
@@ -1947,14 +1952,12 @@ func (o *baseObject) estimateMemUsage(ctx *MemUsageContext) (memUsage uint64, ne
 		samplesVisited += 1
 		memUsage += inc
 		newMemUsage += newInc
-		averageMemUsage = float32(memUsage) / float32(samplesVisited)
-		newAverageMemUsage = float32(newMemUsage) / float32(samplesVisited)
 		if err != nil {
-			return uint64(averageMemUsage * float32(len(o.propNames))), uint64(newAverageMemUsage * float32(len(o.propNames))), err
+			return computeMemUsageEstimate(memUsage, samplesVisited, totalProps), computeMemUsageEstimate(newMemUsage, samplesVisited, totalProps), err
 		}
 	}
 
-	return uint64(averageMemUsage * float32(len(o.propNames))), uint64(newAverageMemUsage * float32(len(o.propNames))), nil
+	return computeMemUsageEstimate(memUsage, samplesVisited, totalProps), computeMemUsageEstimate(newMemUsage, samplesVisited, totalProps), nil
 }
 
 func (o *baseObject) MemUsage(ctx *MemUsageContext) (memUsage uint64, newMemUsage uint64, err error) {
