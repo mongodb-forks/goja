@@ -457,3 +457,77 @@ func TestVMContextMemUsage(t *testing.T) {
 		})
 	}
 }
+
+func TestStashMemUsage(t *testing.T) {
+	tests := []struct {
+		name        string
+		val         *stash
+		expected    uint64
+		newExpected uint64
+		errExpected error
+	}{
+		{
+			name:        "should have a value of 0 given a nil stash",
+			val:         nil,
+			expected:    0,
+			newExpected: 0,
+			errExpected: nil,
+		},
+		{
+			name:        "should have a value of 0 given an empty stash",
+			val:         &stash{},
+			expected:    0,
+			newExpected: 0,
+			errExpected: nil,
+		},
+		{
+			name: "should account for obj given a stash with non-empty obj",
+			val: &stash{
+				obj: &Object{
+					self: &baseObject{propNames: []unistring.String{"test"}, values: map[unistring.String]Value{"test": valueInt(99)}},
+				},
+			},
+			// baseObject overhead + obj value
+			expected: SizeEmpty + (4 + SizeInt),
+			// baseObject overhead + obj value with string overhead
+			newExpected: SizeEmpty + (4 + SizeString + SizeInt),
+			errExpected: nil,
+		},
+		{
+			name: "should account for values given a stash with non-empty values",
+			val:  &stash{values: []Value{valueInt(99)}},
+			// value
+			expected: SizeInt,
+			// value
+			newExpected: SizeInt,
+			errExpected: nil,
+		},
+		{
+			name: "should account for outer given a stash with non-empty outer",
+			val:  &stash{outer: &stash{values: []Value{valueInt(99)}}},
+			// outer stash value
+			expected: SizeInt,
+			// outer stash value
+			newExpected: SizeInt,
+			errExpected: nil,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			total, newTotal, err := tc.val.MemUsage(NewMemUsageContext(New(), 100, 100, 100, 100, nil))
+			if err != tc.errExpected {
+				t.Fatalf("Unexpected error. Actual: %v Expected: %v", err, tc.errExpected)
+			}
+			if err != nil && tc.errExpected != nil && err.Error() != tc.errExpected.Error() {
+				t.Fatalf("Errors do not match. Actual: %v Expected: %v", err, tc.errExpected)
+			}
+			if total != tc.expected {
+				t.Fatalf("Unexpected memory return. Actual: %v Expected: %v", total, tc.expected)
+			}
+			if newTotal != tc.newExpected {
+				t.Fatalf("Unexpected new memory return. Actual: %v Expected: %v", newTotal, tc.newExpected)
+			}
+		})
+	}
+}

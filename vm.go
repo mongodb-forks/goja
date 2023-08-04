@@ -535,6 +535,41 @@ func (s *stash) deleteBinding(name unistring.String) {
 	delete(s.names, name)
 }
 
+func (s *stash) MemUsage(ctx *MemUsageContext) (memUsage uint64, newMemUsage uint64, err error) {
+	if s == nil || ctx.IsStashVisited(s) {
+		return memUsage, newMemUsage, err
+	}
+	ctx.VisitStash(s)
+
+	if s.obj != nil {
+		inc, newInc, err := s.obj.MemUsage(ctx)
+		memUsage += inc
+		newMemUsage += newInc
+		if err != nil {
+			return memUsage, newMemUsage, err
+		}
+	}
+
+	if s.outer != nil {
+		inc, newInc, err := s.outer.MemUsage(ctx)
+		memUsage += inc
+		newMemUsage += newInc
+		if err != nil {
+			return memUsage, newMemUsage, err
+		}
+	}
+	if len(s.values) > 0 {
+		inc, newInc, err := s.values.MemUsage(ctx)
+		memUsage += inc
+		newMemUsage += newInc
+		if err != nil {
+			return memUsage, newMemUsage, err
+		}
+	}
+
+	return memUsage, newMemUsage, nil
+}
+
 func (vm *vm) newStash() {
 	vm.stash = &stash{
 		outer: vm.stash,
