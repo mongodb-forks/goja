@@ -144,13 +144,23 @@ func TestArrayObjectMemUsage(t *testing.T) {
 		errExpected    error
 	}{
 		{
-			name: "mem below threshold",
+			name: "mem below threshold given a nil slice of values",
 			mu:   NewMemUsageContext(vm, 88, 5000, 50, 50, TestNativeMemUsageChecker{}),
 			ao:   &arrayObject{},
 			// array overhead + array baseObject
 			expectedMem: SizeEmptyStruct + SizeEmptyStruct,
 			// array overhead + array baseObject
 			expectedNewMem: SizeEmptyStruct + SizeEmptyStruct,
+			errExpected:    nil,
+		},
+		{
+			name: "mem below threshold given empty slice of values",
+			mu:   NewMemUsageContext(vm, 88, 5000, 50, 50, TestNativeMemUsageChecker{}),
+			ao:   &arrayObject{values: []Value{}},
+			// array overhead + array baseObject
+			expectedMem: SizeEmptyStruct + SizeEmptyStruct,
+			// array overhead + array baseObject + values slice overhead
+			expectedNewMem: SizeEmptyStruct + SizeEmptyStruct + SizeEmptySlice,
 			errExpected:    nil,
 		},
 		{
@@ -172,8 +182,8 @@ func TestArrayObjectMemUsage(t *testing.T) {
 				(SizeEmptyStruct+SizeEmptyStruct+6)*4 +
 				// len("keyN") * entries (at 4 we reach the limit)
 				4*4,
-			// array overhead + array baseObject
-			expectedNewMem: SizeEmptyStruct + SizeEmptyStruct +
+			// array overhead + array baseObject + values slice overhead
+			expectedNewMem: SizeEmptyStruct + SizeEmptyStruct + SizeEmptySlice +
 				// (stringObject + baseObject + prop "length" with string overhead) * entries (at 4 we reach the limit)
 				(SizeEmptyStruct+SizeEmptyStruct+(6+SizeString))*4 +
 				// len("keyN") with string overhead * entries (at 4 we reach the limit)

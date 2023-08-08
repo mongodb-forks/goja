@@ -126,6 +126,7 @@ const (
 	SizeInt32       = uint64(unsafe.Sizeof(int32(0)))
 	SizeInt         = uint64(unsafe.Sizeof(int(0)))
 	SizeEmptyStruct = uint64(unsafe.Sizeof((*baseObject)(nil)))
+	SizeEmptySlice  = uint64(unsafe.Sizeof([]Value{}))
 	// SizeString allows us to take into account the 16 additional bytes
 	// for any string type in go including the pointer to the start of
 	// the string data and the length of the string

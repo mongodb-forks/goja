@@ -615,6 +615,13 @@ func (a *arrayObject) MemUsage(ctx *MemUsageContext) (memUsage uint64, newMemUsa
 	if ctx.ArrayLenExceedsThreshold == nil {
 		return memUsage, newMemUsage, errArrayLenExceedsThresholdNil
 	}
+
+	// slice overhead from a.values
+	if a.values != nil {
+		memUsage += 0
+		newMemUsage += SizeEmptySlice
+	}
+
 	if ctx.ArrayLenExceedsThreshold(len(a.values)) {
 		inc, newInc, err := a.estimateMemUsage(ctx)
 		memUsage += inc
