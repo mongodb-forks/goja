@@ -526,34 +526,36 @@ func (r *Runtime) MemUsage(ctx *MemUsageContext) (memUsage uint64, newMemUsage u
 		}
 	}
 
-	if r.vm != nil {
-		if r.vm.callStack != nil {
-			for idx := range r.vm.callStack {
-				inc, newInc, err := r.vm.callStack[idx].MemUsage(ctx)
-				memUsage += inc
-				newMemUsage += newInc
-				if err != nil {
-					return memUsage, newMemUsage, err
-				}
-			}
-		}
+	if r.vm == nil {
+		return memUsage, newMemUsage, nil
+	}
 
-		if r.vm.stash != nil {
-			inc, newInc, err := r.vm.stash.MemUsage(ctx)
+	if r.vm.callStack != nil {
+		for idx := range r.vm.callStack {
+			inc, newInc, err := r.vm.callStack[idx].MemUsage(ctx)
 			memUsage += inc
 			newMemUsage += newInc
 			if err != nil {
 				return memUsage, newMemUsage, err
 			}
 		}
+	}
 
-		if r.vm.stack != nil {
-			inc, newInc, err := r.vm.stack.MemUsage(ctx)
-			memUsage += inc
-			newMemUsage += newInc
-			if err != nil {
-				return memUsage, newMemUsage, err
-			}
+	if r.vm.stash != nil {
+		inc, newInc, err := r.vm.stash.MemUsage(ctx)
+		memUsage += inc
+		newMemUsage += newInc
+		if err != nil {
+			return memUsage, newMemUsage, err
+		}
+	}
+
+	if r.vm.stack != nil {
+		inc, newInc, err := r.vm.stack.MemUsage(ctx)
+		memUsage += inc
+		newMemUsage += newInc
+		if err != nil {
+			return memUsage, newMemUsage, err
 		}
 	}
 

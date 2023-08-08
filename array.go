@@ -562,8 +562,8 @@ var (
 // With this function we sample 10% of the array values,
 // determine their average mem usage and use that to estimate mem
 // usage of the whole array
-func (a *arrayObject) estimateMemUsage(ctx *MemUsageContext) (memUsage uint64, newMemUsage uint64, err error) {
-	var samplesVisited, runningEstimate, newRunningEstimate uint64
+func (a *arrayObject) estimateMemUsage(ctx *MemUsageContext) (estimate uint64, newEstimate uint64, err error) {
+	var samplesVisited, memUsage, newMemUsage uint64
 	sampleSize := len(a.values) / 10
 
 	// grabbing one sample every "sampleSize" to provide consistent
@@ -578,17 +578,17 @@ func (a *arrayObject) estimateMemUsage(ctx *MemUsageContext) (memUsage uint64, n
 		memUsage += inc
 		newMemUsage += newInc
 		// average * number of a.values
-		runningEstimate = uint64((float32(memUsage) / float32(samplesVisited)) * float32(len(a.values)))
-		newRunningEstimate = uint64((float32(newMemUsage) / float32(samplesVisited)) * float32(len(a.values)))
+		estimate = uint64((float32(memUsage) / float32(samplesVisited)) * float32(len(a.values)))
+		newEstimate = uint64((float32(newMemUsage) / float32(samplesVisited)) * float32(len(a.values)))
 		if err != nil {
-			return runningEstimate, newRunningEstimate, err
+			return estimate, newEstimate, err
 		}
-		if exceeded := ctx.MemUsageLimitExceeded(memUsage); exceeded {
-			return memUsage, newMemUsage, nil
+		if exceeded := ctx.MemUsageLimitExceeded(estimate); exceeded {
+			return estimate, newEstimate, nil
 		}
 	}
 
-	return runningEstimate, newRunningEstimate, nil
+	return estimate, newEstimate, nil
 }
 
 func (a *arrayObject) MemUsage(ctx *MemUsageContext) (memUsage uint64, newMemUsage uint64, err error) {

@@ -1932,8 +1932,8 @@ func computeMemUsageEstimate(memUsage, samplesVisited uint64, totalProps int) ui
 // estimateMemUsage helps calculating mem usage for large objects.
 // It will sample the object and use those samples to estimate the
 // mem usage.
-func (o *baseObject) estimateMemUsage(ctx *MemUsageContext) (memUsage uint64, newMemUsage uint64, err error) {
-	var samplesVisited uint64
+func (o *baseObject) estimateMemUsage(ctx *MemUsageContext) (estimate uint64, newEstimate uint64, err error) {
+	var samplesVisited, memUsage, newMemUsage uint64
 	totalProps := len(o.propNames)
 	sampleSize := totalProps / 10
 

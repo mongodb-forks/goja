@@ -101,7 +101,7 @@ func (mo *mapObject) MemUsage(ctx *MemUsageContext) (memUsage uint64, newMemUsag
 	ctx.VisitObj(mo)
 
 	if err := ctx.Descend(); err != nil {
-		return 0, 0, err
+		return memUsage, newMemUsage, err
 	}
 
 	memUsage, newMemUsage, err = mo.baseObject.MemUsage(ctx)
