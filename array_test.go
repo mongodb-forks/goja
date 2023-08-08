@@ -136,34 +136,22 @@ func TestArrayObjectMemUsage(t *testing.T) {
 	vm := New()
 
 	tests := []struct {
-		name        string
-		mu          *MemUsageContext
-		ao          *arrayObject
-		expected    uint64
-		newExpected uint64
-		errExpected error
+		name           string
+		mu             *MemUsageContext
+		ao             *arrayObject
+		expectedMem    uint64
+		expectedNewMem uint64
+		errExpected    error
 	}{
 		{
 			name: "mem below threshold",
 			mu:   NewMemUsageContext(vm, 88, 5000, 50, 50, TestNativeMemUsageChecker{}),
-			ao: &arrayObject{
-				values: []Value{
-					vm._newString(newStringValue("key"), nil),
-				},
-			},
+			ao:   &arrayObject{},
 			// array overhead + array baseObject
-			expected: SizeEmptyStruct + SizeEmptyStruct +
-				// stringObject + baseObject + prop "length"
-				(SizeEmptyStruct + SizeEmptyStruct + 6) +
-				// len("key")
-				3,
+			expectedMem: SizeEmptyStruct + SizeEmptyStruct,
 			// array overhead + array baseObject
-			newExpected: SizeEmptyStruct + SizeEmptyStruct +
-				// stringObject + baseObject + prop "length" with string overhead
-				(SizeEmptyStruct + SizeEmptyStruct + (6 + SizeString)) +
-				// len("key") with string overhead
-				(3 + SizeString),
-			errExpected: nil,
+			expectedNewMem: SizeEmptyStruct + SizeEmptyStruct,
+			errExpected:    nil,
 		},
 		{
 			name: "mem way above threshold returns first crossing of threshold",
@@ -179,13 +167,13 @@ func TestArrayObjectMemUsage(t *testing.T) {
 				},
 			},
 			// array overhead + array baseObject
-			expected: SizeEmptyStruct + SizeEmptyStruct +
+			expectedMem: SizeEmptyStruct + SizeEmptyStruct +
 				// (stringObject + baseObject + prop "length") * entries (at 4 we reach the limit)
 				(SizeEmptyStruct+SizeEmptyStruct+6)*4 +
 				// len("keyN") * entries (at 4 we reach the limit)
 				4*4,
 			// array overhead + array baseObject
-			newExpected: SizeEmptyStruct + SizeEmptyStruct +
+			expectedNewMem: SizeEmptyStruct + SizeEmptyStruct +
 				// (stringObject + baseObject + prop "length" with string overhead) * entries (at 4 we reach the limit)
 				(SizeEmptyStruct+SizeEmptyStruct+(6+SizeString))*4 +
 				// len("keyN") with string overhead * entries (at 4 we reach the limit)
@@ -212,9 +200,9 @@ func TestArrayObjectMemUsage(t *testing.T) {
 			ao: &arrayObject{
 				values: []Value{vm._newString(newStringValue("key"), nil)},
 			},
-			expected:    SizeEmptyStruct + SizeEmptyStruct,
-			newExpected: SizeEmptyStruct + SizeEmptyStruct,
-			errExpected: errArrayLenExceedsThresholdNil,
+			expectedMem:    SizeEmptyStruct + SizeEmptyStruct,
+			expectedNewMem: SizeEmptyStruct + SizeEmptyStruct,
+			errExpected:    errArrayLenExceedsThresholdNil,
 		},
 	}
 
@@ -227,11 +215,11 @@ func TestArrayObjectMemUsage(t *testing.T) {
 			if err != nil && tc.errExpected != nil && err.Error() != tc.errExpected.Error() {
 				t.Fatalf("Errors do not match. Actual: %v Expected: %v", err, tc.errExpected)
 			}
-			if total != tc.expected {
-				t.Fatalf("Unexpected memory return. Actual: %v Expected: %v", total, tc.expected)
+			if total != tc.expectedMem {
+				t.Fatalf("Unexpected memory return. Actual: %v Expected: %v", total, tc.expectedMem)
 			}
-			if newTotal != tc.newExpected {
-				t.Fatalf("Unexpected new memory return. Actual: %v Expected: %v", newTotal, tc.newExpected)
+			if newTotal != tc.expectedNewMem {
+				t.Fatalf("Unexpected new memory return. Actual: %v Expected: %v", newTotal, tc.expectedNewMem)
 			}
 		})
 	}

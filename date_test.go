@@ -3,6 +3,8 @@ package goja
 import (
 	"testing"
 	"time"
+
+	"github.com/dop251/goja/unistring"
 )
 
 func TestDateUTC(t *testing.T) {
@@ -310,27 +312,46 @@ func TestDateExportType(t *testing.T) {
 
 func TestDateMemUsage(t *testing.T) {
 	tests := []struct {
-		name        string
-		val         *dateObject
-		expected    uint64
-		newExpected uint64
-		errExpected error
+		name           string
+		val            *dateObject
+		expectedMem    uint64
+		expectedNewMem uint64
+		errExpected    error
 	}{
 		{
-			name: "should have a value given by baseObject and msec",
+			name: "should have a value given by baseObject overhead and msec",
 			val:  &dateObject{msec: int64(100)},
 			// baseObject + msec value
-			expected: SizeEmptyStruct + SizeNumber,
+			expectedMem: SizeEmptyStruct + SizeNumber,
 			// baseObject + msec value
-			newExpected: SizeEmptyStruct + SizeNumber,
+			expectedNewMem: SizeEmptyStruct + SizeNumber,
+			errExpected:    nil,
+		},
+		{
+			name: "should have a value given by a non-empty baseObject and msec",
+			val: &dateObject{
+				msec: int64(100),
+				baseObject: baseObject{
+					propNames: []unistring.String{"test"},
+					values:    map[unistring.String]Value{"test": valueInt(99)},
+				},
+			},
+			// msec value
+			expectedMem: SizeNumber +
+				// baseObject overhead + len("test") + value
+				SizeEmptyStruct + 4 + SizeInt,
+			// msec value
+			expectedNewMem: SizeNumber +
+				// baseObject overhead + len("test") with string overhead + value
+				SizeEmptyStruct + (4 + SizeString) + SizeInt,
 			errExpected: nil,
 		},
 		{
-			name:        "should have a value of SizeEmptyStruct given a nil dateObject",
-			val:         nil,
-			expected:    SizeEmptyStruct,
-			newExpected: SizeEmptyStruct,
-			errExpected: nil,
+			name:           "should have a value of SizeEmptyStruct given a nil dateObject",
+			val:            nil,
+			expectedMem:    SizeEmptyStruct,
+			expectedNewMem: SizeEmptyStruct,
+			errExpected:    nil,
 		},
 	}
 
@@ -343,11 +364,11 @@ func TestDateMemUsage(t *testing.T) {
 			if err != nil && tc.errExpected != nil && err.Error() != tc.errExpected.Error() {
 				t.Fatalf("Errors do not match. Actual: %v Expected: %v", err, tc.errExpected)
 			}
-			if total != tc.expected {
-				t.Fatalf("Unexpected memory return. Actual: %v Expected: %v", total, tc.expected)
+			if total != tc.expectedMem {
+				t.Fatalf("Unexpected memory return. Actual: %v Expected: %v", total, tc.expectedMem)
 			}
-			if newTotal != tc.newExpected {
-				t.Fatalf("Unexpected new memory return. Actual: %v Expected: %v", newTotal, tc.newExpected)
+			if newTotal != tc.expectedNewMem {
+				t.Fatalf("Unexpected new memory return. Actual: %v Expected: %v", newTotal, tc.expectedNewMem)
 			}
 		})
 	}

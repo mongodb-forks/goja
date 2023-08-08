@@ -648,48 +648,48 @@ func BenchmarkAddString(b *testing.B) {
 
 func TestBaseObjectMemUsage(t *testing.T) {
 	tests := []struct {
-		name        string
-		val         *baseObject
-		threshold   int
-		expected    uint64
-		newExpected uint64
-		errExpected error
+		name           string
+		val            *baseObject
+		threshold      int
+		expectedMem    uint64
+		expectedNewMem uint64
+		errExpected    error
 	}{
 		{
-			name:        "should have a value of SizeEmptyStruct given a nil object",
-			threshold:   100,
-			val:         nil,
-			expected:    SizeEmptyStruct,
-			newExpected: SizeEmptyStruct,
-			errExpected: nil,
+			name:           "should have a value of SizeEmptyStruct given a nil object",
+			threshold:      100,
+			val:            nil,
+			expectedMem:    SizeEmptyStruct,
+			expectedNewMem: SizeEmptyStruct,
+			errExpected:    nil,
 		},
 		{
-			name:        "should have a value of SizeEmptyStruct given an empty object",
-			threshold:   100,
-			val:         &baseObject{},
-			expected:    SizeEmptyStruct,
-			newExpected: SizeEmptyStruct,
-			errExpected: nil,
+			name:           "should have a value of SizeEmptyStruct given an empty object",
+			threshold:      100,
+			val:            &baseObject{},
+			expectedMem:    SizeEmptyStruct,
+			expectedNewMem: SizeEmptyStruct,
+			errExpected:    nil,
 		},
 		{
 			name:      "should account for each key value pair given a non-empty object",
 			threshold: 100,
 			val:       &baseObject{propNames: []unistring.String{"test"}, values: map[unistring.String]Value{"test": valueInt(99)}},
 			// overhead + len("test") + value
-			expected: SizeEmptyStruct + 4 + SizeInt,
+			expectedMem: SizeEmptyStruct + 4 + SizeInt,
 			// overhead + len("test") with string overhead + value
-			newExpected: SizeEmptyStruct + (4 + SizeString) + SizeInt,
-			errExpected: nil,
+			expectedNewMem: SizeEmptyStruct + (4 + SizeString) + SizeInt,
+			errExpected:    nil,
 		},
 		{
 			name:      "should account for each key value pair given a non-empty object with a nil value",
 			threshold: 100,
 			val:       &baseObject{propNames: []unistring.String{"test"}, values: map[unistring.String]Value{"test": nil}},
 			// overhead + len("test")
-			expected: SizeEmptyStruct + 4,
+			expectedMem: SizeEmptyStruct + 4,
 			// overhead + len("test") with string overhead
-			newExpected: SizeEmptyStruct + (4 + SizeString),
-			errExpected: nil,
+			expectedNewMem: SizeEmptyStruct + (4 + SizeString),
+			errExpected:    nil,
 		},
 		{
 			name:      "should account for sampled key value pair given a non-empty object over threshold",
@@ -709,20 +709,20 @@ func TestBaseObjectMemUsage(t *testing.T) {
 				},
 			},
 			// overhead + len("testN") + value
-			expected: SizeEmptyStruct + (5+SizeInt)*4,
+			expectedMem: SizeEmptyStruct + (5+SizeInt)*4,
 			// overhead + len("testN") with string overhead + value
-			newExpected: SizeEmptyStruct + ((5+SizeString)+SizeInt)*4,
-			errExpected: nil,
+			expectedNewMem: SizeEmptyStruct + ((5+SizeString)+SizeInt)*4,
+			errExpected:    nil,
 		},
 		{
 			name:      "should account for prototype's given an object with a valid prototype",
 			threshold: 100,
 			val:       &baseObject{prototype: &Object{}},
 			// baseObject overhead + prototype overhead
-			expected: SizeEmptyStruct + SizeEmptyStruct,
+			expectedMem: SizeEmptyStruct + SizeEmptyStruct,
 			// baseObject overhead + prototype overhead
-			newExpected: SizeEmptyStruct + SizeEmptyStruct,
-			errExpected: nil,
+			expectedNewMem: SizeEmptyStruct + SizeEmptyStruct,
+			errExpected:    nil,
 		},
 	}
 
@@ -735,11 +735,11 @@ func TestBaseObjectMemUsage(t *testing.T) {
 			if err != nil && tc.errExpected != nil && err.Error() != tc.errExpected.Error() {
 				t.Fatalf("Errors do not match. Actual: %v Expected: %v", err, tc.errExpected)
 			}
-			if total != tc.expected {
-				t.Fatalf("Unexpected memory return. Actual: %v Expected: %v", total, tc.expected)
+			if total != tc.expectedMem {
+				t.Fatalf("Unexpected memory return. Actual: %v Expected: %v", total, tc.expectedMem)
 			}
-			if newTotal != tc.newExpected {
-				t.Fatalf("Unexpected new memory return. Actual: %v Expected: %v", newTotal, tc.newExpected)
+			if newTotal != tc.expectedNewMem {
+				t.Fatalf("Unexpected new memory return. Actual: %v Expected: %v", newTotal, tc.expectedNewMem)
 			}
 		})
 	}
@@ -747,52 +747,52 @@ func TestBaseObjectMemUsage(t *testing.T) {
 
 func TestPrimitiveValueObjectMemUsage(t *testing.T) {
 	tests := []struct {
-		name        string
-		val         *primitiveValueObject
-		expected    uint64
-		newExpected uint64
-		errExpected error
+		name           string
+		val            *primitiveValueObject
+		expectedMem    uint64
+		expectedNewMem uint64
+		errExpected    error
 	}{
 		{
-			name:        "should have a value of SizeEmptyStruct given a nil primitive value object",
-			val:         nil,
-			expected:    SizeEmptyStruct,
-			newExpected: SizeEmptyStruct,
-			errExpected: nil,
+			name:           "should have a value of SizeEmptyStruct given a nil primitive value object",
+			val:            nil,
+			expectedMem:    SizeEmptyStruct,
+			expectedNewMem: SizeEmptyStruct,
+			errExpected:    nil,
 		},
 		{
-			name:        "should have a value of SizeEmptyStruct given an empty primitive value object",
-			val:         &primitiveValueObject{},
-			expected:    SizeEmptyStruct,
-			newExpected: SizeEmptyStruct,
-			errExpected: nil,
+			name:           "should have a value of SizeEmptyStruct given an empty primitive value object",
+			val:            &primitiveValueObject{},
+			expectedMem:    SizeEmptyStruct,
+			expectedNewMem: SizeEmptyStruct,
+			errExpected:    nil,
 		},
 		{
 			name: "should account for overhead given a primitive value object with empty object",
 			val:  &primitiveValueObject{baseObject: baseObject{}},
 			// baseObject overhead + len("test") + value
-			expected: SizeEmptyStruct,
+			expectedMem: SizeEmptyStruct,
 			// baseObject overhead + len("test") with string overhead + value
-			newExpected: SizeEmptyStruct,
-			errExpected: nil,
+			expectedNewMem: SizeEmptyStruct,
+			errExpected:    nil,
 		},
 		{
 			name: "should account for overehead and each key value pair given a primitive value object with non-empty object",
 			val:  &primitiveValueObject{baseObject: baseObject{propNames: []unistring.String{"test"}, values: map[unistring.String]Value{"test": valueInt(99)}}},
 			// baseObject overhead + len("test") + value
-			expected: SizeEmptyStruct + 4 + SizeInt,
+			expectedMem: SizeEmptyStruct + 4 + SizeInt,
 			// baseObject overhead + len("test") with string overhead + value
-			newExpected: SizeEmptyStruct + (4 + SizeString) + SizeInt,
-			errExpected: nil,
+			expectedNewMem: SizeEmptyStruct + (4 + SizeString) + SizeInt,
+			errExpected:    nil,
 		},
 		{
 			name: "should account for pValue given a primitive value object with non-empty pValue",
 			val:  &primitiveValueObject{pValue: valueInt(99)},
 			// baseObject overhead + value
-			expected: SizeEmptyStruct + SizeInt,
+			expectedMem: SizeEmptyStruct + SizeInt,
 			// baseObject overhead + value
-			newExpected: SizeEmptyStruct + SizeInt,
-			errExpected: nil,
+			expectedNewMem: SizeEmptyStruct + SizeInt,
+			errExpected:    nil,
 		},
 	}
 
@@ -805,11 +805,11 @@ func TestPrimitiveValueObjectMemUsage(t *testing.T) {
 			if err != nil && tc.errExpected != nil && err.Error() != tc.errExpected.Error() {
 				t.Fatalf("Errors do not match. Actual: %v Expected: %v", err, tc.errExpected)
 			}
-			if total != tc.expected {
-				t.Fatalf("Unexpected memory return. Actual: %v Expected: %v", total, tc.expected)
+			if total != tc.expectedMem {
+				t.Fatalf("Unexpected memory return. Actual: %v Expected: %v", total, tc.expectedMem)
 			}
-			if newTotal != tc.newExpected {
-				t.Fatalf("Unexpected new memory return. Actual: %v Expected: %v", newTotal, tc.newExpected)
+			if newTotal != tc.expectedNewMem {
+				t.Fatalf("Unexpected new memory return. Actual: %v Expected: %v", newTotal, tc.expectedNewMem)
 			}
 		})
 	}

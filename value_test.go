@@ -59,53 +59,53 @@ func TestFloatArrayIncludes(t *testing.T) {
 
 func TestValueMemUsage(t *testing.T) {
 	tests := []struct {
-		name        string
-		val         MemUsageReporter
-		expected    uint64
-		newExpected uint64
-		errExpected error
+		name           string
+		val            MemUsageReporter
+		expectedMem    uint64
+		expectedNewMem uint64
+		errExpected    error
 	}{
 		{
-			name:        "should have a value of SizeNumber given a valueInt",
-			val:         valueInt(99),
-			expected:    SizeEmptyStruct,
-			newExpected: SizeEmptyStruct,
-			errExpected: nil,
+			name:           "should have a value of SizeNumber given a valueInt",
+			val:            valueInt(99),
+			expectedMem:    SizeEmptyStruct,
+			expectedNewMem: SizeEmptyStruct,
+			errExpected:    nil,
 		},
 		{
-			name:        "should have a value of SizeBool given a valueBool",
-			val:         valueBool(true),
-			expected:    SizeBool,
-			newExpected: SizeBool,
-			errExpected: nil,
+			name:           "should have a value of SizeBool given a valueBool",
+			val:            valueBool(true),
+			expectedMem:    SizeBool,
+			expectedNewMem: SizeBool,
+			errExpected:    nil,
 		},
 		{
-			name:        "should have a value of SizeEmptyStruct given a valueNull",
-			val:         valueNull{},
-			expected:    SizeEmptyStruct,
-			newExpected: SizeEmptyStruct,
-			errExpected: nil,
+			name:           "should have a value of SizeEmptyStruct given a valueNull",
+			val:            valueNull{},
+			expectedMem:    SizeEmptyStruct,
+			expectedNewMem: SizeEmptyStruct,
+			errExpected:    nil,
 		},
 		{
-			name:        "should have a value of SizeNumber given a valueFloat",
-			val:         valueFloat(3.3),
-			expected:    SizeNumber,
-			newExpected: SizeNumber,
-			errExpected: nil,
+			name:           "should have a value of SizeNumber given a valueFloat",
+			val:            valueFloat(3.3),
+			expectedMem:    SizeNumber,
+			expectedNewMem: SizeNumber,
+			errExpected:    nil,
 		},
 		{
-			name:        "should account for ref given a valueUnresolved",
-			val:         valueUnresolved{ref: "test"},
-			expected:    4,
-			newExpected: 4 + SizeString,
-			errExpected: nil,
+			name:           "should account for ref given a valueUnresolved",
+			val:            valueUnresolved{ref: "test"},
+			expectedMem:    4,
+			expectedNewMem: 4 + SizeString,
+			errExpected:    nil,
 		},
 		{
-			name:        "should account for desc given a Symbol",
-			val:         &Symbol{desc: newStringValue("test")},
-			expected:    4,
-			newExpected: 4 + SizeString,
-			errExpected: nil,
+			name:           "should account for desc given a Symbol",
+			val:            &Symbol{desc: newStringValue("test")},
+			expectedMem:    4,
+			expectedNewMem: 4 + SizeString,
+			errExpected:    nil,
 		},
 	}
 
@@ -118,11 +118,11 @@ func TestValueMemUsage(t *testing.T) {
 			if err != nil && tc.errExpected != nil && err.Error() != tc.errExpected.Error() {
 				t.Fatalf("Errors do not match. Actual: %v Expected: %v", err, tc.errExpected)
 			}
-			if total != tc.expected {
-				t.Fatalf("Unexpected memory return. Actual: %v Expected: %v", total, tc.expected)
+			if total != tc.expectedMem {
+				t.Fatalf("Unexpected memory return. Actual: %v Expected: %v", total, tc.expectedMem)
 			}
-			if newTotal != tc.newExpected {
-				t.Fatalf("Unexpected new memory return. Actual: %v Expected: %v", newTotal, tc.newExpected)
+			if newTotal != tc.expectedNewMem {
+				t.Fatalf("Unexpected new memory return. Actual: %v Expected: %v", newTotal, tc.expectedNewMem)
 			}
 		})
 	}
@@ -130,25 +130,25 @@ func TestValueMemUsage(t *testing.T) {
 
 func TestValuePropertyMemUsage(t *testing.T) {
 	tests := []struct {
-		name        string
-		val         *valueProperty
-		expected    uint64
-		newExpected uint64
-		errExpected error
+		name           string
+		val            *valueProperty
+		expectedMem    uint64
+		expectedNewMem uint64
+		errExpected    error
 	}{
 		{
-			name:        "should have a value of SizeEmptyStruct given nil valueProperty",
-			val:         nil,
-			expected:    SizeEmptyStruct,
-			newExpected: SizeEmptyStruct,
-			errExpected: nil,
+			name:           "should have a value of SizeEmptyStruct given nil valueProperty",
+			val:            nil,
+			expectedMem:    SizeEmptyStruct,
+			expectedNewMem: SizeEmptyStruct,
+			errExpected:    nil,
 		},
 		{
-			name:        "should account for value given a valueProperty with non-empty value",
-			val:         &valueProperty{value: valueInt(99)},
-			expected:    SizeInt,
-			newExpected: SizeInt,
-			errExpected: nil,
+			name:           "should account for value given a valueProperty with non-empty value",
+			val:            &valueProperty{value: valueInt(99)},
+			expectedMem:    SizeInt,
+			expectedNewMem: SizeInt,
+			errExpected:    nil,
 		},
 		{
 			name: "should account for getterFunc given a valueProperty with non-empty getterFunc",
@@ -157,9 +157,9 @@ func TestValuePropertyMemUsage(t *testing.T) {
 					self: &baseObject{propNames: []unistring.String{"test"}, values: map[unistring.String]Value{"test": valueInt(99)}},
 				},
 			},
-			expected:    SizeEmptyStruct + SizeEmptyStruct + 4,
-			newExpected: SizeEmptyStruct + SizeEmptyStruct + (4 + SizeString),
-			errExpected: nil,
+			expectedMem:    SizeEmptyStruct + SizeEmptyStruct + 4,
+			expectedNewMem: SizeEmptyStruct + SizeEmptyStruct + (4 + SizeString),
+			errExpected:    nil,
 		},
 		{
 			name: "should account for setterFunc given a valueProperty with non-empty setterFunc",
@@ -168,9 +168,9 @@ func TestValuePropertyMemUsage(t *testing.T) {
 					self: &baseObject{propNames: []unistring.String{"test"}, values: map[unistring.String]Value{"test": valueInt(99)}},
 				},
 			},
-			expected:    SizeEmptyStruct + SizeEmptyStruct + 4,
-			newExpected: SizeEmptyStruct + SizeEmptyStruct + (4 + SizeString),
-			errExpected: nil,
+			expectedMem:    SizeEmptyStruct + SizeEmptyStruct + 4,
+			expectedNewMem: SizeEmptyStruct + SizeEmptyStruct + (4 + SizeString),
+			errExpected:    nil,
 		},
 	}
 
@@ -183,11 +183,11 @@ func TestValuePropertyMemUsage(t *testing.T) {
 			if err != nil && tc.errExpected != nil && err.Error() != tc.errExpected.Error() {
 				t.Fatalf("Errors do not match. Actual: %v Expected: %v", err, tc.errExpected)
 			}
-			if total != tc.expected {
-				t.Fatalf("Unexpected memory return. Actual: %v Expected: %v", total, tc.expected)
+			if total != tc.expectedMem {
+				t.Fatalf("Unexpected memory return. Actual: %v Expected: %v", total, tc.expectedMem)
 			}
-			if newTotal != tc.newExpected {
-				t.Fatalf("Unexpected new memory return. Actual: %v Expected: %v", newTotal, tc.newExpected)
+			if newTotal != tc.expectedNewMem {
+				t.Fatalf("Unexpected new memory return. Actual: %v Expected: %v", newTotal, tc.expectedNewMem)
 			}
 		})
 	}
@@ -195,67 +195,67 @@ func TestValuePropertyMemUsage(t *testing.T) {
 
 func TestObjectMemUsage(t *testing.T) {
 	tests := []struct {
-		name        string
-		val         *Object
-		expected    uint64
-		newExpected uint64
-		errExpected error
+		name           string
+		val            *Object
+		expectedMem    uint64
+		expectedNewMem uint64
+		errExpected    error
 	}{
 		{
-			name:        "should have a value of SizeEmptyStruct given nil Object",
-			val:         nil,
-			expected:    SizeEmptyStruct,
-			newExpected: SizeEmptyStruct,
-			errExpected: nil,
+			name:           "should have a value of SizeEmptyStruct given nil Object",
+			val:            nil,
+			expectedMem:    SizeEmptyStruct,
+			expectedNewMem: SizeEmptyStruct,
+			errExpected:    nil,
 		},
 		{
-			name:        "should have a value of SizeEmptyStruct given an empty Object with nil self",
-			val:         &Object{},
-			expected:    SizeEmptyStruct,
-			newExpected: SizeEmptyStruct,
-			errExpected: nil,
+			name:           "should have a value of SizeEmptyStruct given an empty Object with nil self",
+			val:            &Object{},
+			expectedMem:    SizeEmptyStruct,
+			expectedNewMem: SizeEmptyStruct,
+			errExpected:    nil,
 		},
 		{
-			name:        "should account for __wrapped given an Object with non-empty __wrapped",
-			val:         &Object{__wrapped: 99},
-			expected:    SizeInt,
-			newExpected: SizeInt,
-			errExpected: nil,
+			name:           "should account for __wrapped given an Object with non-empty __wrapped",
+			val:            &Object{__wrapped: 99},
+			expectedMem:    SizeInt,
+			expectedNewMem: SizeInt,
+			errExpected:    nil,
 		},
 		{
-			name:        "should have a value of SizeEmptyStruct given an Object with self of type objectGoReflect",
-			val:         &Object{self: &objectGoReflect{}},
-			expected:    SizeEmptyStruct,
-			newExpected: SizeEmptyStruct,
-			errExpected: nil,
+			name:           "should have a value of SizeEmptyStruct given an Object with self of type objectGoReflect",
+			val:            &Object{self: &objectGoReflect{}},
+			expectedMem:    SizeEmptyStruct,
+			expectedNewMem: SizeEmptyStruct,
+			errExpected:    nil,
 		},
 		{
-			name:        "should have a value of SizeEmptyStruct given an Object with self of type objectGoMapReflect",
-			val:         &Object{self: &objectGoMapReflect{}},
-			expected:    SizeEmptyStruct,
-			newExpected: SizeEmptyStruct,
-			errExpected: nil,
+			name:           "should have a value of SizeEmptyStruct given an Object with self of type objectGoMapReflect",
+			val:            &Object{self: &objectGoMapReflect{}},
+			expectedMem:    SizeEmptyStruct,
+			expectedNewMem: SizeEmptyStruct,
+			errExpected:    nil,
 		},
 		{
-			name:        "should have a value of SizeEmptyStruct given an Object with self of type objectGoMapSimple",
-			val:         &Object{self: &objectGoMapSimple{}},
-			expected:    SizeEmptyStruct,
-			newExpected: SizeEmptyStruct,
-			errExpected: nil,
+			name:           "should have a value of SizeEmptyStruct given an Object with self of type objectGoMapSimple",
+			val:            &Object{self: &objectGoMapSimple{}},
+			expectedMem:    SizeEmptyStruct,
+			expectedNewMem: SizeEmptyStruct,
+			errExpected:    nil,
 		},
 		{
-			name:        "should have a value of SizeEmptyStruct given an Object with self of type objectGoSlice",
-			val:         &Object{self: &objectGoSlice{}},
-			expected:    SizeEmptyStruct,
-			newExpected: SizeEmptyStruct,
-			errExpected: nil,
+			name:           "should have a value of SizeEmptyStruct given an Object with self of type objectGoSlice",
+			val:            &Object{self: &objectGoSlice{}},
+			expectedMem:    SizeEmptyStruct,
+			expectedNewMem: SizeEmptyStruct,
+			errExpected:    nil,
 		},
 		{
-			name:        "should have a value of SizeEmptyStruct given an Object with self of type objectGoSliceReflect",
-			val:         &Object{self: &objectGoSliceReflect{}},
-			expected:    SizeEmptyStruct,
-			newExpected: SizeEmptyStruct,
-			errExpected: nil,
+			name:           "should have a value of SizeEmptyStruct given an Object with self of type objectGoSliceReflect",
+			val:            &Object{self: &objectGoSliceReflect{}},
+			expectedMem:    SizeEmptyStruct,
+			expectedNewMem: SizeEmptyStruct,
+			errExpected:    nil,
 		},
 		{
 			name: "should have a value of SizeEmptyStruct given an Object with self of type objectGoSliceReflect",
@@ -263,10 +263,10 @@ func TestObjectMemUsage(t *testing.T) {
 				self: &baseObject{propNames: []unistring.String{"test"}, values: map[unistring.String]Value{"test": valueInt(99)}},
 			},
 			// baseObject overhead + value
-			expected: SizeEmptyStruct + (4 + SizeInt),
+			expectedMem: SizeEmptyStruct + (4 + SizeInt),
 			// baseObject overhead + value with string overhead
-			newExpected: SizeEmptyStruct + (4 + SizeString + SizeInt),
-			errExpected: nil,
+			expectedNewMem: SizeEmptyStruct + (4 + SizeString + SizeInt),
+			errExpected:    nil,
 		},
 	}
 
@@ -279,11 +279,11 @@ func TestObjectMemUsage(t *testing.T) {
 			if err != nil && tc.errExpected != nil && err.Error() != tc.errExpected.Error() {
 				t.Fatalf("Errors do not match. Actual: %v Expected: %v", err, tc.errExpected)
 			}
-			if total != tc.expected {
-				t.Fatalf("Unexpected memory return. Actual: %v Expected: %v", total, tc.expected)
+			if total != tc.expectedMem {
+				t.Fatalf("Unexpected memory return. Actual: %v Expected: %v", total, tc.expectedMem)
 			}
-			if newTotal != tc.newExpected {
-				t.Fatalf("Unexpected new memory return. Actual: %v Expected: %v", newTotal, tc.newExpected)
+			if newTotal != tc.expectedNewMem {
+				t.Fatalf("Unexpected new memory return. Actual: %v Expected: %v", newTotal, tc.expectedNewMem)
 			}
 		})
 	}

@@ -2981,18 +2981,18 @@ func TestErrorCaptureStackTrace(t *testing.T) {
 
 func TestRuntimeMemUsage(t *testing.T) {
 	tests := []struct {
-		name        string
-		val         *Runtime
-		expected    uint64
-		newExpected uint64
-		errExpected error
+		name           string
+		val            *Runtime
+		expectedMem    uint64
+		expectedNewMem uint64
+		errExpected    error
 	}{
 		{
-			name:        "should have a value of SizeEmptyStruct given a nil runtime",
-			val:         nil,
-			expected:    SizeEmptyStruct,
-			newExpected: SizeEmptyStruct,
-			errExpected: nil,
+			name:           "should have a value of SizeEmptyStruct given a nil runtime",
+			val:            nil,
+			expectedMem:    SizeEmptyStruct,
+			expectedNewMem: SizeEmptyStruct,
+			errExpected:    nil,
 		},
 		{
 			name: "should account for globalObject given a runtime with non-empty globalObject",
@@ -3002,10 +3002,10 @@ func TestRuntimeMemUsage(t *testing.T) {
 				},
 			},
 			// baseObject overhead + key/value pair
-			expected: SizeEmptyStruct + (4 + SizeInt),
+			expectedMem: SizeEmptyStruct + (4 + SizeInt),
 			// baseObject overhead + key/value pair with string overhead
-			newExpected: SizeEmptyStruct + (4 + SizeString + SizeInt),
-			errExpected: nil,
+			expectedNewMem: SizeEmptyStruct + (4 + SizeString + SizeInt),
+			errExpected:    nil,
 		},
 		{
 			name: "should account for vm callStack given a runtime with a vm and a non-empty callStack",
@@ -3013,10 +3013,10 @@ func TestRuntimeMemUsage(t *testing.T) {
 				vm: &vm{callStack: []vmContext{{newTarget: valueInt(99)}}},
 			},
 			// vmContext overhead + value
-			expected: SizeEmptyStruct + SizeInt,
+			expectedMem: SizeEmptyStruct + SizeInt,
 			// vmContext overhead + value
-			newExpected: SizeEmptyStruct + SizeInt,
-			errExpected: nil,
+			expectedNewMem: SizeEmptyStruct + SizeInt,
+			errExpected:    nil,
 		},
 		{
 			name: "should account for vm stash given a runtime with a vm and a non-empty stash",
@@ -3024,10 +3024,10 @@ func TestRuntimeMemUsage(t *testing.T) {
 				vm: &vm{stash: &stash{values: []Value{valueInt(99)}}},
 			},
 			// stash value
-			expected: SizeInt,
+			expectedMem: SizeInt,
 			// stash value
-			newExpected: SizeInt,
-			errExpected: nil,
+			expectedNewMem: SizeInt,
+			errExpected:    nil,
 		},
 		{
 			name: "should account for vm stack given a runtime with a vm and a non-empty stack",
@@ -3035,10 +3035,10 @@ func TestRuntimeMemUsage(t *testing.T) {
 				vm: &vm{stack: []Value{valueInt(99)}},
 			},
 			// stack value
-			expected: SizeInt,
+			expectedMem: SizeInt,
 			// stack value
-			newExpected: SizeInt,
-			errExpected: nil,
+			expectedNewMem: SizeInt,
+			errExpected:    nil,
 		},
 	}
 
@@ -3051,11 +3051,11 @@ func TestRuntimeMemUsage(t *testing.T) {
 			if err != nil && tc.errExpected != nil && err.Error() != tc.errExpected.Error() {
 				t.Fatalf("Errors do not match. Actual: %v Expected: %v", err, tc.errExpected)
 			}
-			if total != tc.expected {
-				t.Fatalf("Unexpected memory return. Actual: %v Expected: %v", total, tc.expected)
+			if total != tc.expectedMem {
+				t.Fatalf("Unexpected memory return. Actual: %v Expected: %v", total, tc.expectedMem)
 			}
-			if newTotal != tc.newExpected {
-				t.Fatalf("Unexpected new memory return. Actual: %v Expected: %v", newTotal, tc.newExpected)
+			if newTotal != tc.expectedNewMem {
+				t.Fatalf("Unexpected new memory return. Actual: %v Expected: %v", newTotal, tc.expectedNewMem)
 			}
 		})
 	}

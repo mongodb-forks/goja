@@ -8,36 +8,36 @@ import (
 
 func TestProxyMemUsage(t *testing.T) {
 	tests := []struct {
-		name        string
-		val         *proxyObject
-		expected    uint64
-		newExpected uint64
-		errExpected error
+		name           string
+		val            *proxyObject
+		expectedMem    uint64
+		expectedNewMem uint64
+		errExpected    error
 	}{
 		{
-			name:        "should have a value of SizeEmptyStruct given a nil proxy object",
-			val:         nil,
-			expected:    SizeEmptyStruct,
-			newExpected: SizeEmptyStruct,
-			errExpected: nil,
+			name:           "should have a value of SizeEmptyStruct given a nil proxy object",
+			val:            nil,
+			expectedMem:    SizeEmptyStruct,
+			expectedNewMem: SizeEmptyStruct,
+			errExpected:    nil,
 		},
 		{
 			name: "should account for base object overhead given an empty proxy object",
 			val:  &proxyObject{},
 			// proxy overhead + baseObject overhead
-			expected: SizeEmptyStruct + SizeEmptyStruct,
+			expectedMem: SizeEmptyStruct + SizeEmptyStruct,
 			// proxy overhead + baseObject overhead
-			newExpected: SizeEmptyStruct + SizeEmptyStruct,
-			errExpected: nil,
+			expectedNewMem: SizeEmptyStruct + SizeEmptyStruct,
+			errExpected:    nil,
 		},
 		{
 			name: "should account for baseObject and target overhead given a proxy object with empty target",
 			val:  &proxyObject{target: &Object{}},
 			// proxy overhead + baseObject overhead + target overhead
-			expected: SizeEmptyStruct + SizeEmptyStruct + SizeEmptyStruct,
+			expectedMem: SizeEmptyStruct + SizeEmptyStruct + SizeEmptyStruct,
 			// proxy overhead + baseObject overhead + target overhead
-			newExpected: SizeEmptyStruct + SizeEmptyStruct + SizeEmptyStruct,
-			errExpected: nil,
+			expectedNewMem: SizeEmptyStruct + SizeEmptyStruct + SizeEmptyStruct,
+			errExpected:    nil,
 		},
 		{
 			name: "should account for baseObjet overhead and target given a proxy object with a non-empty target",
@@ -47,19 +47,19 @@ func TestProxyMemUsage(t *testing.T) {
 				},
 			},
 			// proxy overhead + baseObject overhead + target overhead + key/value pair
-			expected: SizeEmptyStruct + SizeEmptyStruct + SizeEmptyStruct + (4 + SizeInt),
+			expectedMem: SizeEmptyStruct + SizeEmptyStruct + SizeEmptyStruct + (4 + SizeInt),
 			// proxy overhead + baseObject overhead + target overhead + key/value pair with string overhead
-			newExpected: SizeEmptyStruct + SizeEmptyStruct + SizeEmptyStruct + (4 + SizeString + SizeInt),
-			errExpected: nil,
+			expectedNewMem: SizeEmptyStruct + SizeEmptyStruct + SizeEmptyStruct + (4 + SizeString + SizeInt),
+			errExpected:    nil,
 		},
 		{
 			name: "should account for baseObject overhead given a base dynamic array with an empty handler",
 			val:  &proxyObject{handler: &jsProxyHandler{handler: &Object{}}},
 			// proxy overhead + baseObject overhead + target overhead
-			expected: SizeEmptyStruct + SizeEmptyStruct + SizeEmptyStruct,
+			expectedMem: SizeEmptyStruct + SizeEmptyStruct + SizeEmptyStruct,
 			// proxy overhead + baseObject overhead + target overhead
-			newExpected: SizeEmptyStruct + SizeEmptyStruct + SizeEmptyStruct,
-			errExpected: nil,
+			expectedNewMem: SizeEmptyStruct + SizeEmptyStruct + SizeEmptyStruct,
+			errExpected:    nil,
 		},
 		{
 			name: "should account for baseObject overhead and handler given a base dynamic array with a non-empty handler",
@@ -71,10 +71,10 @@ func TestProxyMemUsage(t *testing.T) {
 				},
 			},
 			// proxy overhead + baseObject overhead + target overhead + key/value pair
-			expected: SizeEmptyStruct + SizeEmptyStruct + SizeEmptyStruct + (4 + SizeInt),
+			expectedMem: SizeEmptyStruct + SizeEmptyStruct + SizeEmptyStruct + (4 + SizeInt),
 			// proxy overhead + baseObject overhead + target overhead + key/value pair with string overhead
-			newExpected: SizeEmptyStruct + SizeEmptyStruct + SizeEmptyStruct + (4 + SizeString + SizeInt),
-			errExpected: nil,
+			expectedNewMem: SizeEmptyStruct + SizeEmptyStruct + SizeEmptyStruct + (4 + SizeString + SizeInt),
+			errExpected:    nil,
 		},
 	}
 
@@ -87,11 +87,11 @@ func TestProxyMemUsage(t *testing.T) {
 			if err != nil && tc.errExpected != nil && err.Error() != tc.errExpected.Error() {
 				t.Fatalf("Errors do not match. Actual: %v Expected: %v", err, tc.errExpected)
 			}
-			if total != tc.expected {
-				t.Fatalf("Unexpected memory return. Actual: %v Expected: %v", total, tc.expected)
+			if total != tc.expectedMem {
+				t.Fatalf("Unexpected memory return. Actual: %v Expected: %v", total, tc.expectedMem)
 			}
-			if newTotal != tc.newExpected {
-				t.Fatalf("Unexpected new memory return. Actual: %v Expected: %v", newTotal, tc.newExpected)
+			if newTotal != tc.expectedNewMem {
+				t.Fatalf("Unexpected new memory return. Actual: %v Expected: %v", newTotal, tc.expectedNewMem)
 			}
 		})
 	}
@@ -99,25 +99,25 @@ func TestProxyMemUsage(t *testing.T) {
 
 func TestJSProxyHandlerMemUsage(t *testing.T) {
 	tests := []struct {
-		name        string
-		val         *jsProxyHandler
-		expected    uint64
-		newExpected uint64
-		errExpected error
+		name           string
+		val            *jsProxyHandler
+		expectedMem    uint64
+		expectedNewMem uint64
+		errExpected    error
 	}{
 		{
-			name:        "should have a value of SizeEmptyStruct given a nil proxy handler",
-			val:         nil,
-			expected:    SizeEmptyStruct,
-			newExpected: SizeEmptyStruct,
-			errExpected: nil,
+			name:           "should have a value of SizeEmptyStruct given a nil proxy handler",
+			val:            nil,
+			expectedMem:    SizeEmptyStruct,
+			expectedNewMem: SizeEmptyStruct,
+			errExpected:    nil,
 		},
 		{
-			name:        "should have a value of SizeEmptyStruct given an empty proxy handler",
-			val:         &jsProxyHandler{},
-			expected:    SizeEmptyStruct,
-			newExpected: SizeEmptyStruct,
-			errExpected: nil,
+			name:           "should have a value of SizeEmptyStruct given an empty proxy handler",
+			val:            &jsProxyHandler{},
+			expectedMem:    SizeEmptyStruct,
+			expectedNewMem: SizeEmptyStruct,
+			errExpected:    nil,
 		},
 		{
 			name: "should have a value of SizeEmptyStruct given an empty proxy handler",
@@ -127,10 +127,10 @@ func TestJSProxyHandlerMemUsage(t *testing.T) {
 				},
 			},
 			// baseObject overhead + key/value pair
-			expected: SizeEmptyStruct + (4 + SizeInt),
+			expectedMem: SizeEmptyStruct + (4 + SizeInt),
 			// baseObject overhead + key/value pair with string overhead
-			newExpected: SizeEmptyStruct + (4 + SizeString + SizeInt),
-			errExpected: nil,
+			expectedNewMem: SizeEmptyStruct + (4 + SizeString + SizeInt),
+			errExpected:    nil,
 		},
 	}
 
@@ -143,11 +143,11 @@ func TestJSProxyHandlerMemUsage(t *testing.T) {
 			if err != nil && tc.errExpected != nil && err.Error() != tc.errExpected.Error() {
 				t.Fatalf("Errors do not match. Actual: %v Expected: %v", err, tc.errExpected)
 			}
-			if total != tc.expected {
-				t.Fatalf("Unexpected memory return. Actual: %v Expected: %v", total, tc.expected)
+			if total != tc.expectedMem {
+				t.Fatalf("Unexpected memory return. Actual: %v Expected: %v", total, tc.expectedMem)
 			}
-			if newTotal != tc.newExpected {
-				t.Fatalf("Unexpected new memory return. Actual: %v Expected: %v", newTotal, tc.newExpected)
+			if newTotal != tc.expectedNewMem {
+				t.Fatalf("Unexpected new memory return. Actual: %v Expected: %v", newTotal, tc.expectedNewMem)
 			}
 		})
 	}

@@ -5649,12 +5649,12 @@ func BenchmarkCompile(b *testing.B) {
 
 func TestProgramMemUsage(t *testing.T) {
 	tests := []struct {
-		name        string
-		mu          *MemUsageContext
-		p           *Program
-		expected    uint64
-		newExpected uint64
-		errExpected error
+		name           string
+		mu             *MemUsageContext
+		p              *Program
+		expectedMem    uint64
+		expectedNewMem uint64
+		errExpected    error
 	}{
 		{
 			name: "mem below threshold",
@@ -5665,10 +5665,10 @@ func TestProgramMemUsage(t *testing.T) {
 				},
 			},
 			// baseObject + ms field in DateObject
-			expected: SizeEmptyStruct + SizeNumber,
+			expectedMem: SizeEmptyStruct + SizeNumber,
 			// baseObject + ms field in DateObject
-			newExpected: SizeEmptyStruct + SizeNumber,
-			errExpected: nil,
+			expectedNewMem: SizeEmptyStruct + SizeNumber,
+			errExpected:    nil,
 		},
 		{
 			name: "mem way above threshold returns first crossing of threshold",
@@ -5687,10 +5687,10 @@ func TestProgramMemUsage(t *testing.T) {
 				},
 			},
 			// DateObject * 4 (we hit the limit at 4)
-			expected: (SizeEmptyStruct + SizeNumber) * 4,
+			expectedMem: (SizeEmptyStruct + SizeNumber) * 4,
 			// DateObject * 4 (we hit the limit at 4)
-			newExpected: (SizeEmptyStruct + SizeNumber) * 4,
-			errExpected: nil,
+			expectedNewMem: (SizeEmptyStruct + SizeNumber) * 4,
+			errExpected:    nil,
 		},
 	}
 
@@ -5703,11 +5703,11 @@ func TestProgramMemUsage(t *testing.T) {
 			if err != nil && tc.errExpected != nil && err.Error() != tc.errExpected.Error() {
 				t.Fatalf("Errors do not match. Actual: %v Expected: %v", err, tc.errExpected)
 			}
-			if total != tc.expected {
-				t.Fatalf("Unexpected memory return. Actual: %v Expected: %v", total, tc.expected)
+			if total != tc.expectedMem {
+				t.Fatalf("Unexpected memory return. Actual: %v Expected: %v", total, tc.expectedMem)
 			}
-			if newTotal != tc.newExpected {
-				t.Fatalf("Unexpected new memory return. Actual: %v Expected: %v", newTotal, tc.newExpected)
+			if newTotal != tc.expectedNewMem {
+				t.Fatalf("Unexpected new memory return. Actual: %v Expected: %v", newTotal, tc.expectedNewMem)
 			}
 		})
 	}

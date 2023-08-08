@@ -6,25 +6,25 @@ import (
 
 func TestDestructMemUsage(t *testing.T) {
 	tests := []struct {
-		name        string
-		val         *destructKeyedSource
-		expected    uint64
-		newExpected uint64
-		errExpected error
+		name           string
+		val            *destructKeyedSource
+		expectedMem    uint64
+		expectedNewMem uint64
+		errExpected    error
 	}{
 		{
-			name:        "should have a value given by the wrapped value",
-			val:         &destructKeyedSource{wrapped: valueInt(99)},
-			expected:    SizeInt, // wrapped value mem
-			newExpected: SizeInt, // wrapped value mem
-			errExpected: nil,
+			name:           "should have a value given by the wrapped value",
+			val:            &destructKeyedSource{wrapped: valueInt(99)},
+			expectedMem:    SizeInt, // wrapped value mem
+			expectedNewMem: SizeInt, // wrapped value mem
+			errExpected:    nil,
 		},
 		{
-			name:        "should have a value of 0 given a nil wrapped value",
-			val:         &destructKeyedSource{},
-			expected:    0,
-			newExpected: 0,
-			errExpected: nil,
+			name:           "should have a value of 0 given a nil wrapped value",
+			val:            &destructKeyedSource{},
+			expectedMem:    0,
+			expectedNewMem: 0,
+			errExpected:    nil,
 		},
 	}
 
@@ -37,11 +37,11 @@ func TestDestructMemUsage(t *testing.T) {
 			if err != nil && tc.errExpected != nil && err.Error() != tc.errExpected.Error() {
 				t.Fatalf("Errors do not match. Actual: %v Expected: %v", err, tc.errExpected)
 			}
-			if total != tc.expected {
-				t.Fatalf("Unexpected memory return. Actual: %v Expected: %v", total, tc.expected)
+			if total != tc.expectedMem {
+				t.Fatalf("Unexpected memory return. Actual: %v Expected: %v", total, tc.expectedMem)
 			}
-			if newTotal != tc.newExpected {
-				t.Fatalf("Unexpected new memory return. Actual: %v Expected: %v", newTotal, tc.newExpected)
+			if newTotal != tc.expectedNewMem {
+				t.Fatalf("Unexpected new memory return. Actual: %v Expected: %v", newTotal, tc.expectedNewMem)
 			}
 		})
 	}

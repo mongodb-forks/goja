@@ -1277,16 +1277,16 @@ func TestProxyEnumerableSymbols(t *testing.T) {
 
 func TestBuiltinProxyMemUsage(t *testing.T) {
 	tests := []struct {
-		name        string
-		val         *nativeProxyHandler
-		expected    uint64
-		newExpected uint64
+		name           string
+		val            *nativeProxyHandler
+		expectedMem    uint64
+		expectedNewMem uint64
 	}{
 		{
-			name:        "should have a value of 0 given a native proxy handler",
-			val:         &nativeProxyHandler{},
-			expected:    0,
-			newExpected: 0,
+			name:           "should have a value of 0 given a native proxy handler",
+			val:            &nativeProxyHandler{},
+			expectedMem:    0,
+			expectedNewMem: 0,
 		},
 	}
 
@@ -1296,11 +1296,11 @@ func TestBuiltinProxyMemUsage(t *testing.T) {
 			if err != nil {
 				t.Fatalf("Unexpected error. Actual: %v Expected: nil", err)
 			}
-			if total != tc.expected {
-				t.Fatalf("Unexpected memory return. Actual: %v Expected: %v", total, tc.expected)
+			if total != tc.expectedMem {
+				t.Fatalf("Unexpected memory return. Actual: %v Expected: %v", total, tc.expectedMem)
 			}
-			if newTotal != tc.newExpected {
-				t.Fatalf("Unexpected new memory return. Actual: %v Expected: %v", newTotal, tc.newExpected)
+			if newTotal != tc.expectedNewMem {
+				t.Fatalf("Unexpected new memory return. Actual: %v Expected: %v", newTotal, tc.expectedNewMem)
 			}
 		})
 	}

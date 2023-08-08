@@ -6,32 +6,32 @@ import (
 
 func TestObjectLazyMemUsage(t *testing.T) {
 	tests := []struct {
-		name        string
-		val         *lazyObject
-		expected    uint64
-		newExpected uint64
-		errExpected error
+		name           string
+		val            *lazyObject
+		expectedMem    uint64
+		expectedNewMem uint64
+		errExpected    error
 	}{
 		{
-			name:        "should have a value of SizeEmptyStruct given a nil lazy object",
-			val:         nil,
-			expected:    SizeEmptyStruct,
-			newExpected: SizeEmptyStruct,
-			errExpected: nil,
+			name:           "should have a value of SizeEmptyStruct given a nil lazy object",
+			val:            nil,
+			expectedMem:    SizeEmptyStruct,
+			expectedNewMem: SizeEmptyStruct,
+			errExpected:    nil,
 		},
 		{
-			name:        "should have a value of SizeEmptyStruct given an empty lazy object",
-			val:         &lazyObject{},
-			expected:    SizeEmptyStruct,
-			newExpected: SizeEmptyStruct,
-			errExpected: nil,
+			name:           "should have a value of SizeEmptyStruct given an empty lazy object",
+			val:            &lazyObject{},
+			expectedMem:    SizeEmptyStruct,
+			expectedNewMem: SizeEmptyStruct,
+			errExpected:    nil,
 		},
 		{
-			name:        "should have a value of SizeEmptyStruct given a base dynamic array with an empty val",
-			val:         &lazyObject{val: &Object{}},
-			expected:    SizeEmptyStruct + SizeEmptyStruct,
-			newExpected: SizeEmptyStruct + SizeEmptyStruct,
-			errExpected: nil,
+			name:           "should have a value of SizeEmptyStruct given a base dynamic array with an empty val",
+			val:            &lazyObject{val: &Object{}},
+			expectedMem:    SizeEmptyStruct + SizeEmptyStruct,
+			expectedNewMem: SizeEmptyStruct + SizeEmptyStruct,
+			errExpected:    nil,
 		},
 	}
 
@@ -44,11 +44,11 @@ func TestObjectLazyMemUsage(t *testing.T) {
 			if err != nil && tc.errExpected != nil && err.Error() != tc.errExpected.Error() {
 				t.Fatalf("Errors do not match. Actual: %v Expected: %v", err, tc.errExpected)
 			}
-			if total != tc.expected {
-				t.Fatalf("Unexpected memory return. Actual: %v Expected: %v", total, tc.expected)
+			if total != tc.expectedMem {
+				t.Fatalf("Unexpected memory return. Actual: %v Expected: %v", total, tc.expectedMem)
 			}
-			if newTotal != tc.newExpected {
-				t.Fatalf("Unexpected new memory return. Actual: %v Expected: %v", newTotal, tc.newExpected)
+			if newTotal != tc.expectedNewMem {
+				t.Fatalf("Unexpected new memory return. Actual: %v Expected: %v", newTotal, tc.expectedNewMem)
 			}
 		})
 	}

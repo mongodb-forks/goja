@@ -57,28 +57,28 @@ func TestAddedValuesMemUsage(t *testing.T) {
 		expectedNewMem uint64
 	}{
 		{
-			"should have memory usage of SizeNumber given a non-empty valueNumber",
-			valueNumber{val: 0},
-			SizeNumber,
-			SizeNumber,
+			name:           "should have memory usage of SizeNumber given a non-empty valueNumber",
+			val:            valueNumber{val: 0},
+			expectedMem:    SizeNumber,
+			expectedNewMem: SizeNumber,
 		},
 		{
-			"should have memory usage of SizeInt32 given a non-empty valueUInt32",
-			valueUInt32(1),
-			SizeInt32,
-			SizeInt32,
+			name:           "should have memory usage of SizeInt32 given a non-empty valueUInt32",
+			val:            valueUInt32(1),
+			expectedMem:    SizeInt32,
+			expectedNewMem: SizeInt32,
 		},
 		{
-			"should have memory usage of SizeInt32 given a non-empty valueInt32",
-			valueInt32(1),
-			SizeInt32,
-			SizeInt32,
+			name:           "should have memory usage of SizeInt32 given a non-empty valueInt32",
+			val:            valueInt32(1),
+			expectedMem:    SizeInt32,
+			expectedNewMem: SizeInt32,
 		},
 		{
-			"should have memory usage of SizeNumber given a non-empty valueInt64",
-			valueInt64(1),
-			SizeNumber,
-			SizeNumber,
+			name:           "should have memory usage of SizeNumber given a non-empty valueInt64",
+			val:            valueInt64(1),
+			expectedMem:    SizeNumber,
+			expectedNewMem: SizeNumber,
 		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {

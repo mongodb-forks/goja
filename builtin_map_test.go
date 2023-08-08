@@ -245,12 +245,12 @@ func BenchmarkMapDeleteJS(b *testing.B) {
 
 func TestMapObjectMemUsage(t *testing.T) {
 	tests := []struct {
-		name        string
-		mu          *MemUsageContext
-		mo          *mapObject
-		expected    uint64
-		newExpected uint64
-		errExpected error
+		name           string
+		mu             *MemUsageContext
+		mo             *mapObject
+		expectedMem    uint64
+		expectedNewMem uint64
+		errExpected    error
 	}{
 		{
 			name: "mem below threshold",
@@ -266,18 +266,18 @@ func TestMapObjectMemUsage(t *testing.T) {
 				},
 			},
 			// baseObject + stringObject + len(key) + stringObject + len(key)
-			expected: SizeEmptyStruct + 22 + 3 + 22 + 5,
+			expectedMem: SizeEmptyStruct + 22 + 3 + 22 + 5,
 			// baseObject + stringObject + (len(key) + overhead) + stringObject + (len(key) + overhead)
-			newExpected: SizeEmptyStruct + 38 + (3 + SizeString) + 38 + (5 + SizeString),
-			errExpected: nil,
+			expectedNewMem: SizeEmptyStruct + 38 + (3 + SizeString) + 38 + (5 + SizeString),
+			errExpected:    nil,
 		},
 		{
-			name:        "mem is SizeEmptyStruct given a nil map object",
-			mu:          NewMemUsageContext(New(), 88, 5000, 50, 50, TestNativeMemUsageChecker{}),
-			mo:          nil,
-			expected:    SizeEmptyStruct,
-			newExpected: SizeEmptyStruct,
-			errExpected: nil,
+			name:           "mem is SizeEmptyStruct given a nil map object",
+			mu:             NewMemUsageContext(New(), 88, 5000, 50, 50, TestNativeMemUsageChecker{}),
+			mo:             nil,
+			expectedMem:    SizeEmptyStruct,
+			expectedNewMem: SizeEmptyStruct,
+			errExpected:    nil,
 		},
 		{
 			name: "mem way above threshold returns first crossing of threshold",
@@ -305,13 +305,13 @@ func TestMapObjectMemUsage(t *testing.T) {
 				},
 			},
 			// baseObject
-			expected: SizeEmptyStruct +
+			expectedMem: SizeEmptyStruct +
 				// stringObject + len(key) (we reach the limit after 2)
 				(22+3)*2 +
 				// stringObject + len(value) (we reach the limit after 2)
 				(22+5)*2,
 			// baseObject
-			newExpected: SizeEmptyStruct +
+			expectedNewMem: SizeEmptyStruct +
 				// stringObject + len(key) + overhead (we reach the limit after 2)
 				(38+(3+SizeString))*2 +
 				// stringObject + len(value) + overhead (we reach the limit after 2)
@@ -329,11 +329,11 @@ func TestMapObjectMemUsage(t *testing.T) {
 			if err != nil && tc.errExpected != nil && err.Error() != tc.errExpected.Error() {
 				t.Fatalf("Errors do not match. Actual: %v Expected: %v", err, tc.errExpected)
 			}
-			if total != tc.expected {
-				t.Fatalf("Unexpected memory return. Actual: %v Expected: %v", total, tc.expected)
+			if total != tc.expectedMem {
+				t.Fatalf("Unexpected memory return. Actual: %v Expected: %v", total, tc.expectedMem)
 			}
-			if newTotal != tc.newExpected {
-				t.Fatalf("Unexpected new memory return. Actual: %v Expected: %v", newTotal, tc.newExpected)
+			if newTotal != tc.expectedNewMem {
+				t.Fatalf("Unexpected new memory return. Actual: %v Expected: %v", newTotal, tc.expectedNewMem)
 			}
 		})
 	}

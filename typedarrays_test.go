@@ -514,27 +514,27 @@ func TestTypedArrayObjectMemUsage(t *testing.T) {
 
 func TestDataViewObjectMemUsage(t *testing.T) {
 	tests := []struct {
-		name        string
-		val         *dataViewObject
-		expected    uint64
-		newExpected uint64
-		errExpected error
+		name           string
+		val            *dataViewObject
+		expectedMem    uint64
+		expectedNewMem uint64
+		errExpected    error
 	}{
 		{
-			name:        "should have a value of SizeEmptyStruct given a nil data view object",
-			val:         nil,
-			expected:    SizeEmptyStruct,
-			newExpected: SizeEmptyStruct,
-			errExpected: nil,
+			name:           "should have a value of SizeEmptyStruct given a nil data view object",
+			val:            nil,
+			expectedMem:    SizeEmptyStruct,
+			expectedNewMem: SizeEmptyStruct,
+			errExpected:    nil,
 		},
 		{
 			name: "should have a value of SizeEmptyStruct given an empty data view object",
 			val:  &dataViewObject{},
 			// typedArrayObject overhead + nil baseObject overhead
-			expected: SizeEmptyStruct + SizeEmptyStruct,
+			expectedMem: SizeEmptyStruct + SizeEmptyStruct,
 			// typedArrayObject overhead + nil baseObject overhead
-			newExpected: SizeEmptyStruct + SizeEmptyStruct,
-			errExpected: nil,
+			expectedNewMem: SizeEmptyStruct + SizeEmptyStruct,
+			errExpected:    nil,
 		},
 		{
 			name: "should account for baseObject overhead given a data view object with empty baseObject",
@@ -542,10 +542,10 @@ func TestDataViewObjectMemUsage(t *testing.T) {
 				baseObject: baseObject{},
 			},
 			// typedArrayObject overhead + baseObject overhead
-			expected: SizeEmptyStruct + SizeEmptyStruct,
+			expectedMem: SizeEmptyStruct + SizeEmptyStruct,
 			// typedArrayObject overhead + baseObject overhead
-			newExpected: SizeEmptyStruct + SizeEmptyStruct,
-			errExpected: nil,
+			expectedNewMem: SizeEmptyStruct + SizeEmptyStruct,
+			errExpected:    nil,
 		},
 		{
 			name: "should account for baseObject overhead and values given a data view object with non-empty baseObject",
@@ -553,10 +553,10 @@ func TestDataViewObjectMemUsage(t *testing.T) {
 				baseObject: baseObject{propNames: []unistring.String{"test"}, values: map[unistring.String]Value{"test": valueInt(99)}},
 			},
 			// typedArrayObject overhead + baseObject overhead + key/value pair
-			expected: SizeEmptyStruct + SizeEmptyStruct + (4 + SizeInt),
+			expectedMem: SizeEmptyStruct + SizeEmptyStruct + (4 + SizeInt),
 			// typedArrayObject overhead + baseObject overhead + key/value pair with string overhead
-			newExpected: SizeEmptyStruct + SizeEmptyStruct + (4 + SizeString + SizeInt),
-			errExpected: nil,
+			expectedNewMem: SizeEmptyStruct + SizeEmptyStruct + (4 + SizeString + SizeInt),
+			errExpected:    nil,
 		},
 		{
 			name: "should account for arrayBufferObject overhead and values given a data view object with non-empty viewedArrayBuf",
@@ -566,10 +566,10 @@ func TestDataViewObjectMemUsage(t *testing.T) {
 				},
 			},
 			// typedArrayObject overhead + nil baseObject overhead + arrayBufferObject overhead + key/value pair
-			expected: SizeEmptyStruct + SizeEmptyStruct + SizeEmptyStruct + (4 + SizeInt),
+			expectedMem: SizeEmptyStruct + SizeEmptyStruct + SizeEmptyStruct + (4 + SizeInt),
 			// typedArrayObject overhead + nil baseObject overhead + arrayBufferObject overhead + key/value pair with string overhead
-			newExpected: SizeEmptyStruct + SizeEmptyStruct + SizeEmptyStruct + (4 + SizeString + SizeInt),
-			errExpected: nil,
+			expectedNewMem: SizeEmptyStruct + SizeEmptyStruct + SizeEmptyStruct + (4 + SizeString + SizeInt),
+			errExpected:    nil,
 		},
 	}
 
@@ -582,11 +582,11 @@ func TestDataViewObjectMemUsage(t *testing.T) {
 			if err != nil && tc.errExpected != nil && err.Error() != tc.errExpected.Error() {
 				t.Fatalf("Errors do not match. Actual: %v Expected: %v", err, tc.errExpected)
 			}
-			if total != tc.expected {
-				t.Fatalf("Unexpected memory return. Actual: %v Expected: %v", total, tc.expected)
+			if total != tc.expectedMem {
+				t.Fatalf("Unexpected memory return. Actual: %v Expected: %v", total, tc.expectedMem)
 			}
-			if newTotal != tc.newExpected {
-				t.Fatalf("Unexpected new memory return. Actual: %v Expected: %v", newTotal, tc.newExpected)
+			if newTotal != tc.expectedNewMem {
+				t.Fatalf("Unexpected new memory return. Actual: %v Expected: %v", newTotal, tc.expectedNewMem)
 			}
 		})
 	}

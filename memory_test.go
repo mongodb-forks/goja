@@ -518,35 +518,35 @@ func TestMemCheck(t *testing.T) {
 
 func TestMemMaxDepth(t *testing.T) {
 	for _, tc := range []struct {
-		description   string
+		desc          string
 		script        string
 		expectedDepth int
 	}{
 		{
-			"nested objects",
-			`var x = {"1": {"2": {"3": {"4": {"5": {"6": "abc"}}}}}}`,
-			6,
+			desc:          "nested objects",
+			script:        `var x = {"1": {"2": {"3": {"4": {"5": {"6": "abc"}}}}}}`,
+			expectedDepth: 6,
 		},
 		{
-			"array",
-			`var x = []
+			desc: "array",
+			script: `var x = []
 			x[1] = {"1": {"2": {"3": {"4": {"5": {"6": "abc"}}}}}};`,
-			7,
+			expectedDepth: 7,
 		},
 		{
-			"sparse array (sparseArrayObject)",
-			`var x = []
+			desc: "sparse array (sparseArrayObject)",
+			script: `var x = []
 			x[5000] = {"1": {"2": {"3": {"4": {"5": {"6": "abc"}}}}}};`,
-			7,
+			expectedDepth: 7,
 		},
 		{
-			"Map",
-			`var abc = new Map()
+			desc: "Map",
+			script: `var abc = new Map()
 			abc.set("obj", {"1": {"2": {"3": {"4": {"5": {"6": "abc"}}}}}});`,
-			7,
+			expectedDepth: 7,
 		},
 	} {
-		t.Run(fmt.Sprintf(tc.description), func(t *testing.T) {
+		t.Run(fmt.Sprintf(tc.desc), func(t *testing.T) {
 			vm := New()
 			_, err := vm.RunString(tc.script)
 			if err != nil {
