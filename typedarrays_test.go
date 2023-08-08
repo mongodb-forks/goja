@@ -354,17 +354,17 @@ func TestArrayBufferObjectMemUsage(t *testing.T) {
 		errExpected error
 	}{
 		{
-			name:        "should have a value of SizeEmpty given a nil array buffer object",
+			name:        "should have a value of SizeEmptyStruct given a nil array buffer object",
 			val:         nil,
-			expected:    SizeEmpty,
-			newExpected: SizeEmpty,
+			expected:    SizeEmptyStruct,
+			newExpected: SizeEmptyStruct,
 			errExpected: nil,
 		},
 		{
-			name:        "should have a value of SizeEmpty given an empty array buffer object",
+			name:        "should have a value of SizeEmptyStruct given an empty array buffer object",
 			val:         &arrayBufferObject{},
-			expected:    SizeEmpty,
-			newExpected: SizeEmpty,
+			expected:    SizeEmptyStruct,
+			newExpected: SizeEmptyStruct,
 			errExpected: nil,
 		},
 		{
@@ -373,9 +373,9 @@ func TestArrayBufferObjectMemUsage(t *testing.T) {
 				baseObject: baseObject{},
 			},
 			// baseObject overhead
-			expected: SizeEmpty,
+			expected: SizeEmptyStruct,
 			// baseObject overhead
-			newExpected: SizeEmpty,
+			newExpected: SizeEmptyStruct,
 			errExpected: nil,
 		},
 		{
@@ -384,9 +384,9 @@ func TestArrayBufferObjectMemUsage(t *testing.T) {
 				baseObject: baseObject{propNames: []unistring.String{"test"}, values: map[unistring.String]Value{"test": valueInt(99)}},
 			},
 			// baseObject overhead + key/value pair
-			expected: SizeEmpty + (4 + SizeInt),
+			expected: SizeEmptyStruct + (4 + SizeInt),
 			// baseObject overhead + key/value pair with string overhead
-			newExpected: SizeEmpty + (4 + SizeString + SizeInt),
+			newExpected: SizeEmptyStruct + (4 + SizeString + SizeInt),
 			errExpected: nil,
 		},
 	}
@@ -419,19 +419,19 @@ func TestTypedArrayObjectMemUsage(t *testing.T) {
 		errExpected error
 	}{
 		{
-			name:        "should have a value of SizeEmpty given a nil typed array object",
+			name:        "should have a value of SizeEmptyStruct given a nil typed array object",
 			val:         nil,
-			expected:    SizeEmpty,
-			newExpected: SizeEmpty,
+			expected:    SizeEmptyStruct,
+			newExpected: SizeEmptyStruct,
 			errExpected: nil,
 		},
 		{
-			name: "should have a value of SizeEmpty given an empty typed array object",
+			name: "should have a value of SizeEmptyStruct given an empty typed array object",
 			val:  &typedArrayObject{},
 			// typedArrayObject overhead + nil baseObject overhead
-			expected: SizeEmpty + SizeEmpty,
+			expected: SizeEmptyStruct + SizeEmptyStruct,
 			// typedArrayObject overhead + nil baseObject overhead
-			newExpected: SizeEmpty + SizeEmpty,
+			newExpected: SizeEmptyStruct + SizeEmptyStruct,
 			errExpected: nil,
 		},
 		{
@@ -440,9 +440,9 @@ func TestTypedArrayObjectMemUsage(t *testing.T) {
 				baseObject: baseObject{},
 			},
 			// typedArrayObject overhead + baseObject overhead
-			expected: SizeEmpty + SizeEmpty,
+			expected: SizeEmptyStruct + SizeEmptyStruct,
 			// typedArrayObject overhead + baseObject overhead
-			newExpected: SizeEmpty + SizeEmpty,
+			newExpected: SizeEmptyStruct + SizeEmptyStruct,
 			errExpected: nil,
 		},
 		{
@@ -451,9 +451,9 @@ func TestTypedArrayObjectMemUsage(t *testing.T) {
 				baseObject: baseObject{propNames: []unistring.String{"test"}, values: map[unistring.String]Value{"test": valueInt(99)}},
 			},
 			// typedArrayObject overhead + baseObject overhead + key/value pair
-			expected: SizeEmpty + SizeEmpty + (4 + SizeInt),
+			expected: SizeEmptyStruct + SizeEmptyStruct + (4 + SizeInt),
 			// typedArrayObject overhead + baseObject overhead + key/value pair with string overhead
-			newExpected: SizeEmpty + SizeEmpty + (4 + SizeString + SizeInt),
+			newExpected: SizeEmptyStruct + SizeEmptyStruct + (4 + SizeString + SizeInt),
 			errExpected: nil,
 		},
 		{
@@ -464,18 +464,18 @@ func TestTypedArrayObjectMemUsage(t *testing.T) {
 				},
 			},
 			// typedArrayObject overhead + nil baseObject overhead + arrayBufferObject overhead + key/value pair
-			expected: SizeEmpty + SizeEmpty + SizeEmpty + (4 + SizeInt),
+			expected: SizeEmptyStruct + SizeEmptyStruct + SizeEmptyStruct + (4 + SizeInt),
 			// typedArrayObject overhead + nil baseObject overhead + arrayBufferObject overhead + key/value pair with string overhead
-			newExpected: SizeEmpty + SizeEmpty + SizeEmpty + (4 + SizeString + SizeInt),
+			newExpected: SizeEmptyStruct + SizeEmptyStruct + SizeEmptyStruct + (4 + SizeString + SizeInt),
 			errExpected: nil,
 		},
 		{
 			name: "should account for defaultCtor overhead given a typed array object with empty defaultCtor",
 			val:  &typedArrayObject{defaultCtor: &Object{}},
 			// typedArrayObject overhead + nil baseObject overhead + defaultCtor overhead
-			expected: SizeEmpty + SizeEmpty + SizeEmpty,
+			expected: SizeEmptyStruct + SizeEmptyStruct + SizeEmptyStruct,
 			// typedArrayObject overhead + nil baseObject overhead + defaultCtor overhead
-			newExpected: SizeEmpty + SizeEmpty + SizeEmpty,
+			newExpected: SizeEmptyStruct + SizeEmptyStruct + SizeEmptyStruct,
 			errExpected: nil,
 		},
 		{
@@ -486,9 +486,9 @@ func TestTypedArrayObjectMemUsage(t *testing.T) {
 				},
 			},
 			// typedArrayObject overhead + nil baseObject overhead + defaultCtor overhead + key/value pair
-			expected: SizeEmpty + SizeEmpty + SizeEmpty + (4 + SizeInt),
+			expected: SizeEmptyStruct + SizeEmptyStruct + SizeEmptyStruct + (4 + SizeInt),
 			// typedArrayObject overhead + nil baseObject overhead + defaultCtor overhead + key/value pair with string overhead
-			newExpected: SizeEmpty + SizeEmpty + SizeEmpty + (4 + SizeString + SizeInt),
+			newExpected: SizeEmptyStruct + SizeEmptyStruct + SizeEmptyStruct + (4 + SizeString + SizeInt),
 			errExpected: nil,
 		},
 	}
@@ -521,19 +521,19 @@ func TestDataViewObjectMemUsage(t *testing.T) {
 		errExpected error
 	}{
 		{
-			name:        "should have a value of SizeEmpty given a nil data view object",
+			name:        "should have a value of SizeEmptyStruct given a nil data view object",
 			val:         nil,
-			expected:    SizeEmpty,
-			newExpected: SizeEmpty,
+			expected:    SizeEmptyStruct,
+			newExpected: SizeEmptyStruct,
 			errExpected: nil,
 		},
 		{
-			name: "should have a value of SizeEmpty given an empty data view object",
+			name: "should have a value of SizeEmptyStruct given an empty data view object",
 			val:  &dataViewObject{},
 			// typedArrayObject overhead + nil baseObject overhead
-			expected: SizeEmpty + SizeEmpty,
+			expected: SizeEmptyStruct + SizeEmptyStruct,
 			// typedArrayObject overhead + nil baseObject overhead
-			newExpected: SizeEmpty + SizeEmpty,
+			newExpected: SizeEmptyStruct + SizeEmptyStruct,
 			errExpected: nil,
 		},
 		{
@@ -542,9 +542,9 @@ func TestDataViewObjectMemUsage(t *testing.T) {
 				baseObject: baseObject{},
 			},
 			// typedArrayObject overhead + baseObject overhead
-			expected: SizeEmpty + SizeEmpty,
+			expected: SizeEmptyStruct + SizeEmptyStruct,
 			// typedArrayObject overhead + baseObject overhead
-			newExpected: SizeEmpty + SizeEmpty,
+			newExpected: SizeEmptyStruct + SizeEmptyStruct,
 			errExpected: nil,
 		},
 		{
@@ -553,9 +553,9 @@ func TestDataViewObjectMemUsage(t *testing.T) {
 				baseObject: baseObject{propNames: []unistring.String{"test"}, values: map[unistring.String]Value{"test": valueInt(99)}},
 			},
 			// typedArrayObject overhead + baseObject overhead + key/value pair
-			expected: SizeEmpty + SizeEmpty + (4 + SizeInt),
+			expected: SizeEmptyStruct + SizeEmptyStruct + (4 + SizeInt),
 			// typedArrayObject overhead + baseObject overhead + key/value pair with string overhead
-			newExpected: SizeEmpty + SizeEmpty + (4 + SizeString + SizeInt),
+			newExpected: SizeEmptyStruct + SizeEmptyStruct + (4 + SizeString + SizeInt),
 			errExpected: nil,
 		},
 		{
@@ -566,9 +566,9 @@ func TestDataViewObjectMemUsage(t *testing.T) {
 				},
 			},
 			// typedArrayObject overhead + nil baseObject overhead + arrayBufferObject overhead + key/value pair
-			expected: SizeEmpty + SizeEmpty + SizeEmpty + (4 + SizeInt),
+			expected: SizeEmptyStruct + SizeEmptyStruct + SizeEmptyStruct + (4 + SizeInt),
 			// typedArrayObject overhead + nil baseObject overhead + arrayBufferObject overhead + key/value pair with string overhead
-			newExpected: SizeEmpty + SizeEmpty + SizeEmpty + (4 + SizeString + SizeInt),
+			newExpected: SizeEmptyStruct + SizeEmptyStruct + SizeEmptyStruct + (4 + SizeString + SizeInt),
 			errExpected: nil,
 		},
 	}

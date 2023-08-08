@@ -5665,9 +5665,9 @@ func TestProgramMemUsage(t *testing.T) {
 				},
 			},
 			// baseObject + ms field in DateObject
-			expected: SizeEmpty + SizeNumber,
+			expected: SizeEmptyStruct + SizeNumber,
 			// baseObject + ms field in DateObject
-			newExpected: SizeEmpty + SizeNumber,
+			newExpected: SizeEmptyStruct + SizeNumber,
 			errExpected: nil,
 		},
 		{
@@ -5687,9 +5687,9 @@ func TestProgramMemUsage(t *testing.T) {
 				},
 			},
 			// DateObject * 4 (we hit the limit at 4)
-			expected: (SizeEmpty + SizeNumber) * 4,
+			expected: (SizeEmptyStruct + SizeNumber) * 4,
 			// DateObject * 4 (we hit the limit at 4)
-			newExpected: (SizeEmpty + SizeNumber) * 4,
+			newExpected: (SizeEmptyStruct + SizeNumber) * 4,
 			errExpected: nil,
 		},
 	}

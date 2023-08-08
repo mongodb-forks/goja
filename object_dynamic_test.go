@@ -430,35 +430,35 @@ func TestBaseDynamicObjectMemUsage(t *testing.T) {
 		errExpected error
 	}{
 		{
-			name:        "should have a value of SizeEmpty given a nil base dynamic object",
+			name:        "should have a value of SizeEmptyStruct given a nil base dynamic object",
 			val:         nil,
-			expected:    SizeEmpty,
-			newExpected: SizeEmpty,
+			expected:    SizeEmptyStruct,
+			newExpected: SizeEmptyStruct,
 			errExpected: nil,
 		},
 		{
-			name:        "should have a value of SizeEmpty given an empty base dynamic object",
+			name:        "should have a value of SizeEmptyStruct given an empty base dynamic object",
 			val:         &baseDynamicObject{},
-			expected:    SizeEmpty,
-			newExpected: SizeEmpty,
+			expected:    SizeEmptyStruct,
+			newExpected: SizeEmptyStruct,
 			errExpected: nil,
 		},
 		{
-			name:        "should have a value of SizeEmpty given a base dynamic object with an empty Object",
+			name:        "should have a value of SizeEmptyStruct given a base dynamic object with an empty Object",
 			val:         &baseDynamicObject{val: &Object{}},
-			expected:    SizeEmpty,
-			newExpected: SizeEmpty,
+			expected:    SizeEmptyStruct,
+			newExpected: SizeEmptyStruct,
 			errExpected: nil,
 		},
 		{
-			name: "should have a value of SizeEmpty given a base dynamic object with an empty Object",
+			name: "should have a value of SizeEmptyStruct given a base dynamic object with an empty Object",
 			val: &baseDynamicObject{
 				val: &Object{
 					self: &baseObject{propNames: []unistring.String{"test"}, values: map[unistring.String]Value{"test": valueInt(99)}},
 				},
 			},
-			expected:    SizeEmpty + (4 + SizeInt),
-			newExpected: SizeEmpty + (4 + SizeString + SizeInt),
+			expected:    SizeEmptyStruct + (4 + SizeInt),
+			newExpected: SizeEmptyStruct + (4 + SizeString + SizeInt),
 			errExpected: nil,
 		},
 	}
@@ -491,24 +491,24 @@ func TestDynamicArrayMemUsage(t *testing.T) {
 		errExpected error
 	}{
 		{
-			name:        "should have a value of SizeEmpty given a nil dynamic array",
+			name:        "should have a value of SizeEmptyStruct given a nil dynamic array",
 			val:         nil,
-			expected:    SizeEmpty,
-			newExpected: SizeEmpty,
+			expected:    SizeEmptyStruct,
+			newExpected: SizeEmptyStruct,
 			errExpected: nil,
 		},
 		{
-			name:        "should have a value of SizeEmpty given an empty base dynamic array",
+			name:        "should have a value of SizeEmptyStruct given an empty base dynamic array",
 			val:         &dynamicArray{},
-			expected:    SizeEmpty,
-			newExpected: SizeEmpty,
+			expected:    SizeEmptyStruct,
+			newExpected: SizeEmptyStruct,
 			errExpected: nil,
 		},
 		{
-			name:        "should have a value of SizeEmpty given a base dynamic array with an empty baseDynamicObject",
+			name:        "should have a value of SizeEmptyStruct given a base dynamic array with an empty baseDynamicObject",
 			val:         &dynamicArray{baseDynamicObject: baseDynamicObject{}},
-			expected:    SizeEmpty,
-			newExpected: SizeEmpty,
+			expected:    SizeEmptyStruct,
+			newExpected: SizeEmptyStruct,
 			errExpected: nil,
 		},
 	}

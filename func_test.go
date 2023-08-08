@@ -172,15 +172,15 @@ func TestNativeFuncObjectMemUsage(t *testing.T) {
 		{
 			name:        "should have a value given by the wrapped value",
 			val:         &nativeFuncObject{},
-			expected:    SizeEmpty, // baseFuncObject
-			newExpected: SizeEmpty, // baseFuncObject
+			expected:    SizeEmptyStruct, // baseFuncObject
+			newExpected: SizeEmptyStruct, // baseFuncObject
 			errExpected: nil,
 		},
 		{
-			name:        "should have a value of SizeEmpty given a nil nativeFuncObject",
+			name:        "should have a value of SizeEmptyStruct given a nil nativeFuncObject",
 			val:         nil,
-			expected:    SizeEmpty,
-			newExpected: SizeEmpty,
+			expected:    SizeEmptyStruct,
+			newExpected: SizeEmptyStruct,
 			errExpected: nil,
 		},
 	}
@@ -213,17 +213,17 @@ func TestFuncObjectMemUsage(t *testing.T) {
 		errExpected error
 	}{
 		{
-			name:        "should have a value of SizeEmpty given a nil funcObject",
+			name:        "should have a value of SizeEmptyStruct given a nil funcObject",
 			val:         nil,
-			expected:    SizeEmpty,
-			newExpected: SizeEmpty,
+			expected:    SizeEmptyStruct,
+			newExpected: SizeEmptyStruct,
 			errExpected: nil,
 		},
 		{
 			name:        "should have a value given by baseObject with no stash",
 			val:         &funcObject{},
-			expected:    SizeEmpty, // baseFuncObject
-			newExpected: SizeEmpty, // baseFuncObject
+			expected:    SizeEmptyStruct, // baseFuncObject
+			newExpected: SizeEmptyStruct, // baseFuncObject
 			errExpected: nil,
 		},
 		{
@@ -236,9 +236,9 @@ func TestFuncObjectMemUsage(t *testing.T) {
 				},
 			},
 			// baseFuncObject + value in stash
-			expected: SizeEmpty + SizeInt,
+			expected: SizeEmptyStruct + SizeInt,
 			// baseFuncObject + value in stash
-			newExpected: SizeEmpty + SizeInt,
+			newExpected: SizeEmptyStruct + SizeInt,
 			errExpected: nil,
 		},
 	}

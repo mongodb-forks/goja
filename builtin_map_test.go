@@ -266,17 +266,17 @@ func TestMapObjectMemUsage(t *testing.T) {
 				},
 			},
 			// baseObject + stringObject + len(key) + stringObject + len(key)
-			expected: SizeEmpty + 22 + 3 + 22 + 5,
+			expected: SizeEmptyStruct + 22 + 3 + 22 + 5,
 			// baseObject + stringObject + (len(key) + overhead) + stringObject + (len(key) + overhead)
-			newExpected: SizeEmpty + 38 + (3 + SizeString) + 38 + (5 + SizeString),
+			newExpected: SizeEmptyStruct + 38 + (3 + SizeString) + 38 + (5 + SizeString),
 			errExpected: nil,
 		},
 		{
-			name:        "mem is SizeEmpty given a nil map object",
+			name:        "mem is SizeEmptyStruct given a nil map object",
 			mu:          NewMemUsageContext(New(), 88, 5000, 50, 50, TestNativeMemUsageChecker{}),
 			mo:          nil,
-			expected:    SizeEmpty,
-			newExpected: SizeEmpty,
+			expected:    SizeEmptyStruct,
+			newExpected: SizeEmptyStruct,
 			errExpected: nil,
 		},
 		{
@@ -305,13 +305,13 @@ func TestMapObjectMemUsage(t *testing.T) {
 				},
 			},
 			// baseObject
-			expected: SizeEmpty +
+			expected: SizeEmptyStruct +
 				// stringObject + len(key) (we reach the limit after 2)
 				(22+3)*2 +
 				// stringObject + len(value) (we reach the limit after 2)
 				(22+5)*2,
 			// baseObject
-			newExpected: SizeEmpty +
+			newExpected: SizeEmptyStruct +
 				// stringObject + len(key) + overhead (we reach the limit after 2)
 				(38+(3+SizeString))*2 +
 				// stringObject + len(value) + overhead (we reach the limit after 2)

@@ -176,7 +176,7 @@ func (d *dateObject) timeUTC() time.Time {
 
 func (d *dateObject) MemUsage(ctx *MemUsageContext) (memUsage uint64, newMemUsage uint64, err error) {
 	if d == nil || ctx.IsObjVisited(d) {
-		return SizeEmpty, SizeEmpty, nil
+		return SizeEmptyStruct, SizeEmptyStruct, nil
 	}
 	ctx.VisitObj(d)
 

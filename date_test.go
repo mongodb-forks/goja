@@ -320,16 +320,16 @@ func TestDateMemUsage(t *testing.T) {
 			name: "should have a value given by baseObject and msec",
 			val:  &dateObject{msec: int64(100)},
 			// baseObject + msec value
-			expected: SizeEmpty + SizeNumber,
+			expected: SizeEmptyStruct + SizeNumber,
 			// baseObject + msec value
-			newExpected: SizeEmpty + SizeNumber,
+			newExpected: SizeEmptyStruct + SizeNumber,
 			errExpected: nil,
 		},
 		{
-			name:        "should have a value of SizeEmpty given a nil dateObject",
+			name:        "should have a value of SizeEmptyStruct given a nil dateObject",
 			val:         nil,
-			expected:    SizeEmpty,
-			newExpected: SizeEmpty,
+			expected:    SizeEmptyStruct,
+			newExpected: SizeEmptyStruct,
 			errExpected: nil,
 		},
 	}

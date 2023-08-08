@@ -463,7 +463,7 @@ func (f *boundFuncObject) hasInstance(v Value) bool {
 
 func (f *nativeFuncObject) MemUsage(ctx *MemUsageContext) (memUsage uint64, newMemUsage uint64, err error) {
 	if f == nil || ctx.IsObjVisited(f) {
-		return SizeEmpty, SizeEmpty, nil
+		return SizeEmptyStruct, SizeEmptyStruct, nil
 	}
 	ctx.VisitObj(f)
 
@@ -472,7 +472,7 @@ func (f *nativeFuncObject) MemUsage(ctx *MemUsageContext) (memUsage uint64, newM
 
 func (f *funcObject) MemUsage(ctx *MemUsageContext) (memUsage uint64, newMemUsage uint64, err error) {
 	if f == nil || ctx.IsObjVisited(f) {
-		return SizeEmpty, SizeEmpty, nil
+		return SizeEmptyStruct, SizeEmptyStruct, nil
 	}
 	ctx.VisitObj(f)
 

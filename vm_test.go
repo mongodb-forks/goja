@@ -395,35 +395,35 @@ func TestVMContextMemUsage(t *testing.T) {
 		errExpected error
 	}{
 		{
-			name:        "should have a value of SizeEmpty given a nil vmContext",
+			name:        "should have a value of SizeEmptyStruct given a nil vmContext",
 			val:         nil,
-			expected:    SizeEmpty,
-			newExpected: SizeEmpty,
+			expected:    SizeEmptyStruct,
+			newExpected: SizeEmptyStruct,
 			errExpected: nil,
 		},
 		{
-			name:        "should have a value of SizeEmpty given an empty vmContext",
+			name:        "should have a value of SizeEmptyStruct given an empty vmContext",
 			val:         &vmContext{},
-			expected:    SizeEmpty,
-			newExpected: SizeEmpty,
+			expected:    SizeEmptyStruct,
+			newExpected: SizeEmptyStruct,
 			errExpected: nil,
 		},
 		{
 			name: "should account for newTarget given a vmContext with non-empty newTarget",
 			val:  &vmContext{newTarget: valueInt(99)},
 			// vmContext overhead + newTarget value
-			expected: SizeEmpty + SizeInt,
+			expected: SizeEmptyStruct + SizeInt,
 			// vmContext overhead + newTarget value
-			newExpected: SizeEmpty + SizeInt,
+			newExpected: SizeEmptyStruct + SizeInt,
 			errExpected: nil,
 		},
 		{
 			name: "should account for stash given a vmContext with non-empty stash",
 			val:  &vmContext{stash: &stash{values: []Value{valueInt(99)}}},
 			// vmContext overhead + stash value
-			expected: SizeEmpty + SizeInt,
+			expected: SizeEmptyStruct + SizeInt,
 			// vmContext overhead + stash value
-			newExpected: SizeEmpty + SizeInt,
+			newExpected: SizeEmptyStruct + SizeInt,
 			errExpected: nil,
 		},
 		{
@@ -432,9 +432,9 @@ func TestVMContextMemUsage(t *testing.T) {
 				values: []Value{valueInt(99)},
 			}},
 			// vmContext overhead + prg value
-			expected: SizeEmpty + SizeInt,
+			expected: SizeEmptyStruct + SizeInt,
 			// vmContext overhead + prg value
-			newExpected: SizeEmpty + SizeInt,
+			newExpected: SizeEmptyStruct + SizeInt,
 			errExpected: nil,
 		},
 	}
@@ -488,9 +488,9 @@ func TestStashMemUsage(t *testing.T) {
 				},
 			},
 			// baseObject overhead + obj value
-			expected: SizeEmpty + (4 + SizeInt),
+			expected: SizeEmptyStruct + (4 + SizeInt),
 			// baseObject overhead + obj value with string overhead
-			newExpected: SizeEmpty + (4 + SizeString + SizeInt),
+			newExpected: SizeEmptyStruct + (4 + SizeString + SizeInt),
 			errExpected: nil,
 		},
 		{

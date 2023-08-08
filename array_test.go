@@ -152,15 +152,15 @@ func TestArrayObjectMemUsage(t *testing.T) {
 				},
 			},
 			// array overhead + array baseObject
-			expected: SizeEmpty + SizeEmpty +
+			expected: SizeEmptyStruct + SizeEmptyStruct +
 				// stringObject + baseObject + prop "length"
-				(SizeEmpty + SizeEmpty + 6) +
+				(SizeEmptyStruct + SizeEmptyStruct + 6) +
 				// len("key")
 				3,
 			// array overhead + array baseObject
-			newExpected: SizeEmpty + SizeEmpty +
+			newExpected: SizeEmptyStruct + SizeEmptyStruct +
 				// stringObject + baseObject + prop "length" with string overhead
-				(SizeEmpty + SizeEmpty + (6 + SizeString)) +
+				(SizeEmptyStruct + SizeEmptyStruct + (6 + SizeString)) +
 				// len("key") with string overhead
 				(3 + SizeString),
 			errExpected: nil,
@@ -179,15 +179,15 @@ func TestArrayObjectMemUsage(t *testing.T) {
 				},
 			},
 			// array overhead + array baseObject
-			expected: SizeEmpty + SizeEmpty +
+			expected: SizeEmptyStruct + SizeEmptyStruct +
 				// (stringObject + baseObject + prop "length") * entries (at 4 we reach the limit)
-				(SizeEmpty+SizeEmpty+6)*4 +
+				(SizeEmptyStruct+SizeEmptyStruct+6)*4 +
 				// len("keyN") * entries (at 4 we reach the limit)
 				4*4,
 			// array overhead + array baseObject
-			newExpected: SizeEmpty + SizeEmpty +
+			newExpected: SizeEmptyStruct + SizeEmptyStruct +
 				// (stringObject + baseObject + prop "length" with string overhead) * entries (at 4 we reach the limit)
-				(SizeEmpty+SizeEmpty+(6+SizeString))*4 +
+				(SizeEmptyStruct+SizeEmptyStruct+(6+SizeString))*4 +
 				// len("keyN") with string overhead * entries (at 4 we reach the limit)
 				(4+SizeString)*4,
 			errExpected: nil,
@@ -212,8 +212,8 @@ func TestArrayObjectMemUsage(t *testing.T) {
 			ao: &arrayObject{
 				values: []Value{vm._newString(newStringValue("key"), nil)},
 			},
-			expected:    SizeEmpty + SizeEmpty,
-			newExpected: SizeEmpty + SizeEmpty,
+			expected:    SizeEmptyStruct + SizeEmptyStruct,
+			newExpected: SizeEmptyStruct + SizeEmptyStruct,
 			errExpected: errArrayLenExceedsThresholdNil,
 		},
 	}

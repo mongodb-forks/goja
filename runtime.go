@@ -514,7 +514,7 @@ func (r *Runtime) typeErrorResult(throw bool, args ...interface{}) {
 
 func (r *Runtime) MemUsage(ctx *MemUsageContext) (memUsage uint64, newMemUsage uint64, err error) {
 	if r == nil {
-		return SizeEmpty, SizeEmpty, err
+		return SizeEmptyStruct, SizeEmptyStruct, err
 	}
 
 	if r.globalObject != nil {

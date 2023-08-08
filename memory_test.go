@@ -65,8 +65,8 @@ func TestMemCheck(t *testing.T) {
 			checkMem()
 			x.push(null)
 			checkMem()`,
-			expectedSizeDiff:    SizeEmpty,
-			expectedNewSizeDiff: SizeEmpty,
+			expectedSizeDiff:    SizeEmptyStruct,
+			expectedNewSizeDiff: SizeEmptyStruct,
 		},
 		{
 			desc: "undefined",
@@ -75,8 +75,8 @@ func TestMemCheck(t *testing.T) {
 			checkMem()
 			x.push(undefined)
 			checkMem()`,
-			expectedSizeDiff:    SizeEmpty,
-			expectedNewSizeDiff: SizeEmpty,
+			expectedSizeDiff:    SizeEmptyStruct,
+			expectedNewSizeDiff: SizeEmptyStruct,
 		},
 		{
 			desc: "string",
@@ -105,16 +105,16 @@ func TestMemCheck(t *testing.T) {
 			checkMem()
 			y.push({"a":10, "b":"1234", "c":{}})
 			checkMem()`,
-			expectedSizeDiff: SizeEmpty + SizeEmpty + // outer object + reference to its prototype
+			expectedSizeDiff: SizeEmptyStruct + SizeEmptyStruct + // outer object + reference to its prototype
 				1 + SizeNumber + // "a" and number 10
 				1 + 4 + // "b" and string "1234"
-				1 + SizeEmpty + SizeEmpty + //  "c" (object + prototype reference)
-				SizeEmpty, // stack difference from popping null(8) and then adding outer obj(8) + "c" obj (8)
-			expectedNewSizeDiff: SizeEmpty + SizeEmpty + // outer object + reference to its prototype
+				1 + SizeEmptyStruct + SizeEmptyStruct + //  "c" (object + prototype reference)
+				SizeEmptyStruct, // stack difference from popping null(8) and then adding outer obj(8) + "c" obj (8)
+			expectedNewSizeDiff: SizeEmptyStruct + SizeEmptyStruct + // outer object + reference to its prototype
 				(1 + SizeString) + SizeNumber + // "a" and number 10
 				(1 + SizeString) + (4 + SizeString) + // "b" and string "1234"
-				(1 + SizeString) + SizeEmpty + SizeEmpty + //  "c" (object + prototype reference)
-				SizeEmpty, // stack difference from popping null(8) and then adding outer obj(8) + "c" obj (8),
+				(1 + SizeString) + SizeEmptyStruct + SizeEmptyStruct + //  "c" (object + prototype reference)
+				SizeEmptyStruct, // stack difference from popping null(8) and then adding outer obj(8) + "c" obj (8),
 		},
 		{
 			desc: "array of numbers",
@@ -128,8 +128,8 @@ func TestMemCheck(t *testing.T) {
 			checkMem()`,
 			// Array overhead,
 			// size of property values,
-			expectedSizeDiff:    SizeEmpty + 20*SizeNumber,
-			expectedNewSizeDiff: SizeEmpty + 20*SizeNumber,
+			expectedSizeDiff:    SizeEmptyStruct + 20*SizeNumber,
+			expectedNewSizeDiff: SizeEmptyStruct + 20*SizeNumber,
 		},
 		{
 			desc: "overhead of a single new scope",
@@ -139,12 +139,12 @@ func TestMemCheck(t *testing.T) {
 			})();`, // over
 			expectedSizeDiff: emptyFunctionScopeOverhead +
 				functionStackOverhead + // anonymous function on stack
-				SizeEmpty, // undefined return on stack
+				SizeEmptyStruct, // undefined return on stack
 			expectedNewSizeDiff: emptyFunctionScopeOverhead +
 				functionStackOverhead + // anonymous function on stack
 				SizeString + // empty string for anon function name
 				SizeString + SizeString + // overhead of "name" and "length" props on function object
-				SizeEmpty, // undefined return on stack,
+				SizeEmptyStruct, // undefined return on stack,
 		},
 		{
 			desc: "previous function scopes should not affect the current memory",
@@ -153,9 +153,9 @@ func TestMemCheck(t *testing.T) {
 			})();
 			checkMem();`,
 			expectedSizeDiff: 0 +
-				SizeEmpty, // undefined return value on stack
+				SizeEmptyStruct, // undefined return value on stack
 			expectedNewSizeDiff: 0 +
-				SizeEmpty, // undefined return value on stack
+				SizeEmptyStruct, // undefined return value on stack
 		},
 		{
 			desc: "overhead of each scope is equivalent regardless of depth",
@@ -174,12 +174,12 @@ func TestMemCheck(t *testing.T) {
 				})();
 			})();`,
 			expectedSizeDiff: (6 * functionStackOverhead) + // anonymous functions on stack
-				(6 * SizeEmpty) + // undefined return value for each function on stack
+				(6 * SizeEmptyStruct) + // undefined return value for each function on stack
 				(6 * emptyFunctionScopeOverhead),
 			expectedNewSizeDiff: (6 * functionStackOverhead) + // anonymous functions on stack
 				(6 * SizeString) + // empty string for anon function name
 				(6 * (SizeString + SizeString)) + // overhead of "name" and "length" props on function object
-				(6 * SizeEmpty) + // undefined return value for each function on stack
+				(6 * SizeEmptyStruct) + // undefined return value for each function on stack
 				(6 * emptyFunctionScopeOverhead),
 		},
 		{
@@ -191,13 +191,13 @@ func TestMemCheck(t *testing.T) {
 			})();`,
 			// function overhead plus the number value of the "zzzx" property and its string name
 			expectedSizeDiff: emptyFunctionScopeOverhead + SizeNumber + functionStackOverhead +
-				SizeEmpty + // undefined return value on stack
+				SizeEmptyStruct + // undefined return value on stack
 				SizeNumber, // number 10 on stack
 			expectedNewSizeDiff: // function overhead plus the number value of the "zzzx" property and its string name
 			emptyFunctionScopeOverhead + SizeNumber + functionStackOverhead +
 				SizeString + // empty string for anon function name
 				SizeString + SizeString + // overhead of "name" and "length" props on function object
-				SizeEmpty + // undefined return value on stack
+				SizeEmptyStruct + // undefined return value on stack
 				SizeNumber, // number 10 on stack,
 		},
 		{
@@ -211,10 +211,10 @@ func TestMemCheck(t *testing.T) {
 			 zzza.y = zzzb
 			 zzzb.x = zzza
 			 checkMem()`,
-			expectedSizeDiff: 1 + SizeEmpty + // "x" property name + references to object
-				1 + SizeEmpty, // "y" property names + references to object
-			expectedNewSizeDiff: (1 + SizeString) + SizeEmpty + // "x" property name + references to object
-				(1 + SizeString) + SizeEmpty, // "y" property names + references to object,
+			expectedSizeDiff: 1 + SizeEmptyStruct + // "x" property name + references to object
+				1 + SizeEmptyStruct, // "y" property names + references to object
+			expectedNewSizeDiff: (1 + SizeString) + SizeEmptyStruct + // "x" property name + references to object
+				(1 + SizeString) + SizeEmptyStruct, // "y" property names + references to object,
 		},
 		{
 			desc: "sparse array with arrayObject",
@@ -263,9 +263,9 @@ func TestMemCheck(t *testing.T) {
 			y = x;
 			checkMem()`,
 			// len("y") + reference to array
-			expectedSizeDiff: 1 + SizeEmpty,
+			expectedSizeDiff: 1 + SizeEmptyStruct,
 			// len("y") + reference to array
-			expectedNewSizeDiff: (1 + SizeString) + SizeEmpty,
+			expectedNewSizeDiff: (1 + SizeString) + SizeEmptyStruct,
 		},
 		{
 			desc: "reference to sparse array",
@@ -276,8 +276,8 @@ func TestMemCheck(t *testing.T) {
 			y = x;
 			// len("y") + reference to array
 			checkMem()`,
-			expectedSizeDiff:    1 + SizeEmpty,
-			expectedNewSizeDiff: (1 + SizeString) + SizeEmpty,
+			expectedSizeDiff:    1 + SizeEmptyStruct,
+			expectedNewSizeDiff: (1 + SizeString) + SizeEmptyStruct,
 		},
 		{
 			desc: "Date object",
@@ -288,9 +288,9 @@ func TestMemCheck(t *testing.T) {
 			checkMem()
 			`,
 			// len("d2") + size of msec + reference to visited base object + base object prototype reference
-			expectedSizeDiff: 2 + SizeNumber + SizeEmpty + SizeEmpty,
+			expectedSizeDiff: 2 + SizeNumber + SizeEmptyStruct + SizeEmptyStruct,
 			// len("d2") + size of msec + reference to visited base object + base object prototype reference
-			expectedNewSizeDiff: (2 + SizeString) + SizeNumber + SizeEmpty + SizeEmpty,
+			expectedNewSizeDiff: (2 + SizeString) + SizeNumber + SizeEmptyStruct + SizeEmptyStruct,
 		},
 		{
 			desc: "Empty object",
@@ -300,9 +300,9 @@ func TestMemCheck(t *testing.T) {
 			checkMem()
 			`,
 			// len("o") + object's starting size + reference to prototype
-			expectedSizeDiff: 1 + SizeEmpty + SizeNumber,
+			expectedSizeDiff: 1 + SizeEmptyStruct + SizeNumber,
 			// len("o") + object's starting size + reference to prototype
-			expectedNewSizeDiff: (1 + SizeString) + SizeEmpty + SizeNumber,
+			expectedNewSizeDiff: (1 + SizeString) + SizeEmptyStruct + SizeNumber,
 		},
 		{
 			desc: "Map",
@@ -312,7 +312,7 @@ func TestMemCheck(t *testing.T) {
 			m.set("abc", {"a":10, "b":"1234"});
 			checkMem();`,
 			expectedSizeDiff: 3 + // "abc"
-				SizeEmpty + SizeEmpty + // outer object + reference to its prototype
+				SizeEmptyStruct + SizeEmptyStruct + // outer object + reference to its prototype
 				1 + SizeNumber + // "a" and number
 				1 + 4 + // "b" and "1234" string
 				// stack difference in going from
@@ -321,7 +321,7 @@ func TestMemCheck(t *testing.T) {
 				//	[..other, abc, [object Object], 1234]
 				2,
 			expectedNewSizeDiff: 3 + SizeString + // "abc"
-				SizeEmpty + SizeEmpty + // outer object + reference to its prototype
+				SizeEmptyStruct + SizeEmptyStruct + // outer object + reference to its prototype
 				(1 + SizeString) + SizeNumber + // "a" and number
 				(1 + SizeString) + (4 + SizeString) + // "b" and "1234" string
 				// stack difference in going from
@@ -349,15 +349,15 @@ func TestMemCheck(t *testing.T) {
 			checkMem();
 			`,
 			expectedSizeDiff: 6 + // "proxy2"
-				SizeEmpty + // proxy overhead
-				SizeEmpty + SizeEmpty + // base object + prototype
-				SizeEmpty + // target object reference
-				SizeEmpty, // handler object reference
+				SizeEmptyStruct + // proxy overhead
+				SizeEmptyStruct + SizeEmptyStruct + // base object + prototype
+				SizeEmptyStruct + // target object reference
+				SizeEmptyStruct, // handler object reference
 			expectedNewSizeDiff: (6 + SizeString) + // "proxy2"
-				SizeEmpty + // proxy overhead
-				SizeEmpty + SizeEmpty + // base object + prototype
-				SizeEmpty + // target object reference
-				SizeEmpty, // handler object reference,
+				SizeEmptyStruct + // proxy overhead
+				SizeEmptyStruct + SizeEmptyStruct + // base object + prototype
+				SizeEmptyStruct + // target object reference
+				SizeEmptyStruct, // handler object reference,
 		},
 		{
 			desc: "String",
@@ -369,11 +369,11 @@ func TestMemCheck(t *testing.T) {
 			`,
 			expectedSizeDiff: 4 + // "str2"
 				5 + // "hello"
-				SizeEmpty + SizeEmpty + // base object + prototype
+				SizeEmptyStruct + SizeEmptyStruct + // base object + prototype
 				6 + SizeNumber, // "length" + number
 			expectedNewSizeDiff: (4 + SizeString) + // "str2"
 				(5 + SizeString) + // "hello"
-				SizeEmpty + SizeEmpty + // base object + prototype
+				SizeEmptyStruct + SizeEmptyStruct + // base object + prototype
 				(6 + SizeString) + SizeNumber, // "length" + number,
 		},
 		{
@@ -384,16 +384,16 @@ func TestMemCheck(t *testing.T) {
 			checkMem();
 			`,
 			expectedSizeDiff: 3 + // "ta2"
-				SizeEmpty + // typed array overhead
-				SizeEmpty + SizeEmpty + // base object + prototype
-				4 + SizeEmpty + SizeEmpty + // array buffer data +  base object + prototype
-				SizeEmpty + // default constructor
+				SizeEmptyStruct + // typed array overhead
+				SizeEmptyStruct + SizeEmptyStruct + // base object + prototype
+				4 + SizeEmptyStruct + SizeEmptyStruct + // array buffer data +  base object + prototype
+				SizeEmptyStruct + // default constructor
 				SizeInt, // last element (4) on stack
 			expectedNewSizeDiff: (3 + SizeString) + // "ta2"
-				SizeEmpty + // typed array overhead
-				SizeEmpty + SizeEmpty + // base object + prototype
-				4 + SizeEmpty + SizeEmpty + // array buffer data +  base object + prototype
-				SizeEmpty + // default constructor
+				SizeEmptyStruct + // typed array overhead
+				SizeEmptyStruct + SizeEmptyStruct + // base object + prototype
+				4 + SizeEmptyStruct + SizeEmptyStruct + // array buffer data +  base object + prototype
+				SizeEmptyStruct + // default constructor
 				SizeInt, // last element (4) on stack,
 		},
 		{
@@ -405,10 +405,10 @@ func TestMemCheck(t *testing.T) {
 			checkMem();`,
 			expectedSizeDiff: 7 + // "buffer2"
 				16 + // data size
-				SizeEmpty + SizeEmpty, // base object + prototype
+				SizeEmptyStruct + SizeEmptyStruct, // base object + prototype
 			expectedNewSizeDiff: (7 + SizeString) + // "buffer2"
 				16 + // data size
-				SizeEmpty + SizeEmpty, // base object + prototype,
+				SizeEmptyStruct + SizeEmptyStruct, // base object + prototype,
 		},
 		{
 			desc: "DataView",
@@ -420,13 +420,13 @@ func TestMemCheck(t *testing.T) {
 			view2 = new DataView(buffer2, 0);
 			checkMem();`,
 			expectedSizeDiff: 5 + // "view2"
-				SizeEmpty + // DataView overhead
-				SizeEmpty + SizeEmpty + // base object + prototype
-				SizeEmpty, // array buffer reference
+				SizeEmptyStruct + // DataView overhead
+				SizeEmptyStruct + SizeEmptyStruct + // base object + prototype
+				SizeEmptyStruct, // array buffer reference
 			expectedNewSizeDiff: (5 + SizeString) + // "view2"
-				SizeEmpty + // DataView overhead
-				SizeEmpty + SizeEmpty + // base object + prototype
-				SizeEmpty, // array buffer reference,
+				SizeEmptyStruct + // DataView overhead
+				SizeEmptyStruct + SizeEmptyStruct + // base object + prototype
+				SizeEmptyStruct, // array buffer reference,
 		},
 		{
 			desc: "Number",
@@ -437,10 +437,10 @@ func TestMemCheck(t *testing.T) {
 			checkMem();`,
 			expectedSizeDiff: 4 + // "num2"
 				SizeNumber +
-				SizeEmpty + SizeEmpty, // base object + prototype
+				SizeEmptyStruct + SizeEmptyStruct, // base object + prototype
 			expectedNewSizeDiff: (4 + SizeString) + // "num2"
 				SizeNumber +
-				SizeEmpty + SizeEmpty, // base object + prototype,
+				SizeEmptyStruct + SizeEmptyStruct, // base object + prototype,
 		},
 		// TODO(REALMC-10739) add a test that calls Error.captureStackTrace when it is implemented)
 		{
@@ -454,10 +454,10 @@ func TestMemCheck(t *testing.T) {
 			`,
 			expectedSizeDiff: 7 + 3 + // Error "message" field + len("abc")
 				4 + 5 + // Error "name" field + len("Error")
-				SizeEmpty + SizeEmpty, // base object + prototype
+				SizeEmptyStruct + SizeEmptyStruct, // base object + prototype
 			expectedNewSizeDiff: (7 + SizeString) + (3 + SizeString) + // Error "message" field + len("abc")
 				(4 + SizeString) + (5 + SizeString) + // Error "name" field + len("Error")
-				SizeEmpty + SizeEmpty, // base object + prototype,
+				SizeEmptyStruct + SizeEmptyStruct, // base object + prototype,
 		},
 		{
 			desc: "Native value",
@@ -593,9 +593,9 @@ func TestMemArraysWithLenThreshold(t *testing.T) {
 			checkMem()`,
 			threshold: 100,
 			memLimit:  memUsageLimit,
-			expectedSizeDiff: SizeEmpty + // Array overhead
+			expectedSizeDiff: SizeEmptyStruct + // Array overhead
 				20*SizeNumber, // size of property values
-			expectedNewSizeDiff: SizeEmpty + // Array overhead
+			expectedNewSizeDiff: SizeEmptyStruct + // Array overhead
 				20*SizeNumber, // size of property values,
 		},
 		{
@@ -610,9 +610,9 @@ func TestMemArraysWithLenThreshold(t *testing.T) {
 			checkMem()`,
 			threshold: 100,
 			memLimit:  memUsageLimit,
-			expectedSizeDiff: SizeEmpty + // Array overhead
+			expectedSizeDiff: SizeEmptyStruct + // Array overhead
 				200*SizeNumber, // size of property values
-			expectedNewSizeDiff: SizeEmpty + // Array overhead
+			expectedNewSizeDiff: SizeEmptyStruct + // Array overhead
 				200*SizeNumber, // size of property values,
 		},
 		{
@@ -627,14 +627,14 @@ func TestMemArraysWithLenThreshold(t *testing.T) {
 			checkMem()`,
 			threshold: 200,
 			memLimit:  memUsageLimit,
-			expectedSizeDiff: SizeEmpty + // Array overhead
+			expectedSizeDiff: SizeEmptyStruct + // Array overhead
 				(50 * SizeNumber) + (50 * SizeBool) + // (450) size of property values
 				// stack difference in going from
 				//	[..other, []]
 				//  to
 				//	[..other, true, 50]
 				+1,
-			expectedNewSizeDiff: SizeEmpty + // Array overhead
+			expectedNewSizeDiff: SizeEmptyStruct + // Array overhead
 				(50 * SizeNumber) + (50 * SizeBool) + // (450) size of property values
 				// stack difference in going from
 				//	[..other, []]
@@ -656,8 +656,8 @@ func TestMemArraysWithLenThreshold(t *testing.T) {
 			// baseObject is 38 + 3*SizeNumber = 62, so at 60 we expect to exceed the limit
 			memLimit: 60,
 			// Array overhead, size of property values, only 3 values before we hit the mem limit
-			expectedSizeDiff:    SizeEmpty + (3 * SizeNumber),
-			expectedNewSizeDiff: SizeEmpty + (3 * SizeNumber),
+			expectedSizeDiff:    SizeEmptyStruct + (3 * SizeNumber),
+			expectedNewSizeDiff: SizeEmptyStruct + (3 * SizeNumber),
 		},
 		{
 			desc: "mixed array over threshold",
@@ -671,14 +671,14 @@ func TestMemArraysWithLenThreshold(t *testing.T) {
 			checkMem()`,
 			threshold: 50,
 			memLimit:  memUsageLimit,
-			expectedSizeDiff: SizeEmpty + // Array overhead
+			expectedSizeDiff: SizeEmptyStruct + // Array overhead
 				(50 * SizeNumber) + (50 * SizeBool) + // (450) size of property values
 				// stack difference in going from
 				//	[..other, []]
 				//  to
 				//	[..other, true, 50]
 				+1,
-			expectedNewSizeDiff: SizeEmpty + // Array overhead
+			expectedNewSizeDiff: SizeEmptyStruct + // Array overhead
 				(50 * SizeNumber) + (50 * SizeBool) + // (450) size of property values
 				// stack difference in going from
 				//	[..other, []]
@@ -698,14 +698,14 @@ func TestMemArraysWithLenThreshold(t *testing.T) {
 			checkMem()`,
 			threshold: 50,
 			memLimit:  memUsageLimit,
-			expectedSizeDiff: SizeEmpty + // Array overhead,
+			expectedSizeDiff: SizeEmptyStruct + // Array overhead,
 				(100 * SizeNumber) + // size of property values
 				// stack difference in going from
 				//	[..other, []]
 				//  to
 				//	[..other, true, 50]
 				+1,
-			expectedNewSizeDiff: SizeEmpty + // Array overhead,
+			expectedNewSizeDiff: SizeEmptyStruct + // Array overhead,
 				(100 * SizeNumber) + // size of property values
 				// stack difference in going from
 				//	[..other, []]
@@ -780,9 +780,9 @@ func TestMemObjectsWithPropsLenThreshold(t *testing.T) {
 			threshold: 100,
 			memLimit:  memUsageLimit,
 			// object overhead + len("i0") + value i
-			expectedSizeDiff: SizeEmpty + 10*2 + 10*SizeNumber,
+			expectedSizeDiff: SizeEmptyStruct + 10*2 + 10*SizeNumber,
 			// object overhead + len("i0") + value i
-			expectedNewSizeDiff: SizeEmpty + 10*(2+SizeString) + 10*SizeNumber,
+			expectedNewSizeDiff: SizeEmptyStruct + 10*(2+SizeString) + 10*SizeNumber,
 		},
 		{
 			desc: "object under threshold but over limit",
@@ -796,9 +796,9 @@ func TestMemObjectsWithPropsLenThreshold(t *testing.T) {
 			threshold: 100,
 			memLimit:  40,
 			// object overhead + len("i0") + value i
-			expectedSizeDiff: SizeEmpty + 10*2 + 10*SizeNumber,
+			expectedSizeDiff: SizeEmptyStruct + 10*2 + 10*SizeNumber,
 			// object overhead + len("i0") + value i
-			expectedNewSizeDiff: SizeEmpty + 10*(2+SizeString) + 10*SizeNumber,
+			expectedNewSizeDiff: SizeEmptyStruct + 10*(2+SizeString) + 10*SizeNumber,
 		},
 		{
 			desc: "object over threshold",
@@ -812,9 +812,9 @@ func TestMemObjectsWithPropsLenThreshold(t *testing.T) {
 			threshold: 75,
 			memLimit:  memUsageLimit,
 			// object overhead + len("i100") + value i
-			expectedSizeDiff: SizeEmpty + 100*4 + 100*SizeNumber,
+			expectedSizeDiff: SizeEmptyStruct + 100*4 + 100*SizeNumber,
 			// object overhead + len("i100") + value i
-			expectedNewSizeDiff: SizeEmpty + 100*(4+SizeString) + 100*SizeNumber,
+			expectedNewSizeDiff: SizeEmptyStruct + 100*(4+SizeString) + 100*SizeNumber,
 		},
 		{
 			desc: "mixed object over threshold",
@@ -828,13 +828,13 @@ func TestMemObjectsWithPropsLenThreshold(t *testing.T) {
 			threshold: 200,
 			memLimit:  memUsageLimit,
 			// object overhead + key len("i100") + value i for the items 100 to 149
-			expectedSizeDiff: SizeEmpty + 50*4 + 50*SizeNumber +
+			expectedSizeDiff: SizeEmptyStruct + 50*4 + 50*SizeNumber +
 				// len("i150") + len("i150") for the items 150 to 199
 				50*4 + 50*4 +
 				// 150 number + len("i") in "i"+i expression
 				3 + 1,
 			// object overhead + key len("i100") + value i for the items 100 to 149
-			expectedNewSizeDiff: SizeEmpty + 50*(4+SizeString) + 50*SizeNumber +
+			expectedNewSizeDiff: SizeEmptyStruct + 50*(4+SizeString) + 50*SizeNumber +
 				// len("i150") + len("i150") for the items 150 to 199
 				50*(4+SizeString) + 50*(4+SizeString) +
 				// 150 number + len("i") in "i"+i expression

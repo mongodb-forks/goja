@@ -13,24 +13,24 @@ func TestObjectLazyMemUsage(t *testing.T) {
 		errExpected error
 	}{
 		{
-			name:        "should have a value of SizeEmpty given a nil lazy object",
+			name:        "should have a value of SizeEmptyStruct given a nil lazy object",
 			val:         nil,
-			expected:    SizeEmpty,
-			newExpected: SizeEmpty,
+			expected:    SizeEmptyStruct,
+			newExpected: SizeEmptyStruct,
 			errExpected: nil,
 		},
 		{
-			name:        "should have a value of SizeEmpty given an empty lazy object",
+			name:        "should have a value of SizeEmptyStruct given an empty lazy object",
 			val:         &lazyObject{},
-			expected:    SizeEmpty,
-			newExpected: SizeEmpty,
+			expected:    SizeEmptyStruct,
+			newExpected: SizeEmptyStruct,
 			errExpected: nil,
 		},
 		{
-			name:        "should have a value of SizeEmpty given a base dynamic array with an empty val",
+			name:        "should have a value of SizeEmptyStruct given a base dynamic array with an empty val",
 			val:         &lazyObject{val: &Object{}},
-			expected:    SizeEmpty + SizeEmpty,
-			newExpected: SizeEmpty + SizeEmpty,
+			expected:    SizeEmptyStruct + SizeEmptyStruct,
+			newExpected: SizeEmptyStruct + SizeEmptyStruct,
 			errExpected: nil,
 		},
 	}

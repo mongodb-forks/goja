@@ -593,13 +593,13 @@ func (a *arrayObject) estimateMemUsage(ctx *MemUsageContext) (memUsage uint64, n
 
 func (a *arrayObject) MemUsage(ctx *MemUsageContext) (memUsage uint64, newMemUsage uint64, err error) {
 	if a == nil || ctx.IsObjVisited(a) {
-		return SizeEmpty, SizeEmpty, nil
+		return SizeEmptyStruct, SizeEmptyStruct, nil
 	}
 	ctx.VisitObj(a)
 
 	// arrayObject overhead
-	memUsage = SizeEmpty
-	newMemUsage = SizeEmpty
+	memUsage = SizeEmptyStruct
+	newMemUsage = SizeEmptyStruct
 
 	inc, newInc, err := a.baseObject.MemUsage(ctx)
 	memUsage += inc

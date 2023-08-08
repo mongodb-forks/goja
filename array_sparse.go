@@ -489,17 +489,17 @@ func (a *sparseArrayObject) exportToArrayOrSlice(dst reflect.Value, typ reflect.
 
 func (a *sparseArrayObject) MemUsage(ctx *MemUsageContext) (memUsage uint64, newMemUsage uint64, err error) {
 	if a == nil || ctx.IsObjVisited(a) {
-		return SizeEmpty, SizeEmpty, nil
+		return SizeEmptyStruct, SizeEmptyStruct, nil
 	}
 	ctx.VisitObj(a)
 
 	if err := ctx.Descend(); err != nil {
-		return SizeEmpty, SizeEmpty, err
+		return SizeEmptyStruct, SizeEmptyStruct, err
 	}
 
 	// sparseArrayObject overhead
-	memUsage = SizeEmpty
-	newMemUsage = SizeEmpty
+	memUsage = SizeEmptyStruct
+	newMemUsage = SizeEmptyStruct
 
 	for _, item := range a.items {
 		// Add the size of the index

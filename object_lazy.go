@@ -321,12 +321,12 @@ func (o *lazyObject) swap(i int, j int) {
 
 func (o *lazyObject) MemUsage(ctx *MemUsageContext) (memUsage uint64, newMemUsage uint64, err error) {
 	if o == nil || o.val == nil || ctx.IsObjVisited(o) {
-		return SizeEmpty, SizeEmpty, nil
+		return SizeEmptyStruct, SizeEmptyStruct, nil
 	}
 	ctx.VisitObj(o)
 
-	memUsage = SizeEmpty
-	newMemUsage = SizeEmpty
+	memUsage = SizeEmptyStruct
+	newMemUsage = SizeEmptyStruct
 	inc, newInc, err := o.val.MemUsage(ctx)
 
 	return memUsage + inc, newMemUsage + newInc, err

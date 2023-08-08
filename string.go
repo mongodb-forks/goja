@@ -330,7 +330,7 @@ func unknownStringTypeErr(v Value) interface{} {
 
 func (s *stringObject) MemUsage(ctx *MemUsageContext) (memUsage uint64, newMemUsage uint64, err error) {
 	if s == nil || ctx.IsObjVisited(s) {
-		return SizeEmpty, SizeEmpty, nil
+		return SizeEmptyStruct, SizeEmptyStruct, nil
 	}
 	ctx.VisitObj(s)
 

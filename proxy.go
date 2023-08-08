@@ -1056,7 +1056,7 @@ func (p *proxyObject) revoke() {
 
 func (p *proxyObject) MemUsage(ctx *MemUsageContext) (memUsage uint64, newMemUsage uint64, err error) {
 	if p == nil || ctx.IsObjVisited(p) {
-		return SizeEmpty, SizeEmpty, nil
+		return SizeEmptyStruct, SizeEmptyStruct, nil
 	}
 	ctx.VisitObj(p)
 
@@ -1064,8 +1064,8 @@ func (p *proxyObject) MemUsage(ctx *MemUsageContext) (memUsage uint64, newMemUsa
 		return 0, 0, err
 	}
 
-	memUsage = SizeEmpty
-	newMemUsage = SizeEmpty
+	memUsage = SizeEmptyStruct
+	newMemUsage = SizeEmptyStruct
 	inc, newInc, err := p.baseObject.MemUsage(ctx)
 	memUsage += inc
 	newMemUsage += newInc
@@ -1098,7 +1098,7 @@ func (p *proxyObject) MemUsage(ctx *MemUsageContext) (memUsage uint64, newMemUsa
 
 func (h *jsProxyHandler) MemUsage(ctx *MemUsageContext) (memUsage uint64, newMemUsage uint64, err error) {
 	if h == nil || h.handler == nil || ctx.IsObjVisited(h.handler.self) {
-		return SizeEmpty, SizeEmpty, err
+		return SizeEmptyStruct, SizeEmptyStruct, err
 	}
 	return h.handler.MemUsage(ctx)
 }

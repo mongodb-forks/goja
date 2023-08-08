@@ -1962,7 +1962,7 @@ func (o *baseObject) estimateMemUsage(ctx *MemUsageContext) (memUsage uint64, ne
 
 func (o *baseObject) MemUsage(ctx *MemUsageContext) (memUsage uint64, newMemUsage uint64, err error) {
 	if o == nil || ctx.IsObjVisited(o) {
-		return SizeEmpty, SizeEmpty, nil
+		return SizeEmptyStruct, SizeEmptyStruct, nil
 	}
 	ctx.VisitObj(o)
 
@@ -1970,8 +1970,8 @@ func (o *baseObject) MemUsage(ctx *MemUsageContext) (memUsage uint64, newMemUsag
 		return 0, 0, err
 	}
 
-	memUsage = SizeEmpty
-	newMemUsage = SizeEmpty
+	memUsage = SizeEmptyStruct
+	newMemUsage = SizeEmptyStruct
 	if ctx.ObjectPropsLenExceedsThreshold(len(o.propNames)) {
 		inc, newInc, err := o.estimateMemUsage(ctx)
 		memUsage += inc
@@ -2013,7 +2013,7 @@ func (o *baseObject) MemUsage(ctx *MemUsageContext) (memUsage uint64, newMemUsag
 
 func (o *primitiveValueObject) MemUsage(ctx *MemUsageContext) (memUsage uint64, newMemUsage uint64, err error) {
 	if o == nil || ctx.IsObjVisited(o) {
-		return SizeEmpty, SizeEmpty, nil
+		return SizeEmptyStruct, SizeEmptyStruct, nil
 	}
 	ctx.VisitObj(o)
 

@@ -175,18 +175,18 @@ func TestStringObjectMemUsage(t *testing.T) {
 		expectedNewMem uint64
 	}{
 		{
-			"should return SizeEmpty given a nil stringObject",
+			"should return SizeEmptyStruct given a nil stringObject",
 			nil,
-			SizeEmpty,
-			SizeEmpty,
+			SizeEmptyStruct,
+			SizeEmptyStruct,
 		},
 		{
 			"should account for base object and data given a non-empty stringObject",
 			&stringObject{value: newStringValue("yo"), length: 2},
 			// baseObject + len("yo")
-			SizeEmpty + 2,
+			SizeEmptyStruct + 2,
 			// baseObject + len("yo") and string overhead
-			SizeEmpty + (2 + SizeString),
+			SizeEmptyStruct + (2 + SizeString),
 		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {

@@ -565,7 +565,7 @@ func (o *baseDynamicObject) getPrivateEnv(*privateEnvType, bool) *privateElement
 
 func (o *baseDynamicObject) MemUsage(ctx *MemUsageContext) (memUsage uint64, newMemUsage uint64, err error) {
 	if o == nil {
-		return SizeEmpty, SizeEmpty, err
+		return SizeEmptyStruct, SizeEmptyStruct, err
 	}
 
 	return o.val.MemUsage(ctx)
@@ -807,7 +807,7 @@ func (a *dynamicArray) keys(all bool, accum []Value) []Value {
 
 func (a *dynamicArray) MemUsage(ctx *MemUsageContext) (memUsage uint64, newMemUsage uint64, err error) {
 	if a == nil {
-		return SizeEmpty, SizeEmpty, err
+		return SizeEmptyStruct, SizeEmptyStruct, err
 	}
 	return a.val.MemUsage(ctx)
 }

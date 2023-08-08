@@ -2988,10 +2988,10 @@ func TestRuntimeMemUsage(t *testing.T) {
 		errExpected error
 	}{
 		{
-			name:        "should have a value of SizeEmpty given a nil runtime",
+			name:        "should have a value of SizeEmptyStruct given a nil runtime",
 			val:         nil,
-			expected:    SizeEmpty,
-			newExpected: SizeEmpty,
+			expected:    SizeEmptyStruct,
+			newExpected: SizeEmptyStruct,
 			errExpected: nil,
 		},
 		{
@@ -3002,9 +3002,9 @@ func TestRuntimeMemUsage(t *testing.T) {
 				},
 			},
 			// baseObject overhead + key/value pair
-			expected: SizeEmpty + (4 + SizeInt),
+			expected: SizeEmptyStruct + (4 + SizeInt),
 			// baseObject overhead + key/value pair with string overhead
-			newExpected: SizeEmpty + (4 + SizeString + SizeInt),
+			newExpected: SizeEmptyStruct + (4 + SizeString + SizeInt),
 			errExpected: nil,
 		},
 		{
@@ -3013,9 +3013,9 @@ func TestRuntimeMemUsage(t *testing.T) {
 				vm: &vm{callStack: []vmContext{{newTarget: valueInt(99)}}},
 			},
 			// vmContext overhead + value
-			expected: SizeEmpty + SizeInt,
+			expected: SizeEmptyStruct + SizeInt,
 			// vmContext overhead + value
-			newExpected: SizeEmpty + SizeInt,
+			newExpected: SizeEmptyStruct + SizeInt,
 			errExpected: nil,
 		},
 		{

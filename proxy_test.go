@@ -15,28 +15,28 @@ func TestProxyMemUsage(t *testing.T) {
 		errExpected error
 	}{
 		{
-			name:        "should have a value of SizeEmpty given a nil proxy object",
+			name:        "should have a value of SizeEmptyStruct given a nil proxy object",
 			val:         nil,
-			expected:    SizeEmpty,
-			newExpected: SizeEmpty,
+			expected:    SizeEmptyStruct,
+			newExpected: SizeEmptyStruct,
 			errExpected: nil,
 		},
 		{
 			name: "should account for base object overhead given an empty proxy object",
 			val:  &proxyObject{},
 			// proxy overhead + baseObject overhead
-			expected: SizeEmpty + SizeEmpty,
+			expected: SizeEmptyStruct + SizeEmptyStruct,
 			// proxy overhead + baseObject overhead
-			newExpected: SizeEmpty + SizeEmpty,
+			newExpected: SizeEmptyStruct + SizeEmptyStruct,
 			errExpected: nil,
 		},
 		{
 			name: "should account for baseObject and target overhead given a proxy object with empty target",
 			val:  &proxyObject{target: &Object{}},
 			// proxy overhead + baseObject overhead + target overhead
-			expected: SizeEmpty + SizeEmpty + SizeEmpty,
+			expected: SizeEmptyStruct + SizeEmptyStruct + SizeEmptyStruct,
 			// proxy overhead + baseObject overhead + target overhead
-			newExpected: SizeEmpty + SizeEmpty + SizeEmpty,
+			newExpected: SizeEmptyStruct + SizeEmptyStruct + SizeEmptyStruct,
 			errExpected: nil,
 		},
 		{
@@ -47,18 +47,18 @@ func TestProxyMemUsage(t *testing.T) {
 				},
 			},
 			// proxy overhead + baseObject overhead + target overhead + key/value pair
-			expected: SizeEmpty + SizeEmpty + SizeEmpty + (4 + SizeInt),
+			expected: SizeEmptyStruct + SizeEmptyStruct + SizeEmptyStruct + (4 + SizeInt),
 			// proxy overhead + baseObject overhead + target overhead + key/value pair with string overhead
-			newExpected: SizeEmpty + SizeEmpty + SizeEmpty + (4 + SizeString + SizeInt),
+			newExpected: SizeEmptyStruct + SizeEmptyStruct + SizeEmptyStruct + (4 + SizeString + SizeInt),
 			errExpected: nil,
 		},
 		{
 			name: "should account for baseObject overhead given a base dynamic array with an empty handler",
 			val:  &proxyObject{handler: &jsProxyHandler{handler: &Object{}}},
 			// proxy overhead + baseObject overhead + target overhead
-			expected: SizeEmpty + SizeEmpty + SizeEmpty,
+			expected: SizeEmptyStruct + SizeEmptyStruct + SizeEmptyStruct,
 			// proxy overhead + baseObject overhead + target overhead
-			newExpected: SizeEmpty + SizeEmpty + SizeEmpty,
+			newExpected: SizeEmptyStruct + SizeEmptyStruct + SizeEmptyStruct,
 			errExpected: nil,
 		},
 		{
@@ -71,9 +71,9 @@ func TestProxyMemUsage(t *testing.T) {
 				},
 			},
 			// proxy overhead + baseObject overhead + target overhead + key/value pair
-			expected: SizeEmpty + SizeEmpty + SizeEmpty + (4 + SizeInt),
+			expected: SizeEmptyStruct + SizeEmptyStruct + SizeEmptyStruct + (4 + SizeInt),
 			// proxy overhead + baseObject overhead + target overhead + key/value pair with string overhead
-			newExpected: SizeEmpty + SizeEmpty + SizeEmpty + (4 + SizeString + SizeInt),
+			newExpected: SizeEmptyStruct + SizeEmptyStruct + SizeEmptyStruct + (4 + SizeString + SizeInt),
 			errExpected: nil,
 		},
 	}
@@ -106,30 +106,30 @@ func TestJSProxyHandlerMemUsage(t *testing.T) {
 		errExpected error
 	}{
 		{
-			name:        "should have a value of SizeEmpty given a nil proxy handler",
+			name:        "should have a value of SizeEmptyStruct given a nil proxy handler",
 			val:         nil,
-			expected:    SizeEmpty,
-			newExpected: SizeEmpty,
+			expected:    SizeEmptyStruct,
+			newExpected: SizeEmptyStruct,
 			errExpected: nil,
 		},
 		{
-			name:        "should have a value of SizeEmpty given an empty proxy handler",
+			name:        "should have a value of SizeEmptyStruct given an empty proxy handler",
 			val:         &jsProxyHandler{},
-			expected:    SizeEmpty,
-			newExpected: SizeEmpty,
+			expected:    SizeEmptyStruct,
+			newExpected: SizeEmptyStruct,
 			errExpected: nil,
 		},
 		{
-			name: "should have a value of SizeEmpty given an empty proxy handler",
+			name: "should have a value of SizeEmptyStruct given an empty proxy handler",
 			val: &jsProxyHandler{
 				handler: &Object{
 					self: &baseObject{propNames: []unistring.String{"test"}, values: map[unistring.String]Value{"test": valueInt(99)}},
 				},
 			},
 			// baseObject overhead + key/value pair
-			expected: SizeEmpty + (4 + SizeInt),
+			expected: SizeEmptyStruct + (4 + SizeInt),
 			// baseObject overhead + key/value pair with string overhead
-			newExpected: SizeEmpty + (4 + SizeString + SizeInt),
+			newExpected: SizeEmptyStruct + (4 + SizeString + SizeInt),
 			errExpected: nil,
 		},
 	}

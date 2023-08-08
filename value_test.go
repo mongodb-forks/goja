@@ -68,8 +68,8 @@ func TestValueMemUsage(t *testing.T) {
 		{
 			name:        "should have a value of SizeNumber given a valueInt",
 			val:         valueInt(99),
-			expected:    SizeEmpty,
-			newExpected: SizeEmpty,
+			expected:    SizeEmptyStruct,
+			newExpected: SizeEmptyStruct,
 			errExpected: nil,
 		},
 		{
@@ -80,10 +80,10 @@ func TestValueMemUsage(t *testing.T) {
 			errExpected: nil,
 		},
 		{
-			name:        "should have a value of SizeEmpty given a valueNull",
+			name:        "should have a value of SizeEmptyStruct given a valueNull",
 			val:         valueNull{},
-			expected:    SizeEmpty,
-			newExpected: SizeEmpty,
+			expected:    SizeEmptyStruct,
+			newExpected: SizeEmptyStruct,
 			errExpected: nil,
 		},
 		{
@@ -137,10 +137,10 @@ func TestValuePropertyMemUsage(t *testing.T) {
 		errExpected error
 	}{
 		{
-			name:        "should have a value of SizeEmpty given nil valueProperty",
+			name:        "should have a value of SizeEmptyStruct given nil valueProperty",
 			val:         nil,
-			expected:    SizeEmpty,
-			newExpected: SizeEmpty,
+			expected:    SizeEmptyStruct,
+			newExpected: SizeEmptyStruct,
 			errExpected: nil,
 		},
 		{
@@ -157,8 +157,8 @@ func TestValuePropertyMemUsage(t *testing.T) {
 					self: &baseObject{propNames: []unistring.String{"test"}, values: map[unistring.String]Value{"test": valueInt(99)}},
 				},
 			},
-			expected:    SizeEmpty + SizeEmpty + 4,
-			newExpected: SizeEmpty + SizeEmpty + (4 + SizeString),
+			expected:    SizeEmptyStruct + SizeEmptyStruct + 4,
+			newExpected: SizeEmptyStruct + SizeEmptyStruct + (4 + SizeString),
 			errExpected: nil,
 		},
 		{
@@ -168,8 +168,8 @@ func TestValuePropertyMemUsage(t *testing.T) {
 					self: &baseObject{propNames: []unistring.String{"test"}, values: map[unistring.String]Value{"test": valueInt(99)}},
 				},
 			},
-			expected:    SizeEmpty + SizeEmpty + 4,
-			newExpected: SizeEmpty + SizeEmpty + (4 + SizeString),
+			expected:    SizeEmptyStruct + SizeEmptyStruct + 4,
+			newExpected: SizeEmptyStruct + SizeEmptyStruct + (4 + SizeString),
 			errExpected: nil,
 		},
 	}
@@ -202,17 +202,17 @@ func TestObjectMemUsage(t *testing.T) {
 		errExpected error
 	}{
 		{
-			name:        "should have a value of SizeEmpty given nil Object",
+			name:        "should have a value of SizeEmptyStruct given nil Object",
 			val:         nil,
-			expected:    SizeEmpty,
-			newExpected: SizeEmpty,
+			expected:    SizeEmptyStruct,
+			newExpected: SizeEmptyStruct,
 			errExpected: nil,
 		},
 		{
-			name:        "should have a value of SizeEmpty given an empty Object with nil self",
+			name:        "should have a value of SizeEmptyStruct given an empty Object with nil self",
 			val:         &Object{},
-			expected:    SizeEmpty,
-			newExpected: SizeEmpty,
+			expected:    SizeEmptyStruct,
+			newExpected: SizeEmptyStruct,
 			errExpected: nil,
 		},
 		{
@@ -223,49 +223,49 @@ func TestObjectMemUsage(t *testing.T) {
 			errExpected: nil,
 		},
 		{
-			name:        "should have a value of SizeEmpty given an Object with self of type objectGoReflect",
+			name:        "should have a value of SizeEmptyStruct given an Object with self of type objectGoReflect",
 			val:         &Object{self: &objectGoReflect{}},
-			expected:    SizeEmpty,
-			newExpected: SizeEmpty,
+			expected:    SizeEmptyStruct,
+			newExpected: SizeEmptyStruct,
 			errExpected: nil,
 		},
 		{
-			name:        "should have a value of SizeEmpty given an Object with self of type objectGoMapReflect",
+			name:        "should have a value of SizeEmptyStruct given an Object with self of type objectGoMapReflect",
 			val:         &Object{self: &objectGoMapReflect{}},
-			expected:    SizeEmpty,
-			newExpected: SizeEmpty,
+			expected:    SizeEmptyStruct,
+			newExpected: SizeEmptyStruct,
 			errExpected: nil,
 		},
 		{
-			name:        "should have a value of SizeEmpty given an Object with self of type objectGoMapSimple",
+			name:        "should have a value of SizeEmptyStruct given an Object with self of type objectGoMapSimple",
 			val:         &Object{self: &objectGoMapSimple{}},
-			expected:    SizeEmpty,
-			newExpected: SizeEmpty,
+			expected:    SizeEmptyStruct,
+			newExpected: SizeEmptyStruct,
 			errExpected: nil,
 		},
 		{
-			name:        "should have a value of SizeEmpty given an Object with self of type objectGoSlice",
+			name:        "should have a value of SizeEmptyStruct given an Object with self of type objectGoSlice",
 			val:         &Object{self: &objectGoSlice{}},
-			expected:    SizeEmpty,
-			newExpected: SizeEmpty,
+			expected:    SizeEmptyStruct,
+			newExpected: SizeEmptyStruct,
 			errExpected: nil,
 		},
 		{
-			name:        "should have a value of SizeEmpty given an Object with self of type objectGoSliceReflect",
+			name:        "should have a value of SizeEmptyStruct given an Object with self of type objectGoSliceReflect",
 			val:         &Object{self: &objectGoSliceReflect{}},
-			expected:    SizeEmpty,
-			newExpected: SizeEmpty,
+			expected:    SizeEmptyStruct,
+			newExpected: SizeEmptyStruct,
 			errExpected: nil,
 		},
 		{
-			name: "should have a value of SizeEmpty given an Object with self of type objectGoSliceReflect",
+			name: "should have a value of SizeEmptyStruct given an Object with self of type objectGoSliceReflect",
 			val: &Object{
 				self: &baseObject{propNames: []unistring.String{"test"}, values: map[unistring.String]Value{"test": valueInt(99)}},
 			},
 			// baseObject overhead + value
-			expected: SizeEmpty + (4 + SizeInt),
+			expected: SizeEmptyStruct + (4 + SizeInt),
 			// baseObject overhead + value with string overhead
-			newExpected: SizeEmpty + (4 + SizeString + SizeInt),
+			newExpected: SizeEmptyStruct + (4 + SizeString + SizeInt),
 			errExpected: nil,
 		},
 	}

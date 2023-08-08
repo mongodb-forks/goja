@@ -47,10 +47,10 @@ type vmContext struct {
 
 func (vc *vmContext) MemUsage(ctx *MemUsageContext) (memUsage uint64, newMemUsage uint64, err error) {
 	if vc == nil {
-		return SizeEmpty, SizeEmpty, err
+		return SizeEmptyStruct, SizeEmptyStruct, err
 	}
-	memUsage = SizeEmpty
-	newMemUsage = SizeEmpty
+	memUsage = SizeEmptyStruct
+	newMemUsage = SizeEmptyStruct
 
 	if vc.newTarget != nil {
 		inc, newInc, err := vc.newTarget.MemUsage(ctx)

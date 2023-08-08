@@ -656,19 +656,19 @@ func TestBaseObjectMemUsage(t *testing.T) {
 		errExpected error
 	}{
 		{
-			name:        "should have a value of SizeEmpty given a nil object",
+			name:        "should have a value of SizeEmptyStruct given a nil object",
 			threshold:   100,
 			val:         nil,
-			expected:    SizeEmpty,
-			newExpected: SizeEmpty,
+			expected:    SizeEmptyStruct,
+			newExpected: SizeEmptyStruct,
 			errExpected: nil,
 		},
 		{
-			name:        "should have a value of SizeEmpty given an empty object",
+			name:        "should have a value of SizeEmptyStruct given an empty object",
 			threshold:   100,
 			val:         &baseObject{},
-			expected:    SizeEmpty,
-			newExpected: SizeEmpty,
+			expected:    SizeEmptyStruct,
+			newExpected: SizeEmptyStruct,
 			errExpected: nil,
 		},
 		{
@@ -676,9 +676,9 @@ func TestBaseObjectMemUsage(t *testing.T) {
 			threshold: 100,
 			val:       &baseObject{propNames: []unistring.String{"test"}, values: map[unistring.String]Value{"test": valueInt(99)}},
 			// overhead + len("test") + value
-			expected: SizeEmpty + 4 + SizeInt,
+			expected: SizeEmptyStruct + 4 + SizeInt,
 			// overhead + len("test") with string overhead + value
-			newExpected: SizeEmpty + (4 + SizeString) + SizeInt,
+			newExpected: SizeEmptyStruct + (4 + SizeString) + SizeInt,
 			errExpected: nil,
 		},
 		{
@@ -686,9 +686,9 @@ func TestBaseObjectMemUsage(t *testing.T) {
 			threshold: 100,
 			val:       &baseObject{propNames: []unistring.String{"test"}, values: map[unistring.String]Value{"test": nil}},
 			// overhead + len("test")
-			expected: SizeEmpty + 4,
+			expected: SizeEmptyStruct + 4,
 			// overhead + len("test") with string overhead
-			newExpected: SizeEmpty + (4 + SizeString),
+			newExpected: SizeEmptyStruct + (4 + SizeString),
 			errExpected: nil,
 		},
 		{
@@ -709,9 +709,9 @@ func TestBaseObjectMemUsage(t *testing.T) {
 				},
 			},
 			// overhead + len("testN") + value
-			expected: SizeEmpty + (5+SizeInt)*4,
+			expected: SizeEmptyStruct + (5+SizeInt)*4,
 			// overhead + len("testN") with string overhead + value
-			newExpected: SizeEmpty + ((5+SizeString)+SizeInt)*4,
+			newExpected: SizeEmptyStruct + ((5+SizeString)+SizeInt)*4,
 			errExpected: nil,
 		},
 		{
@@ -719,9 +719,9 @@ func TestBaseObjectMemUsage(t *testing.T) {
 			threshold: 100,
 			val:       &baseObject{prototype: &Object{}},
 			// baseObject overhead + prototype overhead
-			expected: SizeEmpty + SizeEmpty,
+			expected: SizeEmptyStruct + SizeEmptyStruct,
 			// baseObject overhead + prototype overhead
-			newExpected: SizeEmpty + SizeEmpty,
+			newExpected: SizeEmptyStruct + SizeEmptyStruct,
 			errExpected: nil,
 		},
 	}
@@ -754,44 +754,44 @@ func TestPrimitiveValueObjectMemUsage(t *testing.T) {
 		errExpected error
 	}{
 		{
-			name:        "should have a value of SizeEmpty given a nil primitive value object",
+			name:        "should have a value of SizeEmptyStruct given a nil primitive value object",
 			val:         nil,
-			expected:    SizeEmpty,
-			newExpected: SizeEmpty,
+			expected:    SizeEmptyStruct,
+			newExpected: SizeEmptyStruct,
 			errExpected: nil,
 		},
 		{
-			name:        "should have a value of SizeEmpty given an empty primitive value object",
+			name:        "should have a value of SizeEmptyStruct given an empty primitive value object",
 			val:         &primitiveValueObject{},
-			expected:    SizeEmpty,
-			newExpected: SizeEmpty,
+			expected:    SizeEmptyStruct,
+			newExpected: SizeEmptyStruct,
 			errExpected: nil,
 		},
 		{
 			name: "should account for overhead given a primitive value object with empty object",
 			val:  &primitiveValueObject{baseObject: baseObject{}},
 			// baseObject overhead + len("test") + value
-			expected: SizeEmpty,
+			expected: SizeEmptyStruct,
 			// baseObject overhead + len("test") with string overhead + value
-			newExpected: SizeEmpty,
+			newExpected: SizeEmptyStruct,
 			errExpected: nil,
 		},
 		{
 			name: "should account for overehead and each key value pair given a primitive value object with non-empty object",
 			val:  &primitiveValueObject{baseObject: baseObject{propNames: []unistring.String{"test"}, values: map[unistring.String]Value{"test": valueInt(99)}}},
 			// baseObject overhead + len("test") + value
-			expected: SizeEmpty + 4 + SizeInt,
+			expected: SizeEmptyStruct + 4 + SizeInt,
 			// baseObject overhead + len("test") with string overhead + value
-			newExpected: SizeEmpty + (4 + SizeString) + SizeInt,
+			newExpected: SizeEmptyStruct + (4 + SizeString) + SizeInt,
 			errExpected: nil,
 		},
 		{
 			name: "should account for pValue given a primitive value object with non-empty pValue",
 			val:  &primitiveValueObject{pValue: valueInt(99)},
 			// baseObject overhead + value
-			expected: SizeEmpty + SizeInt,
+			expected: SizeEmptyStruct + SizeInt,
 			// baseObject overhead + value
-			newExpected: SizeEmpty + SizeInt,
+			newExpected: SizeEmptyStruct + SizeInt,
 			errExpected: nil,
 		},
 	}

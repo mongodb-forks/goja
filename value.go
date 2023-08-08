@@ -121,11 +121,11 @@ type Value interface {
 }
 
 const (
-	SizeBool   = uint64(unsafe.Sizeof(true))
-	SizeNumber = uint64(unsafe.Sizeof(float64(0)))
-	SizeInt32  = uint64(unsafe.Sizeof(int32(0)))
-	SizeInt    = uint64(unsafe.Sizeof(int(0)))
-	SizeEmpty  = uint64(unsafe.Sizeof((*baseObject)(nil)))
+	SizeBool        = uint64(unsafe.Sizeof(true))
+	SizeNumber      = uint64(unsafe.Sizeof(float64(0)))
+	SizeInt32       = uint64(unsafe.Sizeof(int32(0)))
+	SizeInt         = uint64(unsafe.Sizeof(int(0)))
+	SizeEmptyStruct = uint64(unsafe.Sizeof((*baseObject)(nil)))
 	// SizeString allows us to take into account the 16 additional bytes
 	// for any string type in go including the pointer to the start of
 	// the string data and the length of the string
@@ -572,7 +572,7 @@ func (n valueNull) IsObject() bool {
 }
 
 func (n valueNull) MemUsage(ctx *MemUsageContext) (memUsage uint64, newMemUsage uint64, err error) {
-	return SizeEmpty, SizeEmpty, nil
+	return SizeEmptyStruct, SizeEmptyStruct, nil
 }
 
 func (u valueUndefined) toString() valueString {
@@ -766,7 +766,7 @@ func (p *valueProperty) hash(*maphash.Hash) uint64 {
 
 func (p *valueProperty) MemUsage(ctx *MemUsageContext) (memUsage uint64, newMemUsage uint64, err error) {
 	if p == nil {
-		return SizeEmpty, SizeEmpty, err
+		return SizeEmptyStruct, SizeEmptyStruct, err
 	}
 
 	if p.value != nil {
@@ -1165,7 +1165,7 @@ func (o *Object) hash(*maphash.Hash) uint64 {
 
 func (o *Object) MemUsage(ctx *MemUsageContext) (memUsage uint64, newMemUsage uint64, err error) {
 	if o == nil || o.self == nil {
-		return SizeEmpty, SizeEmpty, nil
+		return SizeEmptyStruct, SizeEmptyStruct, nil
 	}
 
 	if o.__wrapped != nil {
@@ -1176,15 +1176,15 @@ func (o *Object) MemUsage(ctx *MemUsageContext) (memUsage uint64, newMemUsage ui
 
 	switch x := o.self.(type) {
 	case *objectGoReflect:
-		return SizeEmpty, SizeEmpty, nil
+		return SizeEmptyStruct, SizeEmptyStruct, nil
 	case *objectGoMapReflect:
-		return SizeEmpty, SizeEmpty, nil
+		return SizeEmptyStruct, SizeEmptyStruct, nil
 	case *objectGoMapSimple:
-		return SizeEmpty, SizeEmpty, nil
+		return SizeEmptyStruct, SizeEmptyStruct, nil
 	case *objectGoSlice:
-		return SizeEmpty, SizeEmpty, nil
+		return SizeEmptyStruct, SizeEmptyStruct, nil
 	case *objectGoSliceReflect:
-		return SizeEmpty, SizeEmpty, nil
+		return SizeEmptyStruct, SizeEmptyStruct, nil
 	default:
 		r, ok := x.(MemUsageReporter)
 		if !ok {

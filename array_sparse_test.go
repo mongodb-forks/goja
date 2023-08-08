@@ -284,17 +284,17 @@ func TestSparseArrayObjectMemUsage(t *testing.T) {
 				},
 			},
 			// array overhead + index size + stringObject + sparseArray baseObject
-			expected: SizeEmpty + SizeInt32 + 25 + SizeEmpty,
+			expected: SizeEmptyStruct + SizeInt32 + 25 + SizeEmptyStruct,
 			// array overhead + index size + stringObject + sparseArray baseObject
-			newExpected: SizeEmpty + SizeInt32 + 57 + SizeEmpty,
+			newExpected: SizeEmptyStruct + SizeInt32 + 57 + SizeEmptyStruct,
 			errExpected: nil,
 		},
 		{
-			name:        "mem is SizeEmpty for nil sparse array",
+			name:        "mem is SizeEmptyStruct for nil sparse array",
 			mu:          NewMemUsageContext(New(), 88, 5000, 50, 50, TestNativeMemUsageChecker{}),
 			sao:         nil,
-			expected:    SizeEmpty,
-			newExpected: SizeEmpty,
+			expected:    SizeEmptyStruct,
+			newExpected: SizeEmptyStruct,
 			errExpected: nil,
 		},
 		{
@@ -329,9 +329,9 @@ func TestSparseArrayObjectMemUsage(t *testing.T) {
 				},
 			},
 			// array overhead + index size + stringObject (we reach the limit at 4)
-			expected: SizeEmpty + (SizeInt32+26)*4,
+			expected: SizeEmptyStruct + (SizeInt32+26)*4,
 			// index size + stringObject (we reach the limit at 4)
-			newExpected: SizeEmpty + (SizeInt32+58)*4,
+			newExpected: SizeEmptyStruct + (SizeInt32+58)*4,
 			errExpected: nil,
 		},
 	}

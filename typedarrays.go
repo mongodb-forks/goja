@@ -707,12 +707,12 @@ func (a *typedArrayObject) iterateStringKeys() iterNextFunc {
 
 func (a *typedArrayObject) MemUsage(ctx *MemUsageContext) (memUsage uint64, newMemUsage uint64, err error) {
 	if a == nil || ctx.IsObjVisited(a) {
-		return SizeEmpty, SizeEmpty, nil
+		return SizeEmptyStruct, SizeEmptyStruct, nil
 	}
 	ctx.VisitObj(a)
 
-	memUsage = SizeEmpty
-	newMemUsage = SizeEmpty
+	memUsage = SizeEmptyStruct
+	newMemUsage = SizeEmptyStruct
 	if a.viewedArrayBuf != nil {
 		inc, newInc, err := a.viewedArrayBuf.MemUsage(ctx)
 		memUsage += inc
@@ -815,12 +815,12 @@ func (o *dataViewObject) getIdxAndByteOrder(getIdx int, littleEndianVal Value, s
 
 func (o *dataViewObject) MemUsage(ctx *MemUsageContext) (memUsage uint64, newMemUsage uint64, err error) {
 	if o == nil || ctx.IsObjVisited(o) {
-		return SizeEmpty, SizeEmpty, nil
+		return SizeEmptyStruct, SizeEmptyStruct, nil
 	}
 	ctx.VisitObj(o)
 
-	memUsage = SizeEmpty
-	newMemUsage = SizeEmpty
+	memUsage = SizeEmptyStruct
+	newMemUsage = SizeEmptyStruct
 	if o.viewedArrayBuf != nil {
 		inc, newInc, err := o.viewedArrayBuf.MemUsage(ctx)
 		memUsage += inc
@@ -976,7 +976,7 @@ func (o *arrayBufferObject) export(*objectExportCtx) interface{} {
 
 func (o *arrayBufferObject) MemUsage(ctx *MemUsageContext) (memUsage uint64, newMemUsage uint64, err error) {
 	if o == nil || ctx.IsObjVisited(o) {
-		return SizeEmpty, SizeEmpty, nil
+		return SizeEmptyStruct, SizeEmptyStruct, nil
 	}
 	ctx.VisitObj(o)
 
