@@ -1182,6 +1182,12 @@ func (o *Object) MemUsage(ctx *MemUsageContext) (memUsage uint64, newMemUsage ui
 		return SizeEmptyStruct, SizeEmptyStruct, nil
 	case *objectGoSliceReflect:
 		return SizeEmptyStruct, SizeEmptyStruct, nil
+	case *objectGoMapSimple:
+		_, newMemUsage, err := x.MemUsage(ctx)
+		return SizeEmptyStruct, newMemUsage, err
+	case *objectGoSlice:
+		_, newMemUsage, err := x.MemUsage(ctx)
+		return SizeEmptyStruct, newMemUsage, err
 	default:
 		r, ok := x.(MemUsageReporter)
 		if !ok {

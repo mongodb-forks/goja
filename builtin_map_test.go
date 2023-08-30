@@ -253,33 +253,33 @@ func TestMapObjectMemUsage(t *testing.T) {
 		expectedNewMem uint64
 		errExpected    error
 	}{
-		// {
-		// 	name: "mem below threshold",
-		// 	mu:   NewMemUsageContext(vm, 88, 5000, 50, 50, TestNativeMemUsageChecker{}),
-		// 	mo: &mapObject{
-		// 		m: &orderedMap{
-		// 			hashTable: map[uint64]*mapEntry{
-		// 				1: {
-		// 					key:   vm.ToValue("key"),
-		// 					value: vm.ToValue("value"),
-		// 				},
-		// 			},
-		// 		},
-		// 	},
-		// 	// baseObject + (len(key) + overhead)  + (len(value) + overhead)
-		// 	expectedMem: SizeEmptyStruct + (3 + SizeString) + (5 + SizeString),
-		// 	// baseObject + (len(key) + overhead) + (len(value) + overhead)
-		// 	expectedNewMem: SizeEmptyStruct + (3 + SizeString) + (5 + SizeString),
-		// 	errExpected:    nil,
-		// },
-		// {
-		// 	name:           "mem is SizeEmptyStruct given a nil map object",
-		// 	mu:             NewMemUsageContext(vm, 88, 5000, 50, 50, TestNativeMemUsageChecker{}),
-		// 	mo:             nil,
-		// 	expectedMem:    SizeEmptyStruct,
-		// 	expectedNewMem: SizeEmptyStruct,
-		// 	errExpected:    nil,
-		// },
+		{
+			name: "mem below threshold",
+			mu:   NewMemUsageContext(vm, 88, 5000, 50, 50, TestNativeMemUsageChecker{}),
+			mo: &mapObject{
+				m: &orderedMap{
+					hashTable: map[uint64]*mapEntry{
+						1: {
+							key:   vm.ToValue("key"),
+							value: vm.ToValue("value"),
+						},
+					},
+				},
+			},
+			// baseObject + (len(key) + overhead)  + (len(value) + overhead)
+			expectedMem: SizeEmptyStruct + (3 + SizeString) + (5 + SizeString),
+			// baseObject + (len(key) + overhead) + (len(value) + overhead)
+			expectedNewMem: SizeEmptyStruct + (3 + SizeString) + (5 + SizeString),
+			errExpected:    nil,
+		},
+		{
+			name:           "mem is SizeEmptyStruct given a nil map object",
+			mu:             NewMemUsageContext(vm, 88, 5000, 50, 50, TestNativeMemUsageChecker{}),
+			mo:             nil,
+			expectedMem:    SizeEmptyStruct,
+			expectedNewMem: SizeEmptyStruct,
+			errExpected:    nil,
+		},
 		{
 			name: "mem way above threshold returns first crossing of threshold",
 			mu:   NewMemUsageContext(vm, 88, 100, 50, 50, TestNativeMemUsageChecker{}),
