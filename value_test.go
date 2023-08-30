@@ -96,14 +96,14 @@ func TestValueMemUsage(t *testing.T) {
 		{
 			name:           "should account for ref given a valueUnresolved",
 			val:            valueUnresolved{ref: "test"},
-			expectedMem:    4,
+			expectedMem:    4 + SizeString,
 			expectedNewMem: 4 + SizeString,
 			errExpected:    nil,
 		},
 		{
 			name:           "should account for desc given a Symbol",
 			val:            &Symbol{desc: newStringValue("test")},
-			expectedMem:    4,
+			expectedMem:    4 + SizeString,
 			expectedNewMem: 4 + SizeString,
 			errExpected:    nil,
 		},
@@ -164,7 +164,7 @@ func TestValuePropertyMemUsage(t *testing.T) {
 					self: &baseObject{propNames: []unistring.String{"test"}, values: map[unistring.String]Value{"test": valueInt(99)}},
 				},
 			},
-			expectedMem:    SizeEmptyStruct + SizeEmptyStruct + 4,
+			expectedMem:    SizeEmptyStruct + SizeEmptyStruct + (4 + SizeString),
 			expectedNewMem: SizeEmptyStruct + SizeEmptyStruct + (4 + SizeString),
 			errExpected:    nil,
 		},
@@ -175,7 +175,7 @@ func TestValuePropertyMemUsage(t *testing.T) {
 					self: &baseObject{propNames: []unistring.String{"test"}, values: map[unistring.String]Value{"test": valueInt(99)}},
 				},
 			},
-			expectedMem:    SizeEmptyStruct + SizeEmptyStruct + 4,
+			expectedMem:    SizeEmptyStruct + SizeEmptyStruct + (4 + SizeString),
 			expectedNewMem: SizeEmptyStruct + SizeEmptyStruct + (4 + SizeString),
 			errExpected:    nil,
 		},
@@ -269,8 +269,8 @@ func TestObjectMemUsage(t *testing.T) {
 			val: &Object{
 				self: &baseObject{propNames: []unistring.String{"test"}, values: map[unistring.String]Value{"test": valueInt(99)}},
 			},
-			// baseObject overhead + value
-			expectedMem: SizeEmptyStruct + (4 + SizeInt),
+			// baseObject overhead + value with string overhead
+			expectedMem: SizeEmptyStruct + (4 + SizeString + SizeInt),
 			// baseObject overhead + value with string overhead
 			expectedNewMem: SizeEmptyStruct + (4 + SizeString + SizeInt),
 			errExpected:    nil,
