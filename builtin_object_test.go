@@ -276,9 +276,9 @@ func TestObject_fromEntries(t *testing.T) {
 		},
 		{
 			`
- 					 var o = Object.fromEntries([['a', 1], [], ['b', true]]);
- 					 [ o.a, o.b ]
- 				 `, "1,true",
+ 					 var o = Object.fromEntries([['a', 1], [, 'empty'], ['b', true]]);
+ 					 [ o.a, o[undefined], o.b ]
+ 				 `, "1,empty,true",
 		},
 	} {
 		actual, err := vm.RunString(tt.js)
