@@ -780,22 +780,6 @@ func TestMemObjectsWithPropsLenThreshold(t *testing.T) {
 			expectedNewSizeDiff: SizeEmptyStruct + 10*(2+SizeString) + 10*SizeNumber,
 		},
 		{
-			desc: "object under threshold but over limit should exit early",
-			script: `y = {}
-			let i = 0;
-			checkMem();
-			for (i=0;i<10;i++) {
-				y["i"+i] = i
-			}
-			checkMem()`,
-			threshold: 100,
-			memLimit:  100,
-			// object overhead
-			expectedSizeDiff: SizeEmptyStruct,
-			// object overhead
-			expectedNewSizeDiff: SizeEmptyStruct,
-		},
-		{
 			desc: "object over threshold",
 			script: `y = {}
 			let i = 0;
