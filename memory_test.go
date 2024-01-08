@@ -789,7 +789,7 @@ func TestMemObjectsWithPropsLenThreshold(t *testing.T) {
 			}
 			checkMem()`,
 			threshold: 100,
-			memLimit:  0,
+			memLimit:  100,
 			// object overhead
 			expectedSizeDiff: SizeEmptyStruct,
 			// object overhead
