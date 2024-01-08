@@ -515,6 +515,9 @@ func (r *Runtime) MemUsage(ctx *MemUsageContext) (memUsage uint64, newMemUsage u
 			if err != nil {
 				return memUsage, newMemUsage, err
 			}
+			if exceeded := ctx.MemUsageLimitExceeded(memUsage); exceeded {
+				return memUsage, newMemUsage, nil
+			}
 		}
 	}
 

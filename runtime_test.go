@@ -3070,6 +3070,7 @@ func TestRuntimeMemUsage(t *testing.T) {
 	tests := []struct {
 		name           string
 		val            *Runtime
+		memLimit       uint64
 		expectedMem    uint64
 		expectedNewMem uint64
 		errExpected    error
@@ -3077,6 +3078,7 @@ func TestRuntimeMemUsage(t *testing.T) {
 		{
 			name:           "should have a value of SizeEmptyStruct given a nil runtime",
 			val:            nil,
+			memLimit:       100,
 			expectedMem:    SizeEmptyStruct,
 			expectedNewMem: SizeEmptyStruct,
 			errExpected:    nil,
@@ -3088,6 +3090,7 @@ func TestRuntimeMemUsage(t *testing.T) {
 					self: &baseObject{propNames: []unistring.String{"test"}, values: map[unistring.String]Value{"test": valueInt(99)}},
 				},
 			},
+			memLimit: 100,
 			// baseObject overhead + key/value pair with string overhead
 			expectedMem: SizeEmptyStruct + (4 + SizeString + SizeInt),
 			// baseObject overhead + key/value pair with string overhead
@@ -3099,6 +3102,19 @@ func TestRuntimeMemUsage(t *testing.T) {
 			val: &Runtime{
 				vm: &vm{callStack: []vmContext{{newTarget: valueInt(99)}}},
 			},
+			memLimit: 100,
+			// vmContext overhead + value
+			expectedMem: SizeEmptyStruct + SizeInt,
+			// vmContext overhead + value
+			expectedNewMem: SizeEmptyStruct + SizeInt,
+			errExpected:    nil,
+		},
+		{
+			name: "should exit early given a callStack exceeding the memory limit",
+			val: &Runtime{
+				vm: &vm{callStack: []vmContext{{newTarget: valueInt(99)}, {newTarget: valueInt(99)}, {newTarget: valueInt(99)}}},
+			},
+			memLimit: 0,
 			// vmContext overhead + value
 			expectedMem: SizeEmptyStruct + SizeInt,
 			// vmContext overhead + value
@@ -3110,6 +3126,7 @@ func TestRuntimeMemUsage(t *testing.T) {
 			val: &Runtime{
 				vm: &vm{stash: &stash{values: []Value{valueInt(99)}}},
 			},
+			memLimit: 100,
 			// stash value
 			expectedMem: SizeInt,
 			// stash value
@@ -3121,6 +3138,7 @@ func TestRuntimeMemUsage(t *testing.T) {
 			val: &Runtime{
 				vm: &vm{stack: []Value{valueInt(99)}},
 			},
+			memLimit: 100,
 			// stack value
 			expectedMem: SizeInt,
 			// stack value
@@ -3131,7 +3149,7 @@ func TestRuntimeMemUsage(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			total, newTotal, err := tc.val.MemUsage(NewMemUsageContext(New(), 100, 100, 100, 100, nil))
+			total, newTotal, err := tc.val.MemUsage(NewMemUsageContext(New(), 100, tc.memLimit, 100, 100, nil))
 			if err != tc.errExpected {
 				t.Fatalf("Unexpected error. Actual: %v Expected: %v", err, tc.errExpected)
 			}
