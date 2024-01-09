@@ -3087,14 +3087,34 @@ func TestRuntimeMemUsage(t *testing.T) {
 			name: "should account for globalObject given a runtime with non-empty globalObject",
 			val: &Runtime{
 				globalObject: &Object{
-					self: &baseObject{propNames: []unistring.String{"test"}, values: map[unistring.String]Value{"test": valueInt(99)}},
+					self: &baseObject{
+						propNames: []unistring.String{"test0", "test1", "test2"},
+						values:    map[unistring.String]Value{"test0": valueInt(99), "test1": valueInt(99), "test2": valueInt(99)},
+					},
 				},
 			},
 			memLimit: 100,
 			// baseObject overhead + key/value pair with string overhead
-			expectedMem: SizeEmptyStruct + (4 + SizeString + SizeInt),
+			expectedMem: SizeEmptyStruct + (5+SizeString+SizeInt)*3,
 			// baseObject overhead + key/value pair with string overhead
-			expectedNewMem: SizeEmptyStruct + (4 + SizeString + SizeInt),
+			expectedNewMem: SizeEmptyStruct + (5+SizeString+SizeInt)*3,
+			errExpected:    nil,
+		},
+		{
+			name: "should exit early given a runtime with non-empty globalObject exceeding the memory limit",
+			val: &Runtime{
+				globalObject: &Object{
+					self: &baseObject{
+						propNames: []unistring.String{"test0", "test1", "test2"},
+						values:    map[unistring.String]Value{"test0": valueInt(99), "test1": valueInt(99), "test2": valueInt(99)},
+					},
+				},
+			},
+			memLimit: 0,
+			// baseObject overhead + key/value pair with string overhead
+			expectedMem: SizeEmptyStruct + (5 + SizeString + SizeInt),
+			// baseObject overhead + key/value pair with string overhead
+			expectedNewMem: SizeEmptyStruct + (5 + SizeString + SizeInt),
 			errExpected:    nil,
 		},
 		{
