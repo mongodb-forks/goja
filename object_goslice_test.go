@@ -405,11 +405,38 @@ func TestGoSliceMemUsage(t *testing.T) {
 			expectedNewMem: SizeEmptyStruct + SizeInt,
 			errExpected:    nil,
 		},
+		{
+			name: "should estimate mem usage when over array len threshold",
+			val: &objectGoSlice{
+				baseObject: baseObject{
+					val: &Object{runtime: vm},
+				},
+				data: &[]interface{}{
+					valueInt(99),
+					valueInt(99),
+					valueInt(99),
+					valueInt(99),
+					valueInt(99),
+					valueInt(99),
+					valueInt(99),
+					valueInt(99),
+					valueInt(99),
+					valueInt(99),
+					valueInt(99),
+				},
+			},
+			memLimit: 0,
+			// overhead + values
+			expectedMem: SizeEmptyStruct + SizeInt*11,
+			// overhead + values
+			expectedNewMem: SizeEmptyStruct + SizeInt*11,
+			errExpected:    nil,
+		},
 	}
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			total, newTotal, err := tc.val.MemUsage(NewMemUsageContext(vm, 100, tc.memLimit, 100, 100, nil))
+			total, newTotal, err := tc.val.MemUsage(NewMemUsageContext(vm, 100, tc.memLimit, 10, 100, nil))
 			if err != tc.errExpected {
 				t.Fatalf("Unexpected error. Actual: %v Expected: %v", err, tc.errExpected)
 			}

@@ -196,6 +196,7 @@ func (o *objectGoMapSimple) MemUsage(ctx *MemUsageContext) (uint64, uint64, erro
 	if err != nil {
 		return 0, 0, err
 	}
+
 	if ctx.ObjectPropsLenExceedsThreshold(len(o.data)) {
 		inc, newInc, err := o.estimateMemUsage(ctx)
 		memUsage += inc
@@ -203,19 +204,20 @@ func (o *objectGoMapSimple) MemUsage(ctx *MemUsageContext) (uint64, uint64, erro
 		if err != nil {
 			return memUsage, newMemUsage, err
 		}
-	} else {
-		for key := range o.data {
-			memUsage += uint64(len(key)) + SizeString
-			newMemUsage += uint64(len(key)) + SizeString
-			incr, newIncr, err := o._getStr(key).MemUsage(ctx)
-			memUsage += incr
-			newMemUsage += newIncr
-			if err != nil {
-				return memUsage, newMemUsage, err
-			}
-			if exceeded := ctx.MemUsageLimitExceeded(memUsage); exceeded {
-				return memUsage, newMemUsage, nil
-			}
+		return memUsage, newMemUsage, nil
+	}
+
+	for key := range o.data {
+		memUsage += uint64(len(key)) + SizeString
+		newMemUsage += uint64(len(key)) + SizeString
+		incr, newIncr, err := o._getStr(key).MemUsage(ctx)
+		memUsage += incr
+		newMemUsage += newIncr
+		if err != nil {
+			return memUsage, newMemUsage, err
+		}
+		if exceeded := ctx.MemUsageLimitExceeded(memUsage); exceeded {
+			return memUsage, newMemUsage, nil
 		}
 	}
 	return memUsage, newMemUsage, nil
