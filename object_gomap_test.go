@@ -464,11 +464,39 @@ func TestGoMapMemUsage(t *testing.T) {
 			expectedNewMem: SizeEmptyStruct + ((5 + SizeString) + SizeInt),
 			errExpected:    nil,
 		},
+		{
+			name: "should estimate mem usage when exceeding object props len threshold",
+			val: &objectGoMapSimple{
+				baseObject: baseObject{
+					val: &Object{runtime: vm},
+				},
+				data: map[string]interface{}{
+					"test0": valueInt(99),
+					"test1": valueInt(99),
+					"test2": valueInt(99),
+					"test3": valueInt(99),
+					"test4": valueInt(99),
+					"test5": valueInt(99),
+					"test6": valueInt(99),
+					"test7": valueInt(99),
+					"test8": valueInt(99),
+					"test9": valueInt(99),
+					"testa": valueInt(99),
+					"testb": valueInt(99),
+				},
+			},
+			memLimit: 0,
+			// baseObject overhead + len("testN") with string overhead + value
+			expectedMem: SizeEmptyStruct + ((5+SizeString)+SizeInt)*12,
+			// baseObject overhead + len("testN") with string overhead + value
+			expectedNewMem: SizeEmptyStruct + ((5+SizeString)+SizeInt)*12,
+			errExpected:    nil,
+		},
 	}
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			total, newTotal, err := tc.val.MemUsage(NewMemUsageContext(vm, 100, tc.memLimit, 100, 100, nil))
+			total, newTotal, err := tc.val.MemUsage(NewMemUsageContext(vm, 100, tc.memLimit, 100, 10, nil))
 			if err != tc.errExpected {
 				t.Fatalf("Unexpected error. Actual: %v Expected: %v", err, tc.errExpected)
 			}

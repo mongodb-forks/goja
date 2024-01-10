@@ -808,7 +808,7 @@ func TestPrimitiveValueObjectMemUsage(t *testing.T) {
 			errExpected:    nil,
 		},
 		{
-			name: "should account for overehead and each key value pair given a primitive value object with non-empty object",
+			name: "should account for overhead and each key value pair given a primitive value object with non-empty object",
 			val:  &primitiveValueObject{baseObject: baseObject{propNames: []unistring.String{"test"}, values: map[unistring.String]Value{"test": valueInt(99)}}},
 			// baseObject overhead + len("test") with string overhead + value
 			expectedMem: SizeEmptyStruct + (4 + SizeString) + SizeInt,
