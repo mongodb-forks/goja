@@ -178,3 +178,16 @@ func TestSetGetAdderGetIteratorOrder(t *testing.T) {
 	`
 	testScript(SCRIPT, valueTrue, t)
 }
+
+func TestSetHasFloatVsInt(t *testing.T) {
+	const SCRIPT = `const s = new Set()
+	s.add(1);
+	const hasFloat = s.has(1.0);
+
+	s.add(2.0)
+	const hasInt = s.has(2)
+
+	hasFloat && hasInt`
+
+	testScript(SCRIPT, valueTrue, t)
+}
