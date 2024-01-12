@@ -48,25 +48,9 @@ func (m *orderedMap) lookup(key Value) (h uint64, entry, hPrev *mapEntry) {
 	}
 	h = key.hash(m.hash)
 
-	entry = m.hashTable[h]
-	for {
-		if entry == nil {
-			return
-		}
-
-		src := entry.key
-		switch t := entry.key.(type) {
-		case valueInt:
-			src = floatToValue(t.ToFloat())
-		case valueInt64:
-			src = floatToValue(t.ToFloat())
-		}
-		if src.SameAs(key) {
-			return
-		}
-
-		hPrev, entry = entry, entry.hNext
+	for entry = m.hashTable[h]; entry != nil && !entry.key.SameAs(key); hPrev, entry = entry, entry.hNext {
 	}
+	return
 }
 
 func (m *orderedMap) set(key, value Value) {
