@@ -493,7 +493,7 @@ func TestGoMapMemUsage(t *testing.T) {
 				},
 			},
 			memLimit:          0,
-			estimateThreshold: 100,
+			estimateThreshold: 10,
 			// baseObject overhead + len("testN") with string overhead + value
 			expectedMem: SizeEmptyStruct + ((5+SizeString)+SizeInt)*12,
 			// baseObject overhead + len("testN") with string overhead + value
