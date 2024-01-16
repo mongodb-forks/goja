@@ -164,7 +164,10 @@ func (o *objectGoMapSimple) estimateMemUsage(ctx *MemUsageContext) (estimate uin
 	var samplesVisited, memUsage, newMemUsage uint64
 	counter := 0
 	totalProps := len(o.data)
-	sampleSize := totalProps / 10
+	sampleSize := 1
+	if totalProps > 0 {
+		sampleSize = totalProps / 10
+	}
 
 	// grabbing one sample every "sampleSize" to provide consistent
 	// memory usage across function executions
