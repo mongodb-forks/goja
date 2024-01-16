@@ -755,6 +755,20 @@ func TestBaseObjectMemUsage(t *testing.T) {
 			expectedNewMem: SizeEmptyStruct + ((5 + SizeString) + SizeInt),
 			errExpected:    nil,
 		},
+		{
+			name:      "should estimate memory given an empty object and negative threshold",
+			threshold: -1,
+			memLimit:  0,
+			val: &baseObject{
+				propNames: []unistring.String{},
+				values:    map[unistring.String]Value{},
+			},
+			// overhead
+			expectedMem: SizeEmptyStruct,
+			// overhead
+			expectedNewMem: SizeEmptyStruct,
+			errExpected:    nil,
+		},
 	}
 
 	for _, tc := range tests {
