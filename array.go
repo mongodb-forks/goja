@@ -576,11 +576,11 @@ var (
 // usage of the whole array
 func (a *arrayObject) estimateMemUsage(ctx *MemUsageContext) (estimate uint64, newEstimate uint64, err error) {
 	var samplesVisited, memUsage, newMemUsage uint64
-	sampleSize := 1
 	arrayLen := len(a.values)
-	if arrayLen > 0 {
-		sampleSize = arrayLen / 10
+	if arrayLen == 0 {
+		return memUsage, newMemUsage, nil
 	}
+	sampleSize := arrayLen / 10
 
 	// grabbing one sample every "sampleSize" to provide consistent
 	// memory usage across function executions

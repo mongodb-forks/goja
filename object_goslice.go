@@ -353,11 +353,11 @@ func (o *objectGoSlice) swap(i int, j int) {
 func (o *objectGoSlice) estimateMemUsage(ctx *MemUsageContext) (estimate uint64, newEstimate uint64, err error) {
 	var samplesVisited, memUsage, newMemUsage uint64
 	counter := 0
-	sampleSize := 1
 	sliceLen := len(*o.data)
-	if sliceLen > 0 {
-		sampleSize = sliceLen / 10
+	if sliceLen == 0 {
+		return memUsage, newMemUsage, nil
 	}
+	sampleSize := sliceLen / 10
 
 	// grabbing one sample every "sampleSize" to provide consistent
 	// memory usage across function executions
