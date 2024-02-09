@@ -1282,8 +1282,8 @@ func (_mul) exec(vm *vm) {
 
 	var result Value
 
-	if left, ok, _ := assertInt64(left); ok {
-		if right, ok, _ := assertInt64(right); ok {
+	if left, ok, leftIsInt64 := assertInt64(left); ok {
+		if right, ok, rightIsInt64 := assertInt64(right); ok {
 			if left == 0 && right == -1 || left == -1 && right == 0 {
 				result = _negativeZero
 				goto end
@@ -1291,7 +1291,11 @@ func (_mul) exec(vm *vm) {
 			res := left * right
 			// check for overflow
 			if left == 0 || right == 0 || res/left == right {
-				result = intToValue(res)
+				if leftIsInt64 || rightIsInt64 {
+					result = int64ToValue(res)
+				} else {
+					result = intToValue(res)
+				}
 				goto end
 			}
 
@@ -1385,8 +1389,8 @@ func (_mod) exec(vm *vm) {
 
 	var result Value
 
-	if leftInt, ok, _ := assertInt64(left); ok {
-		if rightInt, ok, _ := assertInt64(right); ok {
+	if leftInt, ok, leftIsInt64 := assertInt64(left); ok {
+		if rightInt, ok, rightIsInt64 := assertInt64(right); ok {
 			if rightInt == 0 {
 				result = _NaN
 				goto end
@@ -1394,6 +1398,8 @@ func (_mod) exec(vm *vm) {
 			r := leftInt % rightInt
 			if r == 0 && leftInt < 0 {
 				result = _negativeZero
+			} else if leftIsInt64 || rightIsInt64 {
+				result = int64ToValue(leftInt % rightInt)
 			} else {
 				result = intToValue(leftInt % rightInt)
 			}
@@ -1417,9 +1423,11 @@ func (_neg) exec(vm *vm) {
 
 	var result Value
 
-	if i, ok, _ := assertInt64(operand); ok {
+	if i, ok, isInt64 := assertInt64(operand); ok {
 		if i == 0 {
 			result = _negativeZero
+		} else if isInt64 {
+			result = valueInt64(-i)
 		} else {
 			result = valueInt(-i)
 		}
