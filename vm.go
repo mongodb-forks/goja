@@ -365,20 +365,20 @@ func floatToValue(f float64) (result Value) {
 	return valueFloat(f)
 }
 
-func assertInt64(v Value) (int64, bool) {
+func assertInt64(v Value) (int64, bool, bool) {
 	num := v.ToNumber()
 	if i, ok := num.(valueInt); ok {
-		return int64(i), true
+		return int64(i), true, false
 	}
 	if _, ok := num.(valueInt64); ok {
-		return v.ToInt64(), true
+		return v.ToInt64(), true, true
 	}
 	if f, ok := num.(valueFloat); ok {
 		if i, ok := floatToInt(float64(f)); ok {
-			return i, true
+			return i, true, false
 		}
 	}
-	return 0, false
+	return 0, false, false
 }
 
 func (s *valueStack) expand(idx int) {
@@ -1282,8 +1282,8 @@ func (_mul) exec(vm *vm) {
 
 	var result Value
 
-	if left, ok := assertInt64(left); ok {
-		if right, ok := assertInt64(right); ok {
+	if left, ok, _ := assertInt64(left); ok {
+		if right, ok, _ := assertInt64(right); ok {
 			if left == 0 && right == -1 || left == -1 && right == 0 {
 				result = _negativeZero
 				goto end
@@ -1385,8 +1385,8 @@ func (_mod) exec(vm *vm) {
 
 	var result Value
 
-	if leftInt, ok := assertInt64(left); ok {
-		if rightInt, ok := assertInt64(right); ok {
+	if leftInt, ok, _ := assertInt64(left); ok {
+		if rightInt, ok, _ := assertInt64(right); ok {
 			if rightInt == 0 {
 				result = _NaN
 				goto end
@@ -1417,7 +1417,7 @@ func (_neg) exec(vm *vm) {
 
 	var result Value
 
-	if i, ok := assertInt64(operand); ok {
+	if i, ok, _ := assertInt64(operand); ok {
 		if i == 0 {
 			result = _negativeZero
 		} else {
@@ -1451,8 +1451,12 @@ var inc _inc
 func (_inc) exec(vm *vm) {
 	v := vm.stack[vm.sp-1]
 
-	if i, ok := assertInt64(v); ok {
-		v = intToValue(i + 1)
+	if i, ok, isInt64 := assertInt64(v); ok {
+		if isInt64 {
+			v = int64ToValue(i + 1)
+		} else {
+			v = intToValue(i + 1)
+		}
 		goto end
 	}
 
@@ -1470,8 +1474,12 @@ var dec _dec
 func (_dec) exec(vm *vm) {
 	v := vm.stack[vm.sp-1]
 
-	if i, ok := assertInt64(v); ok {
-		v = intToValue(i - 1)
+	if i, ok, isInt64 := assertInt64(v); ok {
+		if isInt64 {
+			v = int64ToValue(i - 1)
+		} else {
+			v = intToValue(i - 1)
+		}
 		goto end
 	}
 
