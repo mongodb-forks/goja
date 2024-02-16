@@ -365,20 +365,20 @@ func floatToValue(f float64) (result Value) {
 	return valueFloat(f)
 }
 
-func assertInt64(v Value) (int64, bool, bool) {
+func assertInt64(v Value) (int64, bool) {
 	num := v.ToNumber()
 	if i, ok := num.(valueInt); ok {
-		return int64(i), true, false
+		return int64(i), true
 	}
 	if _, ok := num.(valueInt64); ok {
-		return v.ToInt64(), true, true
+		return v.ToInt64(), true
 	}
 	if f, ok := num.(valueFloat); ok {
 		if i, ok := floatToInt(float64(f)); ok {
-			return i, true, false
+			return i, true
 		}
 	}
-	return 0, false, false
+	return 0, false
 }
 
 func (s *valueStack) expand(idx int) {
@@ -1282,8 +1282,8 @@ func (_mul) exec(vm *vm) {
 
 	var result Value
 
-	if left, ok, leftIsInt64 := assertInt64(left); ok {
-		if right, ok, rightIsInt64 := assertInt64(right); ok {
+	if left, ok := assertInt64(left); ok {
+		if right, ok := assertInt64(right); ok {
 			if left == 0 && right == -1 || left == -1 && right == 0 {
 				result = _negativeZero
 				goto end
@@ -1291,11 +1291,7 @@ func (_mul) exec(vm *vm) {
 			res := left * right
 			// check for overflow
 			if left == 0 || right == 0 || res/left == right {
-				if leftIsInt64 || rightIsInt64 {
-					result = int64ToValue(res)
-				} else {
-					result = intToValue(res)
-				}
+				result = intToValue(res)
 				goto end
 			}
 
@@ -1389,8 +1385,8 @@ func (_mod) exec(vm *vm) {
 
 	var result Value
 
-	if leftInt, ok, leftIsInt64 := assertInt64(left); ok {
-		if rightInt, ok, rightIsInt64 := assertInt64(right); ok {
+	if leftInt, ok := assertInt64(left); ok {
+		if rightInt, ok := assertInt64(right); ok {
 			if rightInt == 0 {
 				result = _NaN
 				goto end
@@ -1398,8 +1394,6 @@ func (_mod) exec(vm *vm) {
 			r := leftInt % rightInt
 			if r == 0 && leftInt < 0 {
 				result = _negativeZero
-			} else if leftIsInt64 || rightIsInt64 {
-				result = int64ToValue(leftInt % rightInt)
 			} else {
 				result = intToValue(leftInt % rightInt)
 			}
@@ -1423,11 +1417,9 @@ func (_neg) exec(vm *vm) {
 
 	var result Value
 
-	if i, ok, isInt64 := assertInt64(operand); ok {
+	if i, ok := assertInt64(operand); ok {
 		if i == 0 {
 			result = _negativeZero
-		} else if isInt64 {
-			result = valueInt64(-i)
 		} else {
 			result = valueInt(-i)
 		}
@@ -1459,12 +1451,8 @@ var inc _inc
 func (_inc) exec(vm *vm) {
 	v := vm.stack[vm.sp-1]
 
-	if i, ok, isInt64 := assertInt64(v); ok {
-		if isInt64 {
-			v = int64ToValue(i + 1)
-		} else {
-			v = intToValue(i + 1)
-		}
+	if i, ok := assertInt64(v); ok {
+		v = intToValue(i + 1)
 		goto end
 	}
 
@@ -1482,12 +1470,8 @@ var dec _dec
 func (_dec) exec(vm *vm) {
 	v := vm.stack[vm.sp-1]
 
-	if i, ok, isInt64 := assertInt64(v); ok {
-		if isInt64 {
-			v = int64ToValue(i - 1)
-		} else {
-			v = intToValue(i - 1)
-		}
+	if i, ok := assertInt64(v); ok {
+		v = intToValue(i - 1)
 		goto end
 	}
 
