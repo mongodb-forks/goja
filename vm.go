@@ -1451,14 +1451,15 @@ var inc _inc
 func (_inc) exec(vm *vm) {
 	v := vm.stack[vm.sp-1]
 
-	if i, ok := assertInt64(v); ok {
-		v = intToValue(i + 1)
-		goto end
+	switch i := v.(type) {
+	case valueInt:
+		v = i + 1
+	case valueInt64:
+		v = i + 1
+	case valueFloat:
+		v = i + 1
 	}
 
-	v = valueFloat(v.ToFloat() + 1)
-
-end:
 	vm.stack[vm.sp-1] = v
 	vm.pc++
 }
@@ -1470,14 +1471,15 @@ var dec _dec
 func (_dec) exec(vm *vm) {
 	v := vm.stack[vm.sp-1]
 
-	if i, ok := assertInt64(v); ok {
-		v = intToValue(i - 1)
-		goto end
+	switch i := v.(type) {
+	case valueInt:
+		v = i - 1
+	case valueInt64:
+		v = i - 1
+	case valueFloat:
+		v = i - 1
 	}
 
-	v = valueFloat(v.ToFloat() - 1)
-
-end:
 	vm.stack[vm.sp-1] = v
 	vm.pc++
 }
