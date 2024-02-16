@@ -1454,12 +1454,20 @@ func (_inc) exec(vm *vm) {
 	switch i := v.(type) {
 	case valueInt:
 		v = i + 1
+		goto end
 	case valueInt64:
 		v = i + 1
-	default:
-		v = valueFloat(v.ToFloat() + 1)
+		goto end
+	case valueFloat:
+		if f, ok := floatToInt(float64(i)); ok {
+			v = intToValue(f + 1)
+			goto end
+		}
 	}
 
+	v = valueFloat(v.ToFloat() + 1)
+
+end:
 	vm.stack[vm.sp-1] = v
 	vm.pc++
 }
@@ -1474,12 +1482,20 @@ func (_dec) exec(vm *vm) {
 	switch i := v.(type) {
 	case valueInt:
 		v = i - 1
+		goto end
 	case valueInt64:
 		v = i - 1
-	default:
-		v = valueFloat(v.ToFloat() - 1)
+		goto end
+	case valueFloat:
+		if f, ok := floatToInt(float64(i)); ok {
+			v = intToValue(f - 1)
+			goto end
+		}
 	}
 
+	v = valueFloat(v.ToFloat() - 1)
+
+end:
 	vm.stack[vm.sp-1] = v
 	vm.pc++
 }
