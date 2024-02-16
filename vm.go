@@ -1456,8 +1456,8 @@ func (_inc) exec(vm *vm) {
 		v = i + 1
 	case valueInt64:
 		v = i + 1
-	case valueFloat:
-		v = i + 1
+	default:
+		v = valueFloat(v.ToFloat() + 1)
 	}
 
 	vm.stack[vm.sp-1] = v
@@ -1476,8 +1476,8 @@ func (_dec) exec(vm *vm) {
 		v = i - 1
 	case valueInt64:
 		v = i - 1
-	case valueFloat:
-		v = i - 1
+	default:
+		v = valueFloat(v.ToFloat() - 1)
 	}
 
 	vm.stack[vm.sp-1] = v
