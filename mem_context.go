@@ -95,6 +95,8 @@ func (m *MemUsageContext) MemUsageLimitExceeded(memUsage uint64) bool {
 
 var (
 	ErrMaxDepth = errors.New("reached max depth")
+	// SampleRate represents the percentage of samples we pick up to estimate mem usage
+	SampleRate = 0.1
 )
 
 type MemUsageReporter interface {

@@ -1919,7 +1919,7 @@ func (o *baseObject) estimateMemUsage(ctx *MemUsageContext) (estimate uint64, er
 	if totalProps == 0 {
 		return memUsage, nil
 	}
-	sampleSize := totalProps / 10
+	sampleSize := int(math.Floor(float64(totalProps) * SampleRate))
 
 	// grabbing one sample every "sampleSize" to provide consistent
 	// memory usage across function executions
