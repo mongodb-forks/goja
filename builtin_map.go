@@ -1,6 +1,7 @@
 package goja
 
 import (
+	"math"
 	"reflect"
 )
 
@@ -94,6 +95,40 @@ func (mo *mapObject) exportToMap(dst reflect.Value, typ reflect.Type, ctx *objec
 	return nil
 }
 
+// estimateMemUsage helps calculating mem usage for large objects.
+// It will sample the object and use those samples to estimate the
+// mem usage.
+func (mo *mapObject) estimateMemUsage(ctx *MemUsageContext) (estimate uint64, err error) {
+	var samplesVisited, memUsage uint64
+	totalItems := mo.m.size
+	if totalItems == 0 {
+		return memUsage, nil
+	}
+	sampleSize := int(math.Floor(float64(totalItems) * SampleRate))
+
+	i := 0
+	for item := mo.m.iterFirst; item != nil && i < totalItems; item = item.iterNext {
+		if i%sampleSize != 0 {
+			continue
+		}
+		samplesVisited += 1
+		inc, err := item.key.MemUsage(ctx)
+		memUsage += inc
+		if err != nil {
+			return computeMemUsageEstimate(memUsage, samplesVisited, totalItems), err
+		}
+
+		inc, err = item.value.MemUsage(ctx)
+		memUsage += inc
+		if err != nil {
+			return computeMemUsageEstimate(memUsage, samplesVisited, totalItems), err
+		}
+		i += 1
+	}
+
+	return computeMemUsageEstimate(memUsage, samplesVisited, totalItems), nil
+}
+
 func (mo *mapObject) MemUsage(ctx *MemUsageContext) (memUsage uint64, err error) {
 	if mo == nil || ctx.IsObjVisited(mo) {
 		return SizeEmptyStruct, nil
@@ -109,28 +144,36 @@ func (mo *mapObject) MemUsage(ctx *MemUsageContext) (memUsage uint64, err error)
 		return memUsage, err
 	}
 
-	for _, entry := range mo.m.hashTable {
-		if entry == nil {
-			continue
+	if ctx.ObjectPropsLenExceedsThreshold(mo.m.size) {
+		inc, err := mo.estimateMemUsage(ctx)
+		memUsage += inc
+		if err != nil {
+			return memUsage, err
 		}
-
-		if entry.key != nil {
-			inc, err := entry.key.MemUsage(ctx)
-			memUsage += inc
-			if err != nil {
-				return memUsage, err
+	} else {
+		for _, entry := range mo.m.hashTable {
+			if entry == nil {
+				continue
 			}
-		}
 
-		if entry.value != nil {
-			inc, err := entry.value.MemUsage(ctx)
-			memUsage += inc
-			if err != nil {
-				return memUsage, err
+			if entry.key != nil {
+				inc, err := entry.key.MemUsage(ctx)
+				memUsage += inc
+				if err != nil {
+					return memUsage, err
+				}
 			}
-		}
-		if exceeded := ctx.MemUsageLimitExceeded(memUsage); exceeded {
-			return memUsage, nil
+
+			if entry.value != nil {
+				inc, err := entry.value.MemUsage(ctx)
+				memUsage += inc
+				if err != nil {
+					return memUsage, err
+				}
+			}
+			if exceeded := ctx.MemUsageLimitExceeded(memUsage); exceeded {
+				return memUsage, nil
+			}
 		}
 	}
 
