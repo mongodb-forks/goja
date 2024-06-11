@@ -1,7 +1,6 @@
 package goja
 
 import (
-	"math"
 	"reflect"
 
 	"github.com/dop251/goja/unistring"
@@ -168,7 +167,7 @@ func (o *objectGoMapSimple) estimateMemUsage(ctx *MemUsageContext) (estimate uin
 	if totalProps == 0 {
 		return memUsage, nil
 	}
-	sampleSize := int(math.Floor(float64(totalProps) * SampleRate))
+	sampleSize := ctx.ComputeSampleStep(totalProps)
 
 	// grabbing one sample every "sampleSize" to provide consistent
 	// memory usage across function executions

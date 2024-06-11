@@ -580,7 +580,7 @@ func (a *arrayObject) estimateMemUsage(ctx *MemUsageContext) (estimate uint64, e
 	if arrayLen == 0 {
 		return memUsage, nil
 	}
-	sampleSize := int(math.Floor(float64(arrayLen) * SampleRate))
+	sampleSize := ctx.ComputeSampleStep(arrayLen)
 
 	// grabbing one sample every "sampleSize" to provide consistent
 	// memory usage across function executions

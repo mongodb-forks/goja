@@ -1,7 +1,6 @@
 package goja
 
 import (
-	"math"
 	"reflect"
 )
 
@@ -104,11 +103,12 @@ func (mo *mapObject) estimateMemUsage(ctx *MemUsageContext) (estimate uint64, er
 	if totalItems == 0 {
 		return memUsage, nil
 	}
-	sampleSize := int(math.Floor(float64(totalItems) * SampleRate))
+	sampleSize := ctx.ComputeSampleStep(totalItems)
 
-	i := 0
-	for item := mo.m.iterFirst; item != nil && i < totalItems; item = item.iterNext {
-		if i%sampleSize != 0 {
+	// We can use samplesVisited instead of an index since we iterate using
+	// iterNext
+	for item := mo.m.iterFirst; item != nil && samplesVisited < uint64(totalItems); item = item.iterNext {
+		if samplesVisited%uint64(sampleSize) != 0 {
 			continue
 		}
 		samplesVisited += 1
@@ -123,7 +123,6 @@ func (mo *mapObject) estimateMemUsage(ctx *MemUsageContext) (estimate uint64, er
 		if err != nil {
 			return computeMemUsageEstimate(memUsage, samplesVisited, totalItems), err
 		}
-		i += 1
 	}
 
 	return computeMemUsageEstimate(memUsage, samplesVisited, totalItems), nil
