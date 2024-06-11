@@ -541,6 +541,9 @@ func (a *sparseArrayObject) MemUsage(ctx *MemUsageContext) (memUsage uint64, err
 
 	inc, err := a.baseObject.MemUsage(ctx)
 	memUsage += inc
+	if err != nil {
+		return memUsage, err
+	}
 
 	if ctx.ArrayLenExceedsThreshold(len(a.items)) {
 		inc, err := a.estimateMemUsage(ctx)
