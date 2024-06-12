@@ -498,56 +498,56 @@ func TestMemArraysWithLenThreshold(t *testing.T) {
 		memLimit         uint64
 		expectedSizeDiff uint64
 	}{
-		// {
-		// 	desc: "array of numbers under length threshold",
-		// 	script: `y = []
-		// 	y.push([]);
-		// 	let i=0;
-		// 	checkMem();
-		// 	for(i=0;i<20;i++){
-		// 		y[0].push(i);
-		// 	};
-		// 	checkMem()`,
-		// 	threshold: 100,
-		// 	memLimit:  memUsageLimit,
-		// 	expectedSizeDiff: SizeEmptyStruct + // Array overhead
-		// 		20*SizeNumber, // size of property values
-		// },
-		// {
-		// 	desc: "array of numbers over threshold",
-		// 	script: `y = []
-		// 	y.push([]);
-		// 	let i=0;
-		// 	checkMem();
-		// 	for(i=0;i<200;i++){
-		// 		y[0].push(i);
-		// 	};
-		// 	checkMem()`,
-		// 	threshold: 100,
-		// 	memLimit:  memUsageLimit,
-		// 	expectedSizeDiff: SizeEmptyStruct + // Array overhead
-		// 		200*SizeNumber, // size of property values
-		// },
-		// {
-		// 	desc: "mixed array under threshold",
-		// 	script: `y = []
-		// 	y.push([]);
-		// 	let i = 0;
-		// 	checkMem();
-		// 	for(i=0;i<100;i++){
-		// 		y[0].push(i<50?0:true);
-		// 	};
-		// 	checkMem()`,
-		// 	threshold: 200,
-		// 	memLimit:  memUsageLimit,
-		// 	expectedSizeDiff: SizeEmptyStruct + // Array overhead
-		// 		(50 * SizeNumber) + (50 * SizeBool) + // (450) size of property values
-		// 		// stack difference in going from
-		// 		//	[..other, []]
-		// 		//  to
-		// 		//	[..other, true, 50]
-		// 		+1,
-		// },
+		{
+			desc: "array of numbers under length threshold",
+			script: `y = []
+			y.push([]);
+			let i=0;
+			checkMem();
+			for(i=0;i<20;i++){
+				y[0].push(i);
+			};
+			checkMem()`,
+			threshold: 100,
+			memLimit:  memUsageLimit,
+			expectedSizeDiff: SizeEmptyStruct + // Array overhead
+				20*SizeNumber, // size of property values
+		},
+		{
+			desc: "array of numbers over threshold",
+			script: `y = []
+			y.push([]);
+			let i=0;
+			checkMem();
+			for(i=0;i<200;i++){
+				y[0].push(i);
+			};
+			checkMem()`,
+			threshold: 100,
+			memLimit:  memUsageLimit,
+			expectedSizeDiff: SizeEmptyStruct + // Array overhead
+				200*SizeNumber, // size of property values
+		},
+		{
+			desc: "mixed array under threshold",
+			script: `y = []
+			y.push([]);
+			let i = 0;
+			checkMem();
+			for(i=0;i<100;i++){
+				y[0].push(i<50?0:true);
+			};
+			checkMem()`,
+			threshold: 200,
+			memLimit:  memUsageLimit,
+			expectedSizeDiff: SizeEmptyStruct + // Array overhead
+				(50 * SizeNumber) + (50 * SizeBool) + // (450) size of property values
+				// stack difference in going from
+				//	[..other, []]
+				//  to
+				//	[..other, true, 50]
+				+1,
+		},
 		{
 			desc: "mixed array over threshold",
 			script: `y = []
@@ -568,26 +568,26 @@ func TestMemArraysWithLenThreshold(t *testing.T) {
 				//	[..other, true, 50]
 				+1,
 		},
-		// {
-		// 	desc: "mixed scattered array over threshold wcs",
-		// 	script: `y = []
-		// 	y.push([]);
-		// 	let i = 0;
-		// 	checkMem();
-		// 	for(i=0;i < 100;i++){
-		// 		y[0].push(i%10==0?0:true);
-		// 	};
-		// 	checkMem()`,
-		// 	threshold: 50,
-		// 	memLimit:  memUsageLimit,
-		// 	expectedSizeDiff: SizeEmptyStruct + // Array overhead,
-		// 		(100 * SizeNumber) + // size of property values
-		// 		// stack difference in going from
-		// 		//	[..other, []]
-		// 		//  to
-		// 		//	[..other, true, 50]
-		// 		+1,
-		// },
+		{
+			desc: "mixed scattered array over threshold wcs",
+			script: `y = []
+			y.push([]);
+			let i = 0;
+			checkMem();
+			for(i=0;i < 100;i++){
+				y[0].push(i%10==0?0:true);
+			};
+			checkMem()`,
+			threshold: 50,
+			memLimit:  memUsageLimit,
+			expectedSizeDiff: SizeEmptyStruct + // Array overhead,
+				(100 * SizeNumber) + // size of property values
+				// stack difference in going from
+				//	[..other, []]
+				//  to
+				//	[..other, true, 50]
+				+1,
+		},
 	} {
 		t.Run(fmt.Sprintf(tc.desc), func(t *testing.T) {
 			memChecks := []uint64{}
