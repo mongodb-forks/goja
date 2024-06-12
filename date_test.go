@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/dop251/goja/unistring"
+	"github.com/dop251/goja/v2/unistring"
 )
 
 func TestDateUTC(t *testing.T) {

@@ -9,9 +9,9 @@ node types are concerned) and may change in the future.
 package ast
 
 import (
-	"github.com/dop251/goja/file"
-	"github.com/dop251/goja/token"
-	"github.com/dop251/goja/unistring"
+	"github.com/dop251/goja/v2/file"
+	"github.com/dop251/goja/v2/token"
+	"github.com/dop251/goja/v2/unistring"
 )
 
 type PropertyKind string

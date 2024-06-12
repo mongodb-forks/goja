@@ -5,7 +5,7 @@ import (
 	"reflect"
 	"strconv"
 
-	"github.com/dop251/goja/unistring"
+	"github.com/dop251/goja/v2/unistring"
 )
 
 func (i valueNumber) MemUsage(ctx *MemUsageContext) (memUsage uint64, err error) {

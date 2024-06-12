@@ -18,10 +18,10 @@ import (
 	"golang.org/x/text/collate"
 	"golang.org/x/time/rate"
 
-	js_ast "github.com/dop251/goja/ast"
-	"github.com/dop251/goja/file"
-	"github.com/dop251/goja/parser"
-	"github.com/dop251/goja/unistring"
+	js_ast "github.com/dop251/goja/v2/ast"
+	"github.com/dop251/goja/v2/file"
+	"github.com/dop251/goja/v2/parser"
+	"github.com/dop251/goja/v2/unistring"
 )
 
 const (

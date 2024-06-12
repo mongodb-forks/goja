@@ -1,10 +1,10 @@
 package goja
 
 import (
-	"github.com/dop251/goja/ast"
-	"github.com/dop251/goja/file"
-	"github.com/dop251/goja/token"
-	"github.com/dop251/goja/unistring"
+	"github.com/dop251/goja/v2/ast"
+	"github.com/dop251/goja/v2/file"
+	"github.com/dop251/goja/v2/token"
+	"github.com/dop251/goja/v2/unistring"
 )
 
 type compiledExpr interface {

@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"errors"
 
-	"github.com/dop251/goja/unistring"
+	"github.com/dop251/goja/v2/unistring"
 )
 
 type Property struct {

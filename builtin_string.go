@@ -8,8 +8,8 @@ import (
 	"unicode/utf16"
 	"unicode/utf8"
 
-	"github.com/dop251/goja/parser"
-	"github.com/dop251/goja/unistring"
+	"github.com/dop251/goja/v2/parser"
+	"github.com/dop251/goja/v2/unistring"
 	"golang.org/x/text/collate"
 	"golang.org/x/text/language"
 	"golang.org/x/text/unicode/norm"
