@@ -394,35 +394,37 @@ func (so *setObject) MemUsage(ctx *MemUsageContext) (memUsage uint64, err error)
 		return memUsage, err
 	}
 
-	if ctx.ObjectPropsLenExceedsThreshold(so.m.size) {
-		inc, err := so.estimateMemUsage(ctx)
-		memUsage += inc
-		if err != nil {
-			return memUsage, err
-		}
-	} else {
-		for _, entry := range so.m.hashTable {
-			if entry == nil {
-				continue
+	if so.m != nil {
+		if ctx.ObjectPropsLenExceedsThreshold(so.m.size) {
+			inc, err := so.estimateMemUsage(ctx)
+			memUsage += inc
+			if err != nil {
+				return memUsage, err
 			}
-
-			if entry.key != nil {
-				inc, err := entry.key.MemUsage(ctx)
-				memUsage += inc
-				if err != nil {
-					return memUsage, err
+		} else {
+			for _, entry := range so.m.hashTable {
+				if entry == nil {
+					continue
 				}
-			}
 
-			if entry.value != nil {
-				inc, err := entry.value.MemUsage(ctx)
-				memUsage += inc
-				if err != nil {
-					return memUsage, err
+				if entry.key != nil {
+					inc, err := entry.key.MemUsage(ctx)
+					memUsage += inc
+					if err != nil {
+						return memUsage, err
+					}
 				}
-			}
-			if exceeded := ctx.MemUsageLimitExceeded(memUsage); exceeded {
-				return memUsage, nil
+
+				if entry.value != nil {
+					inc, err := entry.value.MemUsage(ctx)
+					memUsage += inc
+					if err != nil {
+						return memUsage, err
+					}
+				}
+				if exceeded := ctx.MemUsageLimitExceeded(memUsage); exceeded {
+					return memUsage, nil
+				}
 			}
 		}
 	}

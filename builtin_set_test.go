@@ -274,6 +274,13 @@ func TestSetObjectMemUsage(t *testing.T) {
 				(5+SizeString)*20,
 			errExpected: nil,
 		},
+		{
+			name:        "mem is SizeEmptyStruct given a nil orderedMap object",
+			mu:          NewMemUsageContext(vm, 88, 5000, 50, 50, 0.1, TestNativeMemUsageChecker{}),
+			so:          &setObject{},
+			expectedMem: SizeEmptyStruct,
+			errExpected: nil,
+		},
 	}
 
 	for _, tc := range tests {
