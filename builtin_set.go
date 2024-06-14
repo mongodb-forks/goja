@@ -358,7 +358,7 @@ func (so *setObject) estimateMemUsage(ctx *MemUsageContext) (estimate uint64, er
 
 	// We can use samplesVisited instead of an index since we iterate using
 	// iterNext
-	for item := so.m.iterFirst; item != nil && samplesVisited < uint64(totalItems); item = item.iterNext {
+	for item := so.m.iterFirst; item != nil; item = item.iterNext {
 		if samplesVisited%uint64(sampleSize) != 0 {
 			continue
 		}
