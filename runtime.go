@@ -210,6 +210,8 @@ type Runtime struct {
 
 	tickMetricTrackingEnabled bool
 	tickMetrics               map[string]uint64
+
+	shouldForceMemCheck bool
 }
 
 func (self *Runtime) Ticks() uint64 {
@@ -1400,8 +1402,8 @@ func New() *Runtime {
 
 // NewWithContext creates an instance of a Javascript runtime that can be used to run code. Multiple instances may be created and
 // used simultaneously, however it is not possible to pass JS values across runtimes.
-func NewWithContext(ctx context.Context) *Runtime {
-	r := &Runtime{ctx: ctx}
+func NewWithContext(ctx context.Context, shouldForceMemCheck bool) *Runtime {
+	r := &Runtime{ctx: ctx, shouldForceMemCheck: shouldForceMemCheck}
 	r.init()
 	return r
 }
