@@ -80,7 +80,19 @@ func relToIdx(rel, l int64) int64 {
 	return max(l+rel, 0)
 }
 
-func (r *Runtime) newArrayValues(values []Value) *Object {
+func (r *Runtime) newArrayValues(values valueStack) *Object {
+	if r.shouldForceMemCheck {
+		memCtx := newMemUsageContextClone()
+		if memCtx != nil {
+			memUsage, err := valuesMemUsage(values, memCtx)
+			if err != nil {
+				panic(err)
+			}
+			if memCtx.MemUsageLimitExceeded(memUsage) {
+				panic("memory limit exceeded")
+			}
+		}
+	}
 	return setArrayValues(r.newArrayObject(), values).val
 }
 
