@@ -66,15 +66,16 @@ type MemUsageContext struct {
 	memoryLimit                    uint64
 }
 
+var latestMemUsageContext *MemUsageContext
+
 func NewMemUsageContext(
-	vm *Runtime,
 	maxDepth int,
 	memLimit uint64,
 	arrayLenThreshold, objPropsLenThreshold int,
 	sampleRate float64,
 	nativeChecker NativeMemUsageChecker,
 ) *MemUsageContext {
-	return &MemUsageContext{
+	latestMemUsageContext = &MemUsageContext{
 		visitTracker:          visitTracker{objsVisited: make(map[objectImpl]struct{}), stashesVisited: make(map[*stash]struct{})},
 		depthTracker:          &depthTracker{curDepth: 0, maxDepth: maxDepth},
 		NativeMemUsageChecker: nativeChecker,
@@ -91,6 +92,22 @@ func NewMemUsageContext(
 			return computeSampleStep(totalItems, sampleRate)
 		},
 	}
+	return latestMemUsageContext
+}
+
+func newMemUsageContextClone() *MemUsageContext {
+	if latestMemUsageContext != nil {
+		return &MemUsageContext{
+			visitTracker:                   visitTracker{objsVisited: make(map[objectImpl]struct{}), stashesVisited: make(map[*stash]struct{})},
+			depthTracker:                   &depthTracker{curDepth: 0, maxDepth: latestMemUsageContext.maxDepth},
+			NativeMemUsageChecker:          nil,
+			memoryLimit:                    latestMemUsageContext.memoryLimit,
+			ArrayLenExceedsThreshold:       latestMemUsageContext.ArrayLenExceedsThreshold,
+			ObjectPropsLenExceedsThreshold: latestMemUsageContext.ObjectPropsLenExceedsThreshold,
+			ComputeSampleStep:              latestMemUsageContext.ComputeSampleStep,
+		}
+	}
+	return nil
 }
 
 // MemUsageLimitExceeded ensures a limit function is defined and checks against the limit. If limit is breached
