@@ -556,7 +556,7 @@ func (o *baseObject) setOwnStr(name unistring.String, val Value, throw bool) boo
 						panic(err)
 					}
 					if memCtx.MemUsageLimitExceeded(memUsage) {
-						panic("memory limit exceeded")
+						panic(ErrMemLimitExceeded)
 					}
 				}
 			}

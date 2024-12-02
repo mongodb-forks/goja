@@ -146,7 +146,8 @@ func computeSampleStep(totalItems int, sampleRate float64) int {
 }
 
 var (
-	ErrMaxDepth = errors.New("reached max depth")
+	ErrMaxDepth         = errors.New("reached max depth")
+	ErrMemLimitExceeded = errors.New("execution memory limit exceeded")
 )
 
 type MemUsageReporter interface {

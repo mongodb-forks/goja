@@ -89,7 +89,7 @@ func (r *Runtime) newArrayValues(values valueStack) *Object {
 				panic(err)
 			}
 			if memCtx.MemUsageLimitExceeded(memUsage) {
-				panic("memory limit exceeded")
+				panic(ErrMemLimitExceeded)
 			}
 		}
 	}
