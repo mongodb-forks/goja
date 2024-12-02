@@ -548,7 +548,7 @@ func (o *baseObject) setOwnStr(name unistring.String, val Value, throw bool) boo
 			o.val.runtime.typeErrorResult(throw, "Cannot add property %s, object is not extensible", name)
 			return false
 		} else {
-			if o.val.runtime.shouldForceMemCheck {
+			if o.val != nil && o.val.runtime != nil && o.val.runtime.shouldForceMemCheck {
 				memCtx := newMemUsageContextClone()
 				if memCtx != nil {
 					memUsage, err := val.MemUsage(memCtx)
