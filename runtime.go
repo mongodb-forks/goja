@@ -1401,7 +1401,9 @@ func New() *Runtime {
 }
 
 // NewWithContext creates an instance of a Javascript runtime that can be used to run code. Multiple instances may be created and
-// used simultaneously, however it is not possible to pass JS values across runtimes.
+// used simultaneously, however it is not possible to pass JS values across runtimes. The 'shouldForceMemCheck' parameter is a
+// safety net to trigger mem usage check on hot paths where memory usage is expected to be high but we can't otherwise catch it
+// with the poller.
 func NewWithContext(ctx context.Context, shouldForceMemCheck bool) *Runtime {
 	r := &Runtime{ctx: ctx, shouldForceMemCheck: shouldForceMemCheck}
 	r.init()
