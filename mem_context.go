@@ -3,6 +3,7 @@ package goja
 import (
 	"errors"
 	"math"
+	"sync"
 )
 
 type visitTracker struct {
@@ -66,6 +67,7 @@ type MemUsageContext struct {
 	memoryLimit                    uint64
 }
 
+var memContextMu sync.Mutex
 var latestMemUsageContext *MemUsageContext
 
 func NewMemUsageContext(
@@ -75,6 +77,8 @@ func NewMemUsageContext(
 	sampleRate float64,
 	nativeChecker NativeMemUsageChecker,
 ) *MemUsageContext {
+	memContextMu.Lock()
+	defer memContextMu.Unlock()
 	latestMemUsageContext = &MemUsageContext{
 		visitTracker:          visitTracker{objsVisited: make(map[objectImpl]struct{}), stashesVisited: make(map[*stash]struct{})},
 		depthTracker:          &depthTracker{curDepth: 0, maxDepth: maxDepth},
@@ -96,6 +100,8 @@ func NewMemUsageContext(
 }
 
 func newMemUsageContextClone() *MemUsageContext {
+	memContextMu.Lock()
+	defer memContextMu.Unlock()
 	if latestMemUsageContext != nil {
 		return &MemUsageContext{
 			visitTracker:                   visitTracker{objsVisited: make(map[objectImpl]struct{}), stashesVisited: make(map[*stash]struct{})},
