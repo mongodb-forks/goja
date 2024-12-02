@@ -67,7 +67,7 @@ type MemUsageContext struct {
 	memoryLimit                    uint64
 }
 
-var memContextMu sync.Mutex
+var memContextMu sync.RWMutex
 var latestMemUsageContext *MemUsageContext
 
 func NewMemUsageContext(
@@ -100,8 +100,8 @@ func NewMemUsageContext(
 }
 
 func newMemUsageContextClone() *MemUsageContext {
-	memContextMu.Lock()
-	defer memContextMu.Unlock()
+	memContextMu.RLock()
+	defer memContextMu.RUnlock()
 	if latestMemUsageContext != nil {
 		return &MemUsageContext{
 			visitTracker:                   visitTracker{objsVisited: make(map[objectImpl]struct{}), stashesVisited: make(map[*stash]struct{})},
