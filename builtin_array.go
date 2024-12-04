@@ -81,7 +81,7 @@ func relToIdx(rel, l int64) int64 {
 }
 
 func (r *Runtime) newArrayValues(values valueStack) *Object {
-	if r.shouldForceMemCheck || true {
+	if r.shouldForceMemCheck {
 		if memCtx := newMemUsageContextClone(); memCtx != nil {
 			memUsage, err := valuesMemUsage(values, memCtx)
 			if err != nil {
