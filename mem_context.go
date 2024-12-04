@@ -67,7 +67,13 @@ type MemUsageContext struct {
 	memoryLimit                    uint64
 }
 
+// memContextMu is used to protect the latestMemUsageContext variable.
 var memContextMu sync.RWMutex
+
+// latestMemUsageContext is used to store the latest MemUsageContext instance created.
+// This is needed to allow arbitrary mem usage checks with the same exact configuration
+// as the latest mem usage context. This is an escape hatch since a new mem usage
+// context is usually only created from the client using goja.
 var latestMemUsageContext *MemUsageContext
 
 func NewMemUsageContext(
