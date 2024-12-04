@@ -549,8 +549,7 @@ func (o *baseObject) setOwnStr(name unistring.String, val Value, throw bool) boo
 			return false
 		} else {
 			if o.val != nil && o.val.runtime != nil && o.val.runtime.shouldForceMemCheck {
-				memCtx := newMemUsageContextClone()
-				if memCtx != nil {
+				if memCtx := newMemUsageContextClone(); memCtx != nil {
 					memUsage, err := val.MemUsage(memCtx)
 					if err != nil {
 						panic(err)

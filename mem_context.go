@@ -106,7 +106,7 @@ func newMemUsageContextClone() *MemUsageContext {
 		return &MemUsageContext{
 			visitTracker:                   visitTracker{objsVisited: make(map[objectImpl]struct{}), stashesVisited: make(map[*stash]struct{})},
 			depthTracker:                   &depthTracker{curDepth: 0, maxDepth: latestMemUsageContext.maxDepth},
-			NativeMemUsageChecker:          nil,
+			NativeMemUsageChecker:          latestMemUsageContext.NativeMemUsageChecker,
 			memoryLimit:                    latestMemUsageContext.memoryLimit,
 			ArrayLenExceedsThreshold:       latestMemUsageContext.ArrayLenExceedsThreshold,
 			ObjectPropsLenExceedsThreshold: latestMemUsageContext.ObjectPropsLenExceedsThreshold,
