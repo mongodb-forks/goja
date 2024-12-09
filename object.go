@@ -548,6 +548,17 @@ func (o *baseObject) setOwnStr(name unistring.String, val Value, throw bool) boo
 			o.val.runtime.typeErrorResult(throw, "Cannot add property %s, object is not extensible", name)
 			return false
 		} else {
+			if o.val != nil && o.val.runtime != nil && o.val.runtime.shouldForceMemCheck {
+				if memCtx := newMemUsageContextClone(); memCtx != nil {
+					memUsage, err := val.MemUsage(memCtx)
+					if err != nil {
+						panic(err)
+					}
+					if memCtx.MemUsageLimitExceeded(memUsage) {
+						panic(ErrMemLimitExceeded)
+					}
+				}
+			}
 			o.values[name] = val
 			names := copyNamesIfNeeded(o.propNames, 1)
 			o.propNames = append(names, name)
