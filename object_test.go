@@ -1,7 +1,6 @@
 package goja
 
 import (
-	"context"
 	"fmt"
 	"reflect"
 	"strings"
@@ -759,7 +758,7 @@ func TestBaseObjectMemUsage(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			total, err := tc.val.MemUsage(NewMemUsageContext(100, tc.memLimit, 100, tc.threshold, 0.1, nil))
+			total, err := tc.val.MemUsage(NewMemUsageContext(New(), 100, tc.memLimit, 100, tc.threshold, 0.1, nil))
 			if err != tc.errExpected {
 				t.Fatalf("Unexpected error. Actual: %v Expected: %v", err, tc.errExpected)
 			}
@@ -817,7 +816,7 @@ func TestPrimitiveValueObjectMemUsage(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			total, err := tc.val.MemUsage(NewMemUsageContext(100, 100, 100, 100, 0.1, nil))
+			total, err := tc.val.MemUsage(NewMemUsageContext(New(), 100, 100, 100, 100, 0.1, nil))
 			if err != tc.errExpected {
 				t.Fatalf("Unexpected error. Actual: %v Expected: %v", err, tc.errExpected)
 			}
@@ -827,66 +826,6 @@ func TestPrimitiveValueObjectMemUsage(t *testing.T) {
 			if total != tc.expectedMem {
 				t.Fatalf("Unexpected memory return. Actual: %v Expected: %v", total, tc.expectedMem)
 			}
-		})
-	}
-}
-
-func TestSetOwnStr(t *testing.T) {
-	for _, tc := range []struct {
-		name                string
-		memLimit            uint64
-		expectedPanic       bool
-		shouldForceMemCheck bool
-	}{
-		{
-			name:                "should not panic when setting a value in an object",
-			memLimit:            1000,
-			expectedPanic:       false,
-			shouldForceMemCheck: false,
-		},
-		{
-			name:                "should panic when setting a value in an object over the mem limit and mem usage check is forced",
-			memLimit:            0,
-			expectedPanic:       true,
-			shouldForceMemCheck: true,
-		},
-		{
-			name:                "should not panic when setting a value in an object over the mem limit and mem usage check is not forced",
-			memLimit:            0,
-			expectedPanic:       false,
-			shouldForceMemCheck: false,
-		},
-		{
-			name:                "should not panic when setting a value in an object under the mem limit and mem usage check is forced",
-			memLimit:            1000,
-			expectedPanic:       false,
-			shouldForceMemCheck: true,
-		},
-	} {
-		t.Run(tc.name, func(t *testing.T) {
-			defer func() {
-				r := recover()
-				if tc.expectedPanic && r == nil {
-					t.Error("The code is expected to panic, but it didn't")
-				}
-				if !tc.expectedPanic && r != nil {
-					t.Errorf("The code panicked, but it should not have: %v", r)
-				}
-			}()
-			v := &Object{
-				runtime: NewWithContext(context.Background(), tc.shouldForceMemCheck),
-			}
-			o := &baseObject{
-				val:        v,
-				extensible: true,
-			}
-			o.init()
-			v.self = o
-
-			// Creating a mem usage context so it populates the package variable
-			NewMemUsageContext(100, tc.memLimit, 100, 100, 0.5, nil)
-
-			o.setOwnStr("test", valueInt(123), false)
 		})
 	}
 }

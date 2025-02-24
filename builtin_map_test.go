@@ -286,7 +286,7 @@ func TestMapObjectMemUsage(t *testing.T) {
 	}{
 		{
 			name: "mem below threshold",
-			mu:   NewMemUsageContext(88, 5000, 50, 50, 0.1, TestNativeMemUsageChecker{}),
+			mu:   NewMemUsageContext(vm, 88, 5000, 50, 50, 0.1, TestNativeMemUsageChecker{}),
 			mo: &mapObject{
 				m: &orderedMap{
 					hashTable: map[uint64]*mapEntry{
@@ -303,14 +303,14 @@ func TestMapObjectMemUsage(t *testing.T) {
 		},
 		{
 			name:        "mem is SizeEmptyStruct given a nil map object",
-			mu:          NewMemUsageContext(88, 5000, 50, 50, 0.1, TestNativeMemUsageChecker{}),
+			mu:          NewMemUsageContext(vm, 88, 5000, 50, 50, 0.1, TestNativeMemUsageChecker{}),
 			mo:          nil,
 			expectedMem: SizeEmptyStruct,
 			errExpected: nil,
 		},
 		{
 			name: "mem way above threshold returns first crossing of threshold",
-			mu:   NewMemUsageContext(88, 100, 50, 50, 0.1, TestNativeMemUsageChecker{}),
+			mu:   NewMemUsageContext(vm, 88, 100, 50, 50, 0.1, TestNativeMemUsageChecker{}),
 			mo: &mapObject{
 				m: &orderedMap{
 					hashTable: map[uint64]*mapEntry{
@@ -343,7 +343,7 @@ func TestMapObjectMemUsage(t *testing.T) {
 		},
 		{
 			name: "mem above estimate threshold and within memory limit returns correct mem usage",
-			mu:   NewMemUsageContext(88, 100, 50, 5, 0.1, TestNativeMemUsageChecker{}),
+			mu:   NewMemUsageContext(vm, 88, 100, 50, 5, 0.1, TestNativeMemUsageChecker{}),
 			mo: &mapObject{
 				m: createOrderedMap(vm, 20),
 			},
