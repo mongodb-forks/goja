@@ -67,7 +67,6 @@ type MemUsageContext struct {
 }
 
 func NewMemUsageContext(
-	vm *Runtime,
 	maxDepth int,
 	memLimit uint64,
 	arrayLenThreshold, objPropsLenThreshold int,
