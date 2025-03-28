@@ -227,7 +227,7 @@ func TestSetObjectMemUsage(t *testing.T) {
 	}{
 		{
 			name: "mem below threshold",
-			mu:   NewMemUsageContext(vm, 88, 5000, 50, 50, 0.1, TestNativeMemUsageChecker{}),
+			mu:   NewMemUsageContext(88, 5000, 50, 50, 0.1, TestNativeMemUsageChecker{}),
 			so: &setObject{
 				m: &orderedMap{
 					hashTable: map[uint64]*mapEntry{
@@ -244,14 +244,14 @@ func TestSetObjectMemUsage(t *testing.T) {
 		},
 		{
 			name:        "mem is SizeEmptyStruct given a nil map object",
-			mu:          NewMemUsageContext(vm, 88, 5000, 50, 50, 0.1, TestNativeMemUsageChecker{}),
+			mu:          NewMemUsageContext(88, 5000, 50, 50, 0.1, TestNativeMemUsageChecker{}),
 			so:          nil,
 			expectedMem: SizeEmptyStruct,
 			errExpected: nil,
 		},
 		{
 			name: "mem way above threshold returns first crossing of threshold",
-			mu:   NewMemUsageContext(vm, 88, 100, 50, 50, 0.1, TestNativeMemUsageChecker{}),
+			mu:   NewMemUsageContext(88, 100, 50, 50, 0.1, TestNativeMemUsageChecker{}),
 			so: &setObject{
 				m: &orderedMap{
 					hashTable: map[uint64]*mapEntry{
@@ -284,7 +284,7 @@ func TestSetObjectMemUsage(t *testing.T) {
 		},
 		{
 			name: "mem above estimate threshold and within memory limit returns correct mem usage",
-			mu:   NewMemUsageContext(vm, 88, 100, 50, 5, 0.1, TestNativeMemUsageChecker{}),
+			mu:   NewMemUsageContext(88, 100, 50, 5, 0.1, TestNativeMemUsageChecker{}),
 			so: &setObject{
 				m: createOrderedMap(vm, 20),
 			},
@@ -298,7 +298,7 @@ func TestSetObjectMemUsage(t *testing.T) {
 		},
 		{
 			name: "mem above estimate threshold and within memory limit and nil values returns correct mem usage",
-			mu:   NewMemUsageContext(vm, 88, 100, 50, 1, 0.1, TestNativeMemUsageChecker{}),
+			mu:   NewMemUsageContext(88, 100, 50, 1, 0.1, TestNativeMemUsageChecker{}),
 			so: &setObject{
 				m: createOrderedMapWithNilValues(3),
 			},
@@ -308,7 +308,7 @@ func TestSetObjectMemUsage(t *testing.T) {
 		},
 		{
 			name:        "mem is SizeEmptyStruct given a nil orderedMap object",
-			mu:          NewMemUsageContext(vm, 88, 5000, 50, 50, 0.1, TestNativeMemUsageChecker{}),
+			mu:          NewMemUsageContext(88, 5000, 50, 50, 0.1, TestNativeMemUsageChecker{}),
 			so:          &setObject{},
 			expectedMem: SizeEmptyStruct,
 			errExpected: nil,
