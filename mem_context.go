@@ -3,7 +3,6 @@ package goja
 import (
 	"errors"
 	"math"
-	"sync"
 )
 
 type visitTracker struct {
@@ -67,25 +66,15 @@ type MemUsageContext struct {
 	memoryLimit                    uint64
 }
 
-// memContextMu is used to protect the latestMemUsageContext variable.
-var memContextMu sync.RWMutex
-
-// latestMemUsageContext is used to store the latest MemUsageContext instance created.
-// This is needed to allow arbitrary mem usage checks with the same exact configuration
-// as the latest mem usage context. This is an escape hatch since a new mem usage
-// context is usually only created from the client using goja.
-var latestMemUsageContext *MemUsageContext
-
 func NewMemUsageContext(
+	vm *Runtime,
 	maxDepth int,
 	memLimit uint64,
 	arrayLenThreshold, objPropsLenThreshold int,
 	sampleRate float64,
 	nativeChecker NativeMemUsageChecker,
 ) *MemUsageContext {
-	memContextMu.Lock()
-	defer memContextMu.Unlock()
-	latestMemUsageContext = &MemUsageContext{
+	return &MemUsageContext{
 		visitTracker:          visitTracker{objsVisited: make(map[objectImpl]struct{}), stashesVisited: make(map[*stash]struct{})},
 		depthTracker:          &depthTracker{curDepth: 0, maxDepth: maxDepth},
 		NativeMemUsageChecker: nativeChecker,
@@ -102,24 +91,6 @@ func NewMemUsageContext(
 			return computeSampleStep(totalItems, sampleRate)
 		},
 	}
-	return latestMemUsageContext
-}
-
-func newMemUsageContextClone() *MemUsageContext {
-	memContextMu.RLock()
-	defer memContextMu.RUnlock()
-	if latestMemUsageContext != nil {
-		return &MemUsageContext{
-			visitTracker:                   visitTracker{objsVisited: make(map[objectImpl]struct{}), stashesVisited: make(map[*stash]struct{})},
-			depthTracker:                   &depthTracker{curDepth: 0, maxDepth: latestMemUsageContext.maxDepth},
-			NativeMemUsageChecker:          latestMemUsageContext.NativeMemUsageChecker,
-			memoryLimit:                    latestMemUsageContext.memoryLimit,
-			ArrayLenExceedsThreshold:       latestMemUsageContext.ArrayLenExceedsThreshold,
-			ObjectPropsLenExceedsThreshold: latestMemUsageContext.ObjectPropsLenExceedsThreshold,
-			ComputeSampleStep:              latestMemUsageContext.ComputeSampleStep,
-		}
-	}
-	return nil
 }
 
 // MemUsageLimitExceeded ensures a limit function is defined and checks against the limit. If limit is breached
@@ -152,8 +123,7 @@ func computeSampleStep(totalItems int, sampleRate float64) int {
 }
 
 var (
-	ErrMaxDepth         = errors.New("reached max depth")
-	ErrMemLimitExceeded = errors.New("execution memory limit exceeded")
+	ErrMaxDepth = errors.New("reached max depth")
 )
 
 type MemUsageReporter interface {

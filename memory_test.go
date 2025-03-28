@@ -414,7 +414,7 @@ func TestMemCheck(t *testing.T) {
 
 			vm.Set("checkMem", func(call FunctionCall) Value {
 				mem, err := vm.MemUsage(
-					NewMemUsageContext(100, memUsageLimit, arrLenThreshold, objPropsLenThreshold, 0.1, TestNativeMemUsageChecker{}),
+					NewMemUsageContext(vm, 100, memUsageLimit, arrLenThreshold, objPropsLenThreshold, 0.1, TestNativeMemUsageChecker{}),
 				)
 				if err != nil {
 					t.Fatal(err)
@@ -485,7 +485,7 @@ func TestMemMaxDepth(t *testing.T) {
 			// All global variables are contained in the Runtime's globalObject field, which causes
 			// them to be one level deeper
 			_, err = vm.MemUsage(
-				NewMemUsageContext(tc.expectedDepth, memUsageLimit, arrLenThreshold, objPropsLenThreshold, 0.1, TestNativeMemUsageChecker{}),
+				NewMemUsageContext(vm, tc.expectedDepth, memUsageLimit, arrLenThreshold, objPropsLenThreshold, 0.1, TestNativeMemUsageChecker{}),
 			)
 			if err != ErrMaxDepth {
 				t.Fatalf("expected mem check to hit depth limit error, but got nil %v", err)
@@ -493,7 +493,7 @@ func TestMemMaxDepth(t *testing.T) {
 
 			_, err = vm.MemUsage(
 				// need to add 2 to the expectedDepth since Object is lazy loaded it adds onto the expected depth
-				NewMemUsageContext(tc.expectedDepth+2, memUsageLimit, arrLenThreshold, objPropsLenThreshold, 0.1, TestNativeMemUsageChecker{}),
+				NewMemUsageContext(vm, tc.expectedDepth+2, memUsageLimit, arrLenThreshold, objPropsLenThreshold, 0.1, TestNativeMemUsageChecker{}),
 			)
 			if err != nil {
 				t.Fatalf("expected to NOT hit mem check hit depth limit error, but got %v", err)
@@ -607,7 +607,7 @@ func TestMemArraysWithLenThreshold(t *testing.T) {
 
 			vm.Set("checkMem", func(call FunctionCall) Value {
 				mem, err := vm.MemUsage(
-					NewMemUsageContext(100, tc.memLimit, tc.threshold, objPropsLenThreshold, 0.1, TestNativeMemUsageChecker{}),
+					NewMemUsageContext(vm, 100, tc.memLimit, tc.threshold, objPropsLenThreshold, 0.1, TestNativeMemUsageChecker{}),
 				)
 				if err != nil {
 					t.Fatal(err)
@@ -698,7 +698,7 @@ func TestMemObjectsWithPropsLenThreshold(t *testing.T) {
 
 			vm.Set("checkMem", func(call FunctionCall) Value {
 				mem, err := vm.MemUsage(
-					NewMemUsageContext(100, tc.memLimit, arrLenThreshold, tc.threshold, 0.1, TestNativeMemUsageChecker{}),
+					NewMemUsageContext(vm, 100, tc.memLimit, arrLenThreshold, tc.threshold, 0.1, TestNativeMemUsageChecker{}),
 				)
 				if err != nil {
 					t.Fatal(err)

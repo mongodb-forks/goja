@@ -166,6 +166,8 @@ func BenchmarkASCIIConcat(b *testing.B) {
 }
 
 func TestStringObjectMemUsage(t *testing.T) {
+	vm := New()
+
 	for _, tc := range []struct {
 		name        string
 		val         *stringObject
@@ -184,7 +186,7 @@ func TestStringObjectMemUsage(t *testing.T) {
 		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			mem, err := tc.val.MemUsage(NewMemUsageContext(100, 100, 100, 100, 0.1, nil))
+			mem, err := tc.val.MemUsage(NewMemUsageContext(vm, 100, 100, 100, 100, 0.1, nil))
 			if err != nil {
 				t.Fatalf("Unexpected error. Actual: %v Expected: nil", err)
 			}

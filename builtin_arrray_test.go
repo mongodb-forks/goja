@@ -1,9 +1,6 @@
 package goja
 
-import (
-	"context"
-	"testing"
-)
+import "testing"
 
 func TestArrayProtoProp(t *testing.T) {
 	const SCRIPT = `
@@ -340,54 +337,4 @@ func TestArrayProto(t *testing.T) {
 	assert(compareArray(a, [2, 3]));
 	`
 	testScriptWithTestLib(SCRIPT, _undefined, t)
-}
-
-func TestNewArrayValues(t *testing.T) {
-	for _, tc := range []struct {
-		name                string
-		memLimit            uint64
-		expectedPanic       bool
-		shouldForceMemCheck bool
-	}{
-		{
-			name:                "should not panic when creating a new array under the mem limit",
-			memLimit:            1000,
-			expectedPanic:       false,
-			shouldForceMemCheck: false,
-		},
-		{
-			name:                "should panic when creating a new array over the mem limit and mem usage check is forced",
-			memLimit:            0,
-			expectedPanic:       true,
-			shouldForceMemCheck: true,
-		},
-		{
-			name:                "should not panic when creating a new array over the mem limit and mem usage check is not forced",
-			memLimit:            0,
-			expectedPanic:       false,
-			shouldForceMemCheck: false,
-		},
-		{
-			name:                "should not panic when creating a new array under the mem limit and mem usage check is forced",
-			memLimit:            1000,
-			expectedPanic:       false,
-			shouldForceMemCheck: true,
-		},
-	} {
-		t.Run(tc.name, func(t *testing.T) {
-			defer func() {
-				r := recover()
-				if tc.expectedPanic && r == nil {
-					t.Error("The code is expected to panic, but it didn't")
-				}
-				if !tc.expectedPanic && r != nil {
-					t.Errorf("The code panicked, but it should not have: %v", r)
-				}
-			}()
-			vm := NewWithContext(context.Background(), tc.shouldForceMemCheck)
-			// Creating a mem usage context so it populates the package variable
-			NewMemUsageContext(100, tc.memLimit, 100, 100, 0.5, nil)
-			vm.newArrayValues([]Value{valueInt(0)})
-		})
-	}
 }
