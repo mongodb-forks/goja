@@ -855,6 +855,23 @@ func (vm *vm) push(v Value) {
 	vm.stack.expand(vm.sp)
 	vm.stack[vm.sp] = v
 	vm.sp++
+
+	shouldTrackMaxMemOnStack := (vm.r != nil && vm.r.shouldTrackMaxMemOnStack)
+
+	if !shouldTrackMaxMemOnStack || v == nil || !v.IsObject() {
+		return
+	}
+
+	baseObjectClass := v.baseObject(vm.r).Class()
+
+	// Function and Arguments objects appear to contain references to other objects on the stack.
+	// Checking just these two types will be an efficient, but still accurate, memory estimate over checking all objects
+	if baseObjectClass != "Function" && baseObjectClass != "Arguments" {
+		return
+	}
+
+	valueMemUsage, _ := v.MemUsage(vm.r.stackMemUsageContext)
+	vm.r.maxStackObjectMem = uint64(math.Max(float64(vm.r.maxStackObjectMem), float64(valueMemUsage)))
 }
 
 func (vm *vm) pop() Value {

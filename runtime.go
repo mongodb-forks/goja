@@ -210,6 +210,11 @@ type Runtime struct {
 
 	tickMetricTrackingEnabled bool
 	tickMetrics               map[string]uint64
+
+	// context used for tracking object with largest memory in the value stack. Must be non-nil if shouldTrackMaxMemOnStack is true
+	stackMemUsageContext     *MemUsageContext
+	shouldTrackMaxMemOnStack bool
+	maxStackObjectMem        uint64
 }
 
 func (self *Runtime) Ticks() uint64 {
@@ -578,6 +583,10 @@ func (r *Runtime) MemUsage(ctx *MemUsageContext) (memUsage uint64, err error) {
 	}
 
 	return memUsage, nil
+}
+
+func (r *Runtime) MaxStackObjectMemUsage() uint64 {
+	return r.maxStackObjectMem
 }
 
 func (r *Runtime) newError(typ *Object, format string, args ...interface{}) Value {
@@ -1399,9 +1408,11 @@ func New() *Runtime {
 }
 
 // NewWithContext creates an instance of a Javascript runtime that can be used to run code. Multiple instances may be created and
-// used simultaneously, however it is not possible to pass JS values across runtimes.
-func NewWithContext(ctx context.Context) *Runtime {
-	r := &Runtime{ctx: ctx}
+// used simultaneously, however it is not possible to pass JS values across runtimes. The 'shouldTrackMaxMemOnStack' parameter is a
+// safety net to track the maxmium memory of objects on the vm's goja.Value stack as there will always be a Function or Arguments
+// object with memory usage totalling all referenced objects within the function. This covers edge cases missed by the memory poller.
+func NewWithContext(ctx context.Context, shouldTrackMaxMemOnStack bool, stackMemUsageContext *MemUsageContext) *Runtime {
+	r := &Runtime{ctx: ctx, shouldTrackMaxMemOnStack: shouldTrackMaxMemOnStack, stackMemUsageContext: stackMemUsageContext}
 	r.init()
 	return r
 }
