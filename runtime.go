@@ -585,6 +585,7 @@ func (r *Runtime) MemUsage(ctx *MemUsageContext) (memUsage uint64, err error) {
 	return memUsage, nil
 }
 
+// MaxStackObjectMemUsage returns the memory used by the largest object seen in the vm value stack
 func (r *Runtime) MaxStackObjectMemUsage() uint64 {
 	return r.maxStackObjectMem
 }
@@ -1409,7 +1410,7 @@ func New() *Runtime {
 
 // NewWithContext creates an instance of a Javascript runtime that can be used to run code. Multiple instances may be created and
 // used simultaneously, however it is not possible to pass JS values across runtimes. The 'shouldTrackMaxMemOnStack' parameter is a
-// safety net to track the maxmium memory of objects on the vm's goja.Value stack as there will always be a Function or Arguments
+// safety net to track the maximum memory of objects on the vm's goja.Value stack as there will always be a Function or Arguments
 // object with memory usage totalling all referenced objects within the function. This covers edge cases missed by the memory poller.
 func NewWithContext(ctx context.Context, shouldTrackMaxMemOnStack bool, stackMemUsageContext *MemUsageContext) *Runtime {
 	r := &Runtime{ctx: ctx, shouldTrackMaxMemOnStack: shouldTrackMaxMemOnStack, stackMemUsageContext: stackMemUsageContext}

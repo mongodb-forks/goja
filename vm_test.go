@@ -816,7 +816,7 @@ func BenchmarkStackPushMemTracking(b *testing.B) {
 	}
 
 	for _, bm := range benchmarks {
-		vmRuntime := New() // use a seperate vm for each of the two benchmarks
+		vmRuntime := New() // use a separate vm for each of the two benchmarks
 		vmRuntime.stackMemUsageContext = NewMemUsageContext(
 			maxDepthVmStackTracker,
 			memLimitVmStackTracker,
@@ -868,7 +868,7 @@ func BenchmarkVmMemTracking(b *testing.B) {
 	prg := MustCompile("test.js", SCRIPT, false)
 
 	for _, bm := range benchmarks {
-		vmRuntime := New() // use a seperate vm for each of the two benchmarks
+		vmRuntime := New() // use a separate vm for each of the two benchmarks
 		vmRuntime.stackMemUsageContext = NewMemUsageContext(
 			maxDepthVmStackTracker,
 			memLimitVmStackTracker,
