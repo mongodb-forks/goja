@@ -757,3 +757,139 @@ func TestTickTracking(t *testing.T) {
 		})
 	}
 }
+
+const (
+	maxDepthVmStackTracker             int     = 15000
+	memLimitVmStackTracker             uint64  = 350 * (2 << 20)
+	arrayLenThresholdVmStackTracker    int     = 1000
+	objPropsLenThresholdVmStackTracker int     = 200
+	sampleRateVmStackTracker           float64 = 0.2
+)
+
+func BenchmarkStackPushMemTracking(b *testing.B) {
+	benchmarks := []struct {
+		name                     string
+		shouldTrackMaxMemOnStack bool
+	}{
+		{
+			name:                     "with stack mem tracking",
+			shouldTrackMaxMemOnStack: true,
+		},
+		{
+			name:                     "without stack mem tracking",
+			shouldTrackMaxMemOnStack: false,
+		},
+	}
+
+	const SCRIPT = `
+	function f() {
+		const foo = {"hello": "world"};
+		const bar = [];
+		const foobar = [];
+		for (var i = 0; i < 400; i++) {
+			foo['prop_' + i] = g();
+			bar.push(foo);
+			foobar.push(bar);
+		}
+			return foobar;
+	}
+	function g() {
+		const foo2 = {"hello": "world"};
+		const bar2 = [];
+		const foobar2 = [];
+		for (var i = 0; i < 400; i++) {
+			foo2['prop_' + i] = foo2;
+			bar2.push(foo2);
+			foobar2.push(bar2);
+		}
+	}
+	f()
+	`
+	dummyVm := New() // used for creating a goja input value for benchmarks
+	prg := MustCompile("test.js", SCRIPT, false)
+	res, err := dummyVm.RunProgram(prg)
+	if err != nil {
+		b.Fatalf("unexpected error: %s", err.Error())
+	}
+	if res == UndefinedValue() {
+		b.Fatal("undexpected undefined value returned from input")
+	}
+
+	for _, bm := range benchmarks {
+		vmRuntime := New() // use a separate vm for each of the two benchmarks
+		vmRuntime.stackMemUsageContext = NewMemUsageContext(
+			maxDepthVmStackTracker,
+			memLimitVmStackTracker,
+			arrayLenThresholdVmStackTracker,
+			objPropsLenThresholdVmStackTracker,
+			sampleRateVmStackTracker,
+			nil,
+		)
+		b.ResetTimer()
+		b.Run(bm.name, func(b *testing.B) {
+			vmRuntime.shouldTrackMaxMemOnStack = bm.shouldTrackMaxMemOnStack
+
+			for i := 0; i < b.N; i++ {
+				vmRuntime.vm.push(res)
+			}
+		})
+	}
+}
+
+func BenchmarkVmMemTracking(b *testing.B) {
+	benchmarks := []struct {
+		name                     string
+		shouldTrackMaxMemOnStack bool
+	}{
+		{
+			name:                     "with stack mem tracking",
+			shouldTrackMaxMemOnStack: true,
+		},
+		{
+			name:                     "without stack mem tracking",
+			shouldTrackMaxMemOnStack: false,
+		},
+	}
+
+	const SCRIPT = `
+	function f() {
+		const foo = {"hello": "world"};
+		const bar = [];
+		const foobar = [];
+		for (var i = 0; i < 5; i++) {
+			foo['prop_' + i] = JSON.stringify(foo);
+			bar.push(foo);
+			foobar.push(bar);
+		}
+			return JSON.stringify({"returnVal": foobar});
+	}
+	f()
+	`
+	prg := MustCompile("test.js", SCRIPT, false)
+
+	for _, bm := range benchmarks {
+		vmRuntime := New() // use a separate vm for each of the two benchmarks
+		vmRuntime.stackMemUsageContext = NewMemUsageContext(
+			maxDepthVmStackTracker,
+			memLimitVmStackTracker,
+			arrayLenThresholdVmStackTracker,
+			objPropsLenThresholdVmStackTracker,
+			sampleRateVmStackTracker,
+			nil,
+		)
+		b.ResetTimer()
+		b.Run(bm.name, func(b *testing.B) {
+			vmRuntime.shouldTrackMaxMemOnStack = bm.shouldTrackMaxMemOnStack
+
+			for i := 0; i < b.N; i++ {
+				res, err := vmRuntime.RunProgram(prg)
+				if err != nil {
+					b.Fatalf("unexpected error: %s", err.Error())
+				}
+				if res == UndefinedValue() {
+					b.Fatal("undexpected undefined value returned from input")
+				}
+			}
+		})
+	}
+}
