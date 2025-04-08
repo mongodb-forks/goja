@@ -856,12 +856,12 @@ func BenchmarkVmMemTracking(b *testing.B) {
 		const foo = {"hello": "world"};
 		const bar = [];
 		const foobar = [];
-		for (var i = 0; i < 100; i++) {
-			foo['prop_' + i] = foo;
+		for (var i = 0; i < 5; i++) {
+			foo['prop_' + i] = JSON.stringify(foo);
 			bar.push(foo);
 			foobar.push(bar);
 		}
-			return foobar;
+			return JSON.stringify({"returnVal": foobar});
 	}
 	f()
 	`

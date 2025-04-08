@@ -862,13 +862,8 @@ func (vm *vm) push(v Value) {
 		return
 	}
 
-	baseObjectClass := v.baseObject(vm.r).Class()
-
-	// Function and Arguments objects appear to contain references to other objects on the stack.
-	// Checking just these two types will be an efficient, but still accurate, memory estimate over checking all objects
-	if baseObjectClass != "Function" && baseObjectClass != "Arguments" {
-		return
-	}
+	// clear the visitTracker so mem check is forced on paths that contain objects with updated mem usage
+	vm.r.stackMemUsageContext.visitTracker = visitTracker{objsVisited: make(map[objectImpl]struct{}), stashesVisited: make(map[*stash]struct{})}
 
 	// Any error will be swallowed here, though this should never happen.
 	// If an error occurs, the poller will catch the error when the object is checked
