@@ -863,7 +863,7 @@ func (vm *vm) push(v Value) {
 		return
 	}
 
-	if !vm.r.shouldTrackMaxMemOnStack(vm.funcName.String()) {
+	if !vm.r.shouldTrackMaxMemOnStack(vm.getFuncName().String()) {
 		return
 	}
 	// clear the visitTracker so mem check is forced on paths that contain objects with updated mem usage
