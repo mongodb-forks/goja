@@ -859,8 +859,11 @@ func (vm *vm) push(v Value) {
 	if vm.r == nil || v == nil {
 		return
 	}
+	if vm.r.shouldTrackMaxMemOnStack == nil {
+		return
+	}
 
-	if !vm.r.shouldTrackMaxMemOnStack(string(vm.funcName)) {
+	if !vm.r.shouldTrackMaxMemOnStack(vm.funcName.String()) {
 		return
 	}
 	// clear the visitTracker so mem check is forced on paths that contain objects with updated mem usage

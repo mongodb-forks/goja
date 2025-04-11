@@ -211,7 +211,7 @@ type Runtime struct {
 	tickMetricTrackingEnabled bool
 	tickMetrics               map[string]uint64
 
-	// context used for tracking object with largest memory in the value stack. Must be non-nil if shouldTrackMaxMemOnStack is true
+	// context used for tracking object with largest memory in the value stack. Must be non-nil if shouldTrackMaxMemOnStack is defined
 	stackMemUsageContext     *MemUsageContext
 	shouldTrackMaxMemOnStack func(funcName string) bool
 	maxStackObjectMem        uint64
