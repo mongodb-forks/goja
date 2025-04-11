@@ -827,7 +827,9 @@ func BenchmarkStackPushMemTracking(b *testing.B) {
 		)
 		b.ResetTimer()
 		b.Run(bm.name, func(b *testing.B) {
-			vmRuntime.shouldTrackMaxMemOnStack = bm.shouldTrackMaxMemOnStack
+			vmRuntime.shouldTrackMaxMemOnStack = func(_ string) bool {
+				return bm.shouldTrackMaxMemOnStack
+			}
 
 			for i := 0; i < b.N; i++ {
 				vmRuntime.vm.push(res)
@@ -879,7 +881,9 @@ func BenchmarkVmMemTracking(b *testing.B) {
 		)
 		b.ResetTimer()
 		b.Run(bm.name, func(b *testing.B) {
-			vmRuntime.shouldTrackMaxMemOnStack = bm.shouldTrackMaxMemOnStack
+			vmRuntime.shouldTrackMaxMemOnStack = func(_ string) bool {
+				return bm.shouldTrackMaxMemOnStack
+			}
 
 			for i := 0; i < b.N; i++ {
 				res, err := vmRuntime.RunProgram(prg)

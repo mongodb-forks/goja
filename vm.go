@@ -856,12 +856,16 @@ func (vm *vm) push(v Value) {
 	vm.stack[vm.sp] = v
 	vm.sp++
 
-	shouldTrackMaxMemOnStack := (vm.r != nil && vm.r.shouldTrackMaxMemOnStack)
-
-	if !shouldTrackMaxMemOnStack || v == nil || !v.IsObject() {
+	if vm.r == nil || v == nil {
+		return
+	}
+	if vm.r.shouldTrackMaxMemOnStack == nil {
 		return
 	}
 
+	if !vm.r.shouldTrackMaxMemOnStack(vm.funcName.String()) {
+		return
+	}
 	// clear the visitTracker so mem check is forced on paths that contain objects with updated mem usage
 	vm.r.stackMemUsageContext.visitTracker = visitTracker{objsVisited: make(map[objectImpl]struct{}), stashesVisited: make(map[*stash]struct{})}
 
