@@ -13,6 +13,7 @@ import (
 	"reflect"
 	"runtime"
 	"strconv"
+	"sync"
 	"time"
 
 	"golang.org/x/text/collate"
@@ -214,6 +215,7 @@ type Runtime struct {
 	// context used for tracking object with largest memory in the value stack. Must be non-nil if shouldTrackMaxMemOnStack is defined
 	stackMemUsageContext     *MemUsageContext
 	shouldTrackMaxMemOnStack func(funcName string) bool
+	maxStackObjectMemLock    sync.RWMutex
 	maxStackObjectMem        uint64
 }
 
@@ -585,9 +587,18 @@ func (r *Runtime) MemUsage(ctx *MemUsageContext) (memUsage uint64, err error) {
 	return memUsage, nil
 }
 
-// MaxStackObjectMemUsage returns the memory used by the largest object seen in the vm value stack
-func (r *Runtime) MaxStackObjectMemUsage() uint64 {
-	return r.maxStackObjectMem
+// GetMaxStackObjectMemUsage returns the memory used by the largest object seen in the vm value stack
+func (r *Runtime) GetMaxStackObjectMemUsage() uint64 {
+	r.maxStackObjectMemLock.RLock()
+	mem := r.maxStackObjectMem
+	r.maxStackObjectMemLock.RUnlock()
+	return mem
+}
+
+func (r *Runtime) setMaxStackObjectMemUsage(mem uint64) {
+	r.maxStackObjectMemLock.Lock()
+	r.maxStackObjectMem = mem
+	r.maxStackObjectMemLock.Unlock()
 }
 
 func (r *Runtime) newError(typ *Object, format string, args ...interface{}) Value {

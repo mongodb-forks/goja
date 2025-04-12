@@ -872,7 +872,9 @@ func (vm *vm) push(v Value) {
 	// Any error will be swallowed here, though this should never happen.
 	// If an error occurs, the poller will catch the error when the object is checked
 	valueMemUsage, _ := v.MemUsage(vm.r.stackMemUsageContext)
-	vm.r.maxStackObjectMem = uint64(math.Max(float64(vm.r.maxStackObjectMem), float64(valueMemUsage)))
+	if valueMemUsage > vm.r.GetMaxStackObjectMemUsage() {
+		vm.r.setMaxStackObjectMemUsage(valueMemUsage)
+	}
 }
 
 func (vm *vm) pop() Value {
